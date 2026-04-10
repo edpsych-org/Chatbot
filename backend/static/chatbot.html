@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdPsych Assessment Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            margin-top: 10px;
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .login-section,
+        .chatbot-section {
+            display: none;
+        }
+
+        .login-section.active,
+        .chatbot-section.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .question-card {
+            background: #f8f9fa;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+
+        .question-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .question-section {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-bottom: 16px;
+        }
+
+        .answer-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .answer-option {
+            padding: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .answer-option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .answer-option.selected {
+            border-color: #667eea;
+            background: #e8edff;
+        }
+
+        .scale-options {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .scale-option {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .scale-option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .scale-option.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            border-left: 4px solid #c33;
+        }
+
+        .success {
+            background: #efe;
+            color: #3c3;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            border-left: 4px solid #3c3;
+        }
+
+        .completion-screen {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .completion-screen h2 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 16px;
+        }
+
+        .completion-icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 EdPsych Assessment Chatbot</h1>
+            <p>Educational Psychology Student Assessment</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+            <div class="progress-text" id="progressText">Ready to start</div>
+        </div>
+
+        <div class="content">
+            <!-- Login Section -->
+            <div class="login-section active" id="loginSection">
+                <h2 style="margin-bottom: 24px;">Login to Start Assessment</h2>
+                <div id="loginError"></div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="Enter your email" value="parent@example.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" value="password123">
+                </div>
+
+                <button class="btn" onclick="login()">Login & Start Assessment</button>
+
+                <p style="margin-top: 20px; text-align: center; color: #666; font-size: 14px;">
+                    Demo credentials filled in for testing
+                </p>
+            </div>
+
+            <!-- Chatbot Section -->
+            <div class="chatbot-section" id="chatbotSection">
+                <div id="questionContainer"></div>
+                <div id="completionScreen" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api/v1';
+        let authToken = null;
+        let currentSession = null;
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let answers = {};
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Login failed');
+                }
+
+                const data = await response.json();
+                authToken = data.access_token;
+
+                // Start assessment
+                await startAssessment();
+            } catch (error) {
+                errorDiv.innerHTML = '<div class="error">Login failed. Please check your credentials.</div>';
+            }
+        }
+
+        async function startAssessment() {
+            try {
+                // Get questions
+                const questionsRes = await fetch(`${API_BASE}/chatbot/questions`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                questions = await questionsRes.json();
+
+                // Create session (you'll need to replace with actual student ID)
+                const sessionRes = await fetch(`${API_BASE}/chatbot/sessions/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        student_id: '49f2850e-ff24-4990-aa89-99ae7f0431c4' // Replace with actual student ID
+                    })
+                });
+
+                currentSession = await sessionRes.json();
+
+                // Show chatbot
+                document.getElementById('loginSection').classList.remove('active');
+                document.getElementById('chatbotSection').classList.add('active');
+
+                // Display first question
+                displayQuestion(0);
+            } catch (error) {
+                console.error('Error starting assessment:', error);
+                alert('Error starting assessment. Please try again.');
+            }
+        }
+
+        function displayQuestion(index) {
+            if (index >= questions.length) {
+                completeAssessment();
+                return;
+            }
+
+            currentQuestionIndex = index;
+            const question = questions[index];
+            const container = document.getElementById('questionContainer');
+
+            let answersHTML = '';
+            if (question.question_type === 'YES_NO') {
+                answersHTML = `
+                    <div class="answer-options">
+                        <div class="answer-option" onclick="selectAnswer('Yes')">
+                            ✓ Yes
+                        </div>
+                        <div class="answer-option" onclick="selectAnswer('No')">
+                            ✗ No
+                        </div>
+                    </div>
+                `;
+            } else if (question.question_type === 'SCALE') {
+                answersHTML = `
+                    <div class="scale-options">
+                        <div class="scale-option" onclick="selectAnswer('1')">1<br><small>Never</small></div>
+                        <div class="scale-option" onclick="selectAnswer('2')">2</div>
+                        <div class="scale-option" onclick="selectAnswer('3')">3</div>
+                        <div class="scale-option" onclick="selectAnswer('4')">4</div>
+                        <div class="scale-option" onclick="selectAnswer('5')">5<br><small>Always</small></div>
+                    </div>
+                `;
+            } else if (question.question_type === 'TEXT') {
+                answersHTML = `
+                    <div class="form-group">
+                        <textarea id="textAnswer" placeholder="Type your answer here..."></textarea>
+                        <button class="btn" style="margin-top: 12px;" onclick="submitTextAnswer()">Submit Answer</button>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="question-card">
+                    <span class="question-section">${question.section}</span>
+                    <div class="question-text">Question ${index + 1} of ${questions.length}</div>
+                    <div class="question-text">${question.question_text}</div>
+                    ${answersHTML}
+                </div>
+            `;
+
+            updateProgress();
+        }
+
+        async function selectAnswer(answerText) {
+            const question = questions[currentQuestionIndex];
+
+            try {
+                await fetch(`${API_BASE}/chatbot/answer`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        session_id: currentSession.id,
+                        question_id: question.id,
+                        answer_text: answerText
+                    })
+                });
+
+                answers[question.id] = answerText;
+
+                // Move to next question after a brief delay
+                setTimeout(() => {
+                    displayQuestion(currentQuestionIndex + 1);
+                }, 300);
+            } catch (error) {
+                console.error('Error submitting answer:', error);
+                alert('Error submitting answer. Please try again.');
+            }
+        }
+
+        async function submitTextAnswer() {
+            const answerText = document.getElementById('textAnswer').value.trim();
+            if (!answerText) {
+                alert('Please enter an answer');
+                return;
+            }
+            await selectAnswer(answerText);
+        }
+
+        async function completeAssessment() {
+            try {
+                await fetch(`${API_BASE}/chatbot/sessions/${currentSession.id}/complete`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                document.getElementById('questionContainer').style.display = 'none';
+                document.getElementById('completionScreen').style.display = 'block';
+                document.getElementById('completionScreen').innerHTML = `
+                    <div class="completion-screen">
+                        <div class="completion-icon">🎉</div>
+                        <h2>Assessment Complete!</h2>
+                        <p style="color: #666; margin-top: 16px; font-size: 18px;">
+                            Thank you for completing the assessment.<br>
+                            Your responses have been submitted successfully.
+                        </p>
+                        <button class="btn" style="max-width: 300px; margin: 32px auto 0;" onclick="location.reload()">
+                            Start New Assessment
+                        </button>
+                    </div>
+                `;
+
+                updateProgress(100);
+            } catch (error) {
+                console.error('Error completing assessment:', error);
+            }
+        }
+
+        function updateProgress(customPercent) {
+            const percent = customPercent !== undefined ? customPercent :
+                           (currentQuestionIndex / questions.length) * 100;
+
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressText').textContent =
+                customPercent === 100 ? 'Complete!' : `${currentQuestionIndex} of ${questions.length} answered (${Math.round(percent)}%)`;
+        }
+    </script>
+</body>
+</html>

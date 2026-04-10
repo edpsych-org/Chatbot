@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: edpsych_postgres
+    environment:
+      POSTGRES_USER: edpsych
+      POSTGRES_PASSWORD: edpsych_secure_password
+      POSTGRES_DB: edpsych_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./database/data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - edpsych-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U edpsych"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache & Queue
+  redis:
+    image: redis:7-alpine
+    container_name: edpsych_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis-data:/data
+    networks:
+      - edpsych-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # MinIO (S3 Alternative)
+  minio:
+    image: minio/minio:latest
+    container_name: edpsych_minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    ports:
+      - "9000:9000"  # API
+      - "9001:9001"  # Console UI
+    volumes:
+      - ./storage:/data
+    networks:
+      - edpsych-network
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # MinIO Client (Create buckets on startup)
+  minio-setup:
+    image: minio/mc:latest
+    container_name: edpsych_minio_setup
+    depends_on:
+      - minio
+    networks:
+      - edpsych-network
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin123;
+      /usr/bin/mc mb myminio/iq-tests --ignore-existing;
+      /usr/bin/mc mb myminio/reports --ignore-existing;
+      /usr/bin/mc mb myminio/temp --ignore-existing;
+      /usr/bin/mc anonymous set download myminio/reports;
+      exit 0;
+      "
+
+networks:
+  edpsych-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:

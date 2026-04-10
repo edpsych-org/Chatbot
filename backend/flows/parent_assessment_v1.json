@@ -1,0 +1,1800 @@
+{
+  "flow_id": "parent_assessment_v1",
+  "flow_name": "Parent Assessment - Educational Psychology",
+  "flow_type": "parent",
+  "version": "2.0",
+  "start_node": "welcome",
+  "nodes": {
+    "welcome": {
+      "type": "message",
+      "content": "👋 Hi! I'm here to help assess {student_name}'s learning needs.\n\nThis will take about 10-15 minutes. You can answer by:\n• Clicking the quick reply buttons\n• Typing your own responses\n• Or both!\n\nLet's begin!",
+      "next": "student_age",
+      "metadata": {
+        "category": "intro",
+        "skip_allowed": false
+      }
+    },
+    "student_age": {
+      "type": "mcq",
+      "question": "How old is {student_name}?",
+      "category": "background",
+      "options": [
+        {"value": "5-7", "label": "5-7 years", "next": "attention_intro"},
+        {"value": "8-10", "label": "8-10 years", "next": "attention_intro"},
+        {"value": "11-13", "label": "11-13 years", "next": "attention_intro"},
+        {"value": "14+", "label": "14+ years", "next": "attention_intro"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or type the exact age:",
+      "metadata": {
+        "category": "background",
+        "required": true
+      }
+    },
+
+    "attention_intro": {
+      "type": "message",
+      "content": "📚 Great! Now let's talk about {student_name}'s attention and focus. This section will help us understand how {student_name} concentrates and manages tasks.",
+      "next": "attention_1",
+      "metadata": {
+        "category": "attention"
+      }
+    },
+    "attention_1": {
+      "type": "mcq",
+      "question": "Does {student_name} have difficulty staying focused on tasks or homework?",
+      "category": "attention",
+      "options": [
+        {"value": "often", "label": "Yes, often", "next": "attention_2", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "attention_2", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "attention_2", "metadata": {"severity": "low"}},
+        {"value": "never", "label": "Never", "next": "attention_2", "metadata": {"severity": "none"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "sustained_attention"
+      }
+    },
+    "attention_2": {
+      "type": "mcq",
+      "question": "How long can {student_name} typically focus on a single task without losing concentration?",
+      "category": "attention",
+      "options": [
+        {"value": "under_5", "label": "Less than 5 minutes", "next": "attention_3", "metadata": {"severity": "high"}},
+        {"value": "5_15", "label": "5-15 minutes", "next": "attention_3", "metadata": {"severity": "medium"}},
+        {"value": "15_30", "label": "15-30 minutes", "next": "attention_3", "metadata": {"severity": "low"}},
+        {"value": "over_30", "label": "More than 30 minutes", "next": "attention_3", "metadata": {"severity": "none"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their focus duration:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "focus_duration"
+      }
+    },
+    "attention_3": {
+      "type": "mcq",
+      "question": "Does {student_name} seem easily distracted by noises, movement, or other things happening around them?",
+      "category": "attention",
+      "options": [
+        {"value": "often", "label": "Yes, very easily", "next": "attention_4", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "attention_4", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "attention_4", "metadata": {"severity": "low"}},
+        {"value": "never", "label": "Never", "next": "attention_4", "metadata": {"severity": "none"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or share an example:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "distractibility"
+      }
+    },
+    "attention_4": {
+      "type": "mcq",
+      "question": "Does {student_name} finish tasks or assignments that they start?",
+      "category": "attention",
+      "options": [
+        {"value": "always", "label": "Yes, always", "next": "attention_5"},
+        {"value": "mostly", "label": "Most of the time", "next": "attention_5"},
+        {"value": "sometimes", "label": "Sometimes", "next": "attention_5"},
+        {"value": "rarely", "label": "Rarely finishes", "next": "attention_5", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their task completion:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "task_completion"
+      }
+    },
+    "attention_5": {
+      "type": "mcq",
+      "question": "Does {student_name} fidget, squirm, or have trouble sitting still?",
+      "category": "attention",
+      "options": [
+        {"value": "often", "label": "Yes, often", "next": "attention_6", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "attention_6", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "attention_6", "metadata": {"severity": "low"}},
+        {"value": "never", "label": "Never", "next": "attention_6", "metadata": {"severity": "none"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe what you notice:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "hyperactivity"
+      }
+    },
+    "attention_6": {
+      "type": "mcq",
+      "question": "How well does {student_name} keep their school materials, desk, or workspace organized?",
+      "category": "attention",
+      "options": [
+        {"value": "very_organized", "label": "Very organized", "next": "attention_7"},
+        {"value": "somewhat", "label": "Somewhat organized", "next": "attention_7"},
+        {"value": "messy", "label": "Often messy or disorganized", "next": "attention_7"},
+        {"value": "very_messy", "label": "Consistently disorganized", "next": "attention_7", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their organization habits:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "organization"
+      }
+    },
+    "attention_7": {
+      "type": "mcq",
+      "question": "Does {student_name} follow multi-step instructions without needing them repeated?",
+      "category": "attention",
+      "options": [
+        {"value": "always", "label": "Yes, consistently", "next": "attention_8"},
+        {"value": "sometimes", "label": "Sometimes needs reminders", "next": "attention_8"},
+        {"value": "often_repeats", "label": "Often needs instructions repeated", "next": "attention_8", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely follows without repetition", "next": "attention_8", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their instruction-following:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "following_instructions"
+      }
+    },
+    "attention_8": {
+      "type": "mcq",
+      "question": "Does {student_name} have difficulty managing their time for homework or projects?",
+      "category": "attention",
+      "options": [
+        {"value": "often", "label": "Yes, often", "next": "attention_9", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "attention_9", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "attention_9", "metadata": {"severity": "low"}},
+        {"value": "never", "label": "Never", "next": "attention_9", "metadata": {"severity": "none"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their time management:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "time_management"
+      }
+    },
+    "attention_9": {
+      "type": "mcq",
+      "question": "Does {student_name} need constant supervision or reminders to complete homework?",
+      "category": "attention",
+      "options": [
+        {"value": "always", "label": "Yes, always needs supervision", "next": "attention_10", "metadata": {"severity": "high"}},
+        {"value": "often", "label": "Often needs reminders", "next": "attention_10", "metadata": {"severity": "medium"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "attention_10"},
+        {"value": "independent", "label": "Works independently", "next": "attention_10"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their homework habits:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "homework_habits"
+      }
+    },
+    "attention_10": {
+      "type": "mcq",
+      "question": "Can {student_name} sustain attention during activities they find boring or uninteresting?",
+      "category": "attention",
+      "options": [
+        {"value": "yes", "label": "Yes, even for boring tasks", "next": "attention_11"},
+        {"value": "mostly", "label": "Mostly, with some effort", "next": "attention_11"},
+        {"value": "only_interesting", "label": "Only for interesting activities", "next": "attention_11", "metadata": {"severity": "medium"}},
+        {"value": "never", "label": "Cannot sustain attention regardless", "next": "attention_11", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or tell me more:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "sustained_attention_boring_tasks"
+      }
+    },
+    "attention_11": {
+      "type": "mcq",
+      "question": "Does {student_name} have difficulty filtering out background noise or distractions to focus on what's important?",
+      "category": "attention",
+      "options": [
+        {"value": "often", "label": "Yes, often", "next": "attention_12", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "attention_12", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "attention_12"},
+        {"value": "never", "label": "Never", "next": "attention_12"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe what you observe:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "selective_attention"
+      }
+    },
+    "attention_12": {
+      "type": "mcq",
+      "question": "Can {student_name} do two things at once, such as listening to a teacher while taking notes?",
+      "category": "attention",
+      "options": [
+        {"value": "easily", "label": "Yes, easily", "next": "attention_13"},
+        {"value": "with_effort", "label": "With some effort", "next": "attention_13"},
+        {"value": "struggles", "label": "Struggles with this", "next": "attention_13", "metadata": {"severity": "medium"}},
+        {"value": "cannot", "label": "Cannot manage multiple tasks", "next": "attention_13", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their multitasking:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "divided_attention"
+      }
+    },
+    "attention_13": {
+      "type": "mcq",
+      "question": "Does {student_name} have difficulty holding information in mind while working on a task (e.g., remembering instructions while doing them)?",
+      "category": "attention",
+      "options": [
+        {"value": "often", "label": "Yes, often", "next": "attention_14", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "attention_14", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "attention_14"},
+        {"value": "never", "label": "Never", "next": "attention_14"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or provide an example:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "working_memory"
+      }
+    },
+    "attention_14": {
+      "type": "mcq",
+      "question": "Does {student_name} seem to process information more slowly than their peers?",
+      "category": "attention",
+      "options": [
+        {"value": "noticeably", "label": "Yes, noticeably slower", "next": "attention_15", "metadata": {"severity": "high"}},
+        {"value": "somewhat", "label": "Somewhat slower", "next": "attention_15", "metadata": {"severity": "medium"}},
+        {"value": "same", "label": "About the same pace", "next": "attention_15"},
+        {"value": "faster", "label": "Faster than peers", "next": "attention_15"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their processing speed:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "processing_speed"
+      }
+    },
+    "attention_15": {
+      "type": "mcq",
+      "question": "Does {student_name} act or speak without thinking first (impulsively)?",
+      "category": "attention",
+      "options": [
+        {"value": "often", "label": "Yes, often", "next": "attention_16", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "attention_16", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "attention_16"},
+        {"value": "never", "label": "Never", "next": "attention_16"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their impulse control:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "impulse_control"
+      }
+    },
+    "attention_16": {
+      "type": "mcq",
+      "question": "Does {student_name} seem to daydream or zone out during class or conversations?",
+      "category": "attention",
+      "options": [
+        {"value": "often", "label": "Yes, often", "next": "attention_17", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "attention_17", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "attention_17"},
+        {"value": "never", "label": "Never", "next": "attention_17"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe what you notice:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "daydreaming"
+      }
+    },
+    "attention_17": {
+      "type": "mcq",
+      "question": "Does {student_name} frequently lose or misplace things like school supplies, books, or assignments?",
+      "category": "attention",
+      "options": [
+        {"value": "often", "label": "Yes, often", "next": "attention_18", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "attention_18", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "attention_18"},
+        {"value": "never", "label": "Never", "next": "attention_18"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe what they lose:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "losing_things"
+      }
+    },
+    "attention_18": {
+      "type": "mcq",
+      "question": "Is {student_name} forgetful in daily activities, such as forgetting chores, appointments, or bringing materials to school?",
+      "category": "attention",
+      "options": [
+        {"value": "often", "label": "Yes, often", "next": "attention_19", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "attention_19", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "attention_19"},
+        {"value": "never", "label": "Never", "next": "attention_19"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or share examples:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "forgetfulness"
+      }
+    },
+    "attention_19": {
+      "type": "mcq",
+      "question": "Does {student_name} have difficulty transitioning between activities or tasks?",
+      "category": "attention",
+      "options": [
+        {"value": "often", "label": "Yes, often", "next": "attention_20", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "attention_20", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "attention_20"},
+        {"value": "never", "label": "Never", "next": "attention_20"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their transition difficulties:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "transition_difficulties"
+      }
+    },
+    "attention_20": {
+      "type": "mcq",
+      "question": "Does {student_name} make careless mistakes due to not paying attention to details?",
+      "category": "attention",
+      "options": [
+        {"value": "often", "label": "Yes, often", "next": "social_intro", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "social_intro", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "social_intro"},
+        {"value": "never", "label": "Never", "next": "social_intro"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe what you observe:",
+      "metadata": {
+        "category": "attention",
+        "key_indicator": "attention_to_detail"
+      }
+    },
+
+    "social_intro": {
+      "type": "message",
+      "content": "👥 Now let's talk about {student_name}'s social interactions and friendships. This section helps us understand how they relate to others.",
+      "next": "social_1",
+      "metadata": {
+        "category": "social"
+      }
+    },
+    "social_1": {
+      "type": "mcq",
+      "question": "How does {student_name} interact with peers at school or in group settings?",
+      "category": "social",
+      "options": [
+        {"value": "very_social", "label": "Very social and outgoing", "next": "social_2"},
+        {"value": "selective", "label": "Has a few close friends", "next": "social_2"},
+        {"value": "shy", "label": "Shy or withdrawn", "next": "social_2", "metadata": {"severity": "medium"}},
+        {"value": "isolated", "label": "Prefers to be alone", "next": "social_2", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their social style:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "peer_relationships"
+      }
+    },
+    "social_2": {
+      "type": "mcq",
+      "question": "How does {student_name} behave in group activities or team settings?",
+      "category": "social",
+      "options": [
+        {"value": "leads", "label": "Takes a leadership role", "next": "social_3"},
+        {"value": "participates", "label": "Participates actively", "next": "social_3"},
+        {"value": "follows", "label": "Follows others quietly", "next": "social_3"},
+        {"value": "withdraws", "label": "Withdraws or avoids groups", "next": "social_3", "metadata": {"severity": "medium"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their group behavior:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "group_behavior"
+      }
+    },
+    "social_3": {
+      "type": "mcq",
+      "question": "Does {student_name} communicate their needs and feelings clearly to others?",
+      "category": "social",
+      "options": [
+        {"value": "very_well", "label": "Yes, very well", "next": "social_4"},
+        {"value": "adequately", "label": "Adequately for their age", "next": "social_4"},
+        {"value": "struggles", "label": "Struggles to express themselves", "next": "social_4", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely communicates feelings", "next": "social_4", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their communication:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "communication_skills"
+      }
+    },
+    "social_4": {
+      "type": "mcq",
+      "question": "Does {student_name} show empathy or understanding of others' feelings?",
+      "category": "social",
+      "options": [
+        {"value": "often", "label": "Yes, often", "next": "social_5"},
+        {"value": "sometimes", "label": "Sometimes", "next": "social_5"},
+        {"value": "rarely", "label": "Rarely", "next": "social_5", "metadata": {"severity": "medium"}},
+        {"value": "never", "label": "Never or struggles with this", "next": "social_5", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their empathy:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "empathy"
+      }
+    },
+    "social_5": {
+      "type": "mcq",
+      "question": "How does {student_name} handle conflicts or disagreements with other children?",
+      "category": "social",
+      "options": [
+        {"value": "resolves_well", "label": "Resolves them calmly", "next": "social_6"},
+        {"value": "needs_help", "label": "Needs adult help to resolve", "next": "social_6"},
+        {"value": "becomes_upset", "label": "Gets very upset or angry", "next": "social_6", "metadata": {"severity": "medium"}},
+        {"value": "aggressive", "label": "Becomes aggressive or physical", "next": "social_6", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their conflict style:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "conflict_resolution"
+      }
+    },
+    "social_6": {
+      "type": "mcq",
+      "question": "How does {student_name} engage in play with other children?",
+      "category": "social",
+      "options": [
+        {"value": "cooperative", "label": "Cooperative and interactive", "next": "social_7"},
+        {"value": "parallel", "label": "Plays alongside but not with others", "next": "social_7", "metadata": {"severity": "medium"}},
+        {"value": "solitary", "label": "Prefers solitary play", "next": "social_7", "metadata": {"severity": "medium"}},
+        {"value": "doesnt_play", "label": "Does not engage in play with peers", "next": "social_7", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their play patterns:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "play_patterns"
+      }
+    },
+    "social_7": {
+      "type": "mcq",
+      "question": "Does {student_name} pick up on social cues, such as body language, tone of voice, or facial expressions?",
+      "category": "social",
+      "options": [
+        {"value": "well", "label": "Yes, reads cues well", "next": "social_8"},
+        {"value": "sometimes", "label": "Sometimes misses cues", "next": "social_8"},
+        {"value": "often_misses", "label": "Often misses social cues", "next": "social_8", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely picks up on cues", "next": "social_8", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their social awareness:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "social_cues_understanding"
+      }
+    },
+    "social_8": {
+      "type": "mcq",
+      "question": "How would you describe the quality of {student_name}'s friendships?",
+      "category": "social",
+      "options": [
+        {"value": "strong", "label": "Strong and meaningful", "next": "social_9"},
+        {"value": "moderate", "label": "Moderate, some good friendships", "next": "social_9"},
+        {"value": "superficial", "label": "Superficial or one-sided", "next": "social_9", "metadata": {"severity": "medium"}},
+        {"value": "none", "label": "Few or no real friendships", "next": "social_9", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their friendships:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "friendship_quality"
+      }
+    },
+    "social_9": {
+      "type": "mcq",
+      "question": "Does {student_name} take turns and share willingly with others?",
+      "category": "social",
+      "options": [
+        {"value": "always", "label": "Yes, consistently", "next": "social_10"},
+        {"value": "mostly", "label": "Most of the time", "next": "social_10"},
+        {"value": "sometimes", "label": "Sometimes struggles with this", "next": "social_10", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely shares or takes turns", "next": "social_10", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe what you observe:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "sharing_turn_taking"
+      }
+    },
+    "social_10": {
+      "type": "mcq",
+      "question": "Does {student_name} appear anxious or nervous in social situations?",
+      "category": "social",
+      "options": [
+        {"value": "often", "label": "Yes, often", "next": "social_11", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "social_11", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "social_11"},
+        {"value": "never", "label": "Never", "next": "social_11"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their social anxiety:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "social_anxiety"
+      }
+    },
+    "social_11": {
+      "type": "mcq",
+      "question": "Has {student_name} experienced bullying, either as the target or as the bully?",
+      "category": "social",
+      "options": [
+        {"value": "target", "label": "Yes, they have been bullied", "next": "social_12", "metadata": {"severity": "high"}},
+        {"value": "bully", "label": "Yes, they have bullied others", "next": "social_12", "metadata": {"severity": "high"}},
+        {"value": "both", "label": "Both", "next": "social_12", "metadata": {"severity": "high"}},
+        {"value": "no", "label": "No", "next": "social_12"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or share more details:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "bullying"
+      }
+    },
+    "social_12": {
+      "type": "mcq",
+      "question": "Does {student_name} take on a leadership role among peers?",
+      "category": "social",
+      "options": [
+        {"value": "often", "label": "Yes, often leads", "next": "social_13"},
+        {"value": "sometimes", "label": "Sometimes", "next": "social_13"},
+        {"value": "rarely", "label": "Rarely", "next": "social_13"},
+        {"value": "never", "label": "Never", "next": "social_13"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their leadership:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "leadership"
+      }
+    },
+    "social_13": {
+      "type": "mcq",
+      "question": "Does {student_name} cooperate well with others on shared tasks or projects?",
+      "category": "social",
+      "options": [
+        {"value": "very_well", "label": "Yes, very well", "next": "social_14"},
+        {"value": "adequately", "label": "Adequately", "next": "social_14"},
+        {"value": "struggles", "label": "Struggles to cooperate", "next": "social_14", "metadata": {"severity": "medium"}},
+        {"value": "refuses", "label": "Often refuses to cooperate", "next": "social_14", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their cooperation:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "cooperation"
+      }
+    },
+    "social_14": {
+      "type": "mcq",
+      "question": "Does {student_name} use appropriate nonverbal communication (eye contact, gestures, personal space)?",
+      "category": "social",
+      "options": [
+        {"value": "appropriate", "label": "Yes, age-appropriate", "next": "social_15"},
+        {"value": "mostly", "label": "Mostly appropriate", "next": "social_15"},
+        {"value": "some_difficulty", "label": "Some difficulty with this", "next": "social_15", "metadata": {"severity": "medium"}},
+        {"value": "significant_difficulty", "label": "Significant difficulty", "next": "social_15", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe what you notice:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "nonverbal_communication"
+      }
+    },
+    "social_15": {
+      "type": "mcq",
+      "question": "How does {student_name} manage their use of social media or online interactions (if applicable)?",
+      "category": "social",
+      "options": [
+        {"value": "responsibly", "label": "Responsibly with limits", "next": "social_16"},
+        {"value": "needs_monitoring", "label": "Needs monitoring", "next": "social_16"},
+        {"value": "problems", "label": "Has had problems online", "next": "social_16", "metadata": {"severity": "medium"}},
+        {"value": "not_applicable", "label": "Not applicable / no access", "next": "social_16"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their online interactions:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "social_media_use"
+      }
+    },
+    "social_16": {
+      "type": "mcq",
+      "question": "Does {student_name} participate in team sports, clubs, or group activities outside of school?",
+      "category": "social",
+      "options": [
+        {"value": "actively", "label": "Yes, actively participates", "next": "social_17"},
+        {"value": "some", "label": "Some activities", "next": "social_17"},
+        {"value": "reluctant", "label": "Reluctant to join", "next": "social_17", "metadata": {"severity": "medium"}},
+        {"value": "none", "label": "Does not participate", "next": "social_17", "metadata": {"severity": "medium"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their activities:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "team_activities"
+      }
+    },
+    "social_17": {
+      "type": "mcq",
+      "question": "How confident does {student_name} appear in social situations?",
+      "category": "social",
+      "options": [
+        {"value": "very_confident", "label": "Very confident", "next": "social_18"},
+        {"value": "somewhat", "label": "Somewhat confident", "next": "social_18"},
+        {"value": "low", "label": "Low confidence", "next": "social_18", "metadata": {"severity": "medium"}},
+        {"value": "very_low", "label": "Very low confidence / avoidant", "next": "social_18", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their social confidence:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "social_confidence"
+      }
+    },
+    "social_18": {
+      "type": "mcq",
+      "question": "Does {student_name} find it easy to make new friends?",
+      "category": "social",
+      "options": [
+        {"value": "very_easy", "label": "Yes, very easily", "next": "social_19"},
+        {"value": "somewhat", "label": "Somewhat", "next": "social_19"},
+        {"value": "difficult", "label": "Finds it difficult", "next": "social_19", "metadata": {"severity": "medium"}},
+        {"value": "very_difficult", "label": "Very difficult", "next": "social_19", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their friend-making ability:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "making_friends"
+      }
+    },
+    "social_19": {
+      "type": "mcq",
+      "question": "Does {student_name} maintain friendships over time, or do relationships tend to be short-lived?",
+      "category": "social",
+      "options": [
+        {"value": "long_lasting", "label": "Maintains long-lasting friendships", "next": "social_20"},
+        {"value": "mostly", "label": "Mostly maintains friendships", "next": "social_20"},
+        {"value": "short_lived", "label": "Friendships tend to be short-lived", "next": "social_20", "metadata": {"severity": "medium"}},
+        {"value": "no_friendships", "label": "Does not have ongoing friendships", "next": "social_20", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or tell me more:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "maintaining_friendships"
+      }
+    },
+    "social_20": {
+      "type": "mcq",
+      "question": "Does {student_name} understand and respect personal boundaries with others?",
+      "category": "social",
+      "options": [
+        {"value": "always", "label": "Yes, always", "next": "emotional_intro"},
+        {"value": "mostly", "label": "Mostly", "next": "emotional_intro"},
+        {"value": "sometimes", "label": "Sometimes struggles with boundaries", "next": "emotional_intro", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely respects boundaries", "next": "emotional_intro", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their boundary awareness:",
+      "metadata": {
+        "category": "social",
+        "key_indicator": "social_boundaries"
+      }
+    },
+
+    "emotional_intro": {
+      "type": "message",
+      "content": "😊 Thanks! Now let's discuss {student_name}'s emotional well-being. This section helps us understand how they experience and manage their emotions.",
+      "next": "emotional_1",
+      "metadata": {
+        "category": "emotional"
+      }
+    },
+    "emotional_1": {
+      "type": "mcq",
+      "question": "How well does {student_name} regulate their mood throughout the day?",
+      "category": "emotional",
+      "options": [
+        {"value": "very_well", "label": "Very well, stable mood", "next": "emotional_2"},
+        {"value": "mostly", "label": "Mostly stable", "next": "emotional_2"},
+        {"value": "variable", "label": "Mood is quite variable", "next": "emotional_2", "metadata": {"severity": "medium"}},
+        {"value": "poorly", "label": "Struggles significantly with mood", "next": "emotional_2", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their mood patterns:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "mood_regulation"
+      }
+    },
+    "emotional_2": {
+      "type": "mcq",
+      "question": "How often does {student_name} seem anxious or worried?",
+      "category": "emotional",
+      "options": [
+        {"value": "daily", "label": "Daily or almost daily", "next": "emotional_3", "metadata": {"severity": "high"}},
+        {"value": "weekly", "label": "Several times a week", "next": "emotional_3", "metadata": {"severity": "medium"}},
+        {"value": "occasionally", "label": "Occasionally", "next": "emotional_3"},
+        {"value": "rarely", "label": "Rarely or never", "next": "emotional_3"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their anxiety:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "anxiety_signs"
+      }
+    },
+    "emotional_3": {
+      "type": "mcq",
+      "question": "How is {student_name}'s self-esteem? Do they feel good about themselves?",
+      "category": "emotional",
+      "options": [
+        {"value": "high", "label": "High self-esteem", "next": "emotional_4"},
+        {"value": "adequate", "label": "Adequate, generally positive", "next": "emotional_4"},
+        {"value": "low", "label": "Low self-esteem", "next": "emotional_4", "metadata": {"severity": "medium"}},
+        {"value": "very_low", "label": "Very low, often self-critical", "next": "emotional_4", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their self-image:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "self_esteem"
+      }
+    },
+    "emotional_4": {
+      "type": "mcq",
+      "question": "How does {student_name} handle frustration when things don't go their way?",
+      "category": "emotional",
+      "options": [
+        {"value": "well", "label": "Handles it well", "next": "emotional_5"},
+        {"value": "with_help", "label": "Manages with some support", "next": "emotional_5"},
+        {"value": "poorly", "label": "Gets very frustrated quickly", "next": "emotional_5", "metadata": {"severity": "medium"}},
+        {"value": "meltdowns", "label": "Has outbursts or meltdowns", "next": "emotional_5", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe how they cope:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "frustration_tolerance"
+      }
+    },
+    "emotional_5": {
+      "type": "mcq",
+      "question": "Does {student_name} express their emotions in age-appropriate ways?",
+      "category": "emotional",
+      "options": [
+        {"value": "always", "label": "Yes, always appropriate", "next": "emotional_6"},
+        {"value": "mostly", "label": "Mostly appropriate", "next": "emotional_6"},
+        {"value": "sometimes", "label": "Sometimes inappropriate expressions", "next": "emotional_6", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Often inappropriate emotional expression", "next": "emotional_6", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their emotional expression:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "emotional_expression"
+      }
+    },
+    "emotional_6": {
+      "type": "mcq",
+      "question": "Does {student_name} have healthy coping strategies when feeling upset or stressed?",
+      "category": "emotional",
+      "options": [
+        {"value": "yes", "label": "Yes, uses healthy strategies", "next": "emotional_7"},
+        {"value": "some", "label": "Has some coping strategies", "next": "emotional_7"},
+        {"value": "limited", "label": "Limited coping strategies", "next": "emotional_7", "metadata": {"severity": "medium"}},
+        {"value": "none", "label": "No apparent coping strategies", "next": "emotional_7", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe how they cope:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "coping_strategies"
+      }
+    },
+    "emotional_7": {
+      "type": "mcq",
+      "question": "Does {student_name} experience separation anxiety when apart from parents or caregivers?",
+      "category": "emotional",
+      "options": [
+        {"value": "severe", "label": "Yes, severe anxiety", "next": "emotional_8", "metadata": {"severity": "high"}},
+        {"value": "moderate", "label": "Moderate anxiety", "next": "emotional_8", "metadata": {"severity": "medium"}},
+        {"value": "mild", "label": "Mild, occasionally", "next": "emotional_8"},
+        {"value": "none", "label": "No separation anxiety", "next": "emotional_8"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe what happens:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "separation_anxiety"
+      }
+    },
+    "emotional_8": {
+      "type": "mcq",
+      "question": "How resilient is {student_name} when facing setbacks or disappointments?",
+      "category": "emotional",
+      "options": [
+        {"value": "very_resilient", "label": "Very resilient, bounces back quickly", "next": "emotional_9"},
+        {"value": "moderately", "label": "Moderately resilient", "next": "emotional_9"},
+        {"value": "slow_recovery", "label": "Takes a long time to recover", "next": "emotional_9", "metadata": {"severity": "medium"}},
+        {"value": "not_resilient", "label": "Not resilient, deeply affected", "next": "emotional_9", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their resilience:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "resilience"
+      }
+    },
+    "emotional_9": {
+      "type": "mcq",
+      "question": "How does {student_name} manage anger?",
+      "category": "emotional",
+      "options": [
+        {"value": "well", "label": "Manages anger appropriately", "next": "emotional_10"},
+        {"value": "with_support", "label": "Needs support to manage", "next": "emotional_10"},
+        {"value": "outbursts", "label": "Has frequent angry outbursts", "next": "emotional_10", "metadata": {"severity": "medium"}},
+        {"value": "aggressive", "label": "Becomes aggressive or destructive", "next": "emotional_10", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their anger management:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "anger_management"
+      }
+    },
+    "emotional_10": {
+      "type": "mcq",
+      "question": "Does {student_name} have any significant fears or phobias that affect daily life?",
+      "category": "emotional",
+      "options": [
+        {"value": "significant", "label": "Yes, significantly affects daily life", "next": "emotional_11", "metadata": {"severity": "high"}},
+        {"value": "some", "label": "Some fears but manageable", "next": "emotional_11", "metadata": {"severity": "medium"}},
+        {"value": "minor", "label": "Minor, age-typical fears", "next": "emotional_11"},
+        {"value": "none", "label": "No significant fears", "next": "emotional_11"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their fears:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "fears_phobias"
+      }
+    },
+    "emotional_11": {
+      "type": "mcq",
+      "question": "How often does {student_name} appear sad or down?",
+      "category": "emotional",
+      "options": [
+        {"value": "often", "label": "Often or daily", "next": "emotional_12", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "emotional_12", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "emotional_12"},
+        {"value": "never", "label": "Almost never", "next": "emotional_12"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe what you notice:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "sadness_frequency"
+      }
+    },
+    "emotional_12": {
+      "type": "mcq",
+      "question": "Can {student_name} identify and name their own emotions (e.g., 'I feel angry' or 'I feel scared')?",
+      "category": "emotional",
+      "options": [
+        {"value": "very_well", "label": "Yes, very well", "next": "emotional_13"},
+        {"value": "somewhat", "label": "Somewhat", "next": "emotional_13"},
+        {"value": "limited", "label": "Limited emotional vocabulary", "next": "emotional_13", "metadata": {"severity": "medium"}},
+        {"value": "cannot", "label": "Cannot identify or name emotions", "next": "emotional_13", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their emotional awareness:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "emotional_awareness"
+      }
+    },
+    "emotional_13": {
+      "type": "mcq",
+      "question": "How confident is {student_name} in their own abilities?",
+      "category": "emotional",
+      "options": [
+        {"value": "very_confident", "label": "Very confident", "next": "emotional_14"},
+        {"value": "somewhat", "label": "Somewhat confident", "next": "emotional_14"},
+        {"value": "low", "label": "Low confidence", "next": "emotional_14", "metadata": {"severity": "medium"}},
+        {"value": "very_low", "label": "Very low, doubts themselves constantly", "next": "emotional_14", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their self-confidence:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "self_confidence"
+      }
+    },
+    "emotional_14": {
+      "type": "mcq",
+      "question": "How does {student_name} respond to criticism or correction?",
+      "category": "emotional",
+      "options": [
+        {"value": "accepts_well", "label": "Accepts it well and learns", "next": "emotional_15"},
+        {"value": "sensitive", "label": "Somewhat sensitive but manages", "next": "emotional_15"},
+        {"value": "very_upset", "label": "Gets very upset by criticism", "next": "emotional_15", "metadata": {"severity": "medium"}},
+        {"value": "shuts_down", "label": "Shuts down or becomes defiant", "next": "emotional_15", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their reaction:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "handling_criticism"
+      }
+    },
+    "emotional_15": {
+      "type": "mcq",
+      "question": "Are there specific situations or triggers that reliably cause emotional reactions in {student_name}?",
+      "category": "emotional",
+      "options": [
+        {"value": "many", "label": "Yes, many triggers", "next": "emotional_16", "metadata": {"severity": "high"}},
+        {"value": "some", "label": "A few known triggers", "next": "emotional_16", "metadata": {"severity": "medium"}},
+        {"value": "rare", "label": "Rarely triggered", "next": "emotional_16"},
+        {"value": "none", "label": "No specific triggers", "next": "emotional_16"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their triggers:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "emotional_triggers"
+      }
+    },
+    "emotional_16": {
+      "type": "mcq",
+      "question": "Does {student_name} experience mood swings — rapid shifts from one emotion to another?",
+      "category": "emotional",
+      "options": [
+        {"value": "often", "label": "Yes, often", "next": "emotional_17", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "emotional_17", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "emotional_17"},
+        {"value": "never", "label": "Never", "next": "emotional_17"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their mood patterns:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "mood_swings"
+      }
+    },
+    "emotional_17": {
+      "type": "mcq",
+      "question": "Does {student_name} worry excessively about things that might happen in the future?",
+      "category": "emotional",
+      "options": [
+        {"value": "often", "label": "Yes, often", "next": "emotional_18", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "emotional_18", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "emotional_18"},
+        {"value": "never", "label": "Never", "next": "emotional_18"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their worry patterns:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "worry_patterns"
+      }
+    },
+    "emotional_18": {
+      "type": "mcq",
+      "question": "Does {student_name} show signs of perfectionism, such as getting very upset if something isn't exactly right?",
+      "category": "emotional",
+      "options": [
+        {"value": "strongly", "label": "Yes, strongly perfectionistic", "next": "emotional_19", "metadata": {"severity": "medium"}},
+        {"value": "somewhat", "label": "Somewhat perfectionistic", "next": "emotional_19"},
+        {"value": "occasionally", "label": "Occasionally", "next": "emotional_19"},
+        {"value": "not_at_all", "label": "Not at all", "next": "emotional_19"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their perfectionism:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "perfectionism"
+      }
+    },
+    "emotional_19": {
+      "type": "mcq",
+      "question": "Does {student_name} seek more emotional support or reassurance than typical for their age?",
+      "category": "emotional",
+      "options": [
+        {"value": "constantly", "label": "Yes, constantly seeks reassurance", "next": "emotional_20", "metadata": {"severity": "high"}},
+        {"value": "often", "label": "Often", "next": "emotional_20", "metadata": {"severity": "medium"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "emotional_20"},
+        {"value": "age_appropriate", "label": "Age-appropriate level of support", "next": "emotional_20"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their support needs:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "emotional_support_needs"
+      }
+    },
+    "emotional_20": {
+      "type": "mcq",
+      "question": "How does {student_name} handle changes in routine or unexpected events?",
+      "category": "emotional",
+      "options": [
+        {"value": "adapts_well", "label": "Adapts well to change", "next": "academic_intro"},
+        {"value": "needs_time", "label": "Needs time but adjusts", "next": "academic_intro"},
+        {"value": "struggles", "label": "Struggles significantly with change", "next": "academic_intro", "metadata": {"severity": "medium"}},
+        {"value": "cannot_handle", "label": "Cannot handle changes at all", "next": "academic_intro", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe how they handle change:",
+      "metadata": {
+        "category": "emotional",
+        "key_indicator": "handling_change"
+      }
+    },
+
+    "academic_intro": {
+      "type": "message",
+      "content": "📖 Great! Now let's talk about {student_name}'s academic performance. This section will help us understand their learning strengths and challenges.",
+      "next": "academic_1",
+      "metadata": {
+        "category": "academic"
+      }
+    },
+    "academic_1": {
+      "type": "mcq",
+      "question": "How is {student_name} performing in reading/language arts?",
+      "category": "academic",
+      "options": [
+        {"value": "above", "label": "Above grade level", "next": "academic_2"},
+        {"value": "at", "label": "At grade level", "next": "academic_2"},
+        {"value": "below", "label": "Below grade level", "next": "academic_2", "metadata": {"severity": "medium"}},
+        {"value": "significantly_below", "label": "Significantly below grade level", "next": "academic_2", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their reading ability:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "reading_ability"
+      }
+    },
+    "academic_2": {
+      "type": "mcq",
+      "question": "How are {student_name}'s writing skills?",
+      "category": "academic",
+      "options": [
+        {"value": "above", "label": "Above grade level", "next": "academic_3"},
+        {"value": "at", "label": "At grade level", "next": "academic_3"},
+        {"value": "below", "label": "Below grade level", "next": "academic_3", "metadata": {"severity": "medium"}},
+        {"value": "significantly_below", "label": "Significantly below grade level", "next": "academic_3", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their writing skills:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "writing_skills"
+      }
+    },
+    "academic_3": {
+      "type": "mcq",
+      "question": "How is {student_name} performing in math?",
+      "category": "academic",
+      "options": [
+        {"value": "above", "label": "Above grade level", "next": "academic_4"},
+        {"value": "at", "label": "At grade level", "next": "academic_4"},
+        {"value": "below", "label": "Below grade level", "next": "academic_4", "metadata": {"severity": "medium"}},
+        {"value": "significantly_below", "label": "Significantly below grade level", "next": "academic_4", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their math performance:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "math_performance"
+      }
+    },
+    "academic_4": {
+      "type": "mcq",
+      "question": "How does {student_name} learn best?",
+      "category": "academic",
+      "options": [
+        {"value": "visual", "label": "Visually (pictures, diagrams)", "next": "academic_5"},
+        {"value": "auditory", "label": "By listening (lectures, discussions)", "next": "academic_5"},
+        {"value": "hands_on", "label": "Hands-on (doing, building)", "next": "academic_5"},
+        {"value": "mixed", "label": "A mix of styles", "next": "academic_5"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their learning style:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "learning_style"
+      }
+    },
+    "academic_5": {
+      "type": "mcq",
+      "question": "Does {student_name} have difficulty remembering things they have learned?",
+      "category": "academic",
+      "options": [
+        {"value": "often", "label": "Yes, often forgets material", "next": "academic_6", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "academic_6", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "academic_6"},
+        {"value": "never", "label": "Retains information well", "next": "academic_6"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their memory retention:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "memory_retention"
+      }
+    },
+    "academic_6": {
+      "type": "mcq",
+      "question": "Does {student_name} have effective study habits?",
+      "category": "academic",
+      "options": [
+        {"value": "excellent", "label": "Yes, excellent study habits", "next": "academic_7"},
+        {"value": "adequate", "label": "Adequate, could improve", "next": "academic_7"},
+        {"value": "poor", "label": "Poor study habits", "next": "academic_7", "metadata": {"severity": "medium"}},
+        {"value": "none", "label": "No study habits at all", "next": "academic_7", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their study habits:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "study_habits"
+      }
+    },
+    "academic_7": {
+      "type": "mcq",
+      "question": "How motivated is {student_name} about school and learning?",
+      "category": "academic",
+      "options": [
+        {"value": "very", "label": "Very motivated", "next": "academic_8"},
+        {"value": "somewhat", "label": "Somewhat motivated", "next": "academic_8"},
+        {"value": "low", "label": "Low motivation", "next": "academic_8", "metadata": {"severity": "medium"}},
+        {"value": "none", "label": "No motivation / resists school", "next": "academic_8", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their motivation:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "school_motivation"
+      }
+    },
+    "academic_8": {
+      "type": "mcq",
+      "question": "How does {student_name} perform on tests and exams compared to their knowledge?",
+      "category": "academic",
+      "options": [
+        {"value": "reflects_well", "label": "Tests reflect their knowledge well", "next": "academic_9"},
+        {"value": "slightly_lower", "label": "Slightly lower than expected", "next": "academic_9"},
+        {"value": "much_lower", "label": "Much lower — may have test anxiety", "next": "academic_9", "metadata": {"severity": "medium"}},
+        {"value": "inconsistent", "label": "Inconsistent performance", "next": "academic_9"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their test performance:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "test_performance"
+      }
+    },
+    "academic_9": {
+      "type": "mcq",
+      "question": "Does {student_name} understand what they read, or do they struggle with comprehension?",
+      "category": "academic",
+      "options": [
+        {"value": "excellent", "label": "Excellent comprehension", "next": "academic_10"},
+        {"value": "good", "label": "Good comprehension", "next": "academic_10"},
+        {"value": "struggles", "label": "Struggles with comprehension", "next": "academic_10", "metadata": {"severity": "medium"}},
+        {"value": "significant_difficulty", "label": "Significant difficulty understanding", "next": "academic_10", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their comprehension:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "comprehension"
+      }
+    },
+    "academic_10": {
+      "type": "mcq",
+      "question": "Does {student_name} have difficulty with spelling?",
+      "category": "academic",
+      "options": [
+        {"value": "no", "label": "No, spells well", "next": "academic_11"},
+        {"value": "minor", "label": "Minor difficulties", "next": "academic_11"},
+        {"value": "significant", "label": "Significant difficulty", "next": "academic_11", "metadata": {"severity": "medium"}},
+        {"value": "severe", "label": "Severe spelling problems", "next": "academic_11", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their spelling:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "spelling"
+      }
+    },
+    "academic_11": {
+      "type": "mcq",
+      "question": "How is {student_name}'s handwriting?",
+      "category": "academic",
+      "options": [
+        {"value": "neat", "label": "Neat and legible", "next": "academic_12"},
+        {"value": "adequate", "label": "Adequate", "next": "academic_12"},
+        {"value": "messy", "label": "Often messy or hard to read", "next": "academic_12", "metadata": {"severity": "medium"}},
+        {"value": "very_poor", "label": "Very poor, avoids writing", "next": "academic_12", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their handwriting:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "handwriting"
+      }
+    },
+    "academic_12": {
+      "type": "mcq",
+      "question": "Can {student_name} follow written instructions independently?",
+      "category": "academic",
+      "options": [
+        {"value": "always", "label": "Yes, always", "next": "academic_13"},
+        {"value": "mostly", "label": "Mostly", "next": "academic_13"},
+        {"value": "needs_help", "label": "Often needs help understanding", "next": "academic_13", "metadata": {"severity": "medium"}},
+        {"value": "cannot", "label": "Cannot follow written instructions alone", "next": "academic_13", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their ability:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "following_written_instructions"
+      }
+    },
+    "academic_13": {
+      "type": "mcq",
+      "question": "Can {student_name} complete homework independently without much adult help?",
+      "category": "academic",
+      "options": [
+        {"value": "fully_independent", "label": "Yes, fully independent", "next": "academic_14"},
+        {"value": "mostly", "label": "Mostly, occasional help needed", "next": "academic_14"},
+        {"value": "significant_help", "label": "Needs significant help", "next": "academic_14", "metadata": {"severity": "medium"}},
+        {"value": "cannot", "label": "Cannot do homework without help", "next": "academic_14", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their homework independence:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "homework_independence"
+      }
+    },
+    "academic_14": {
+      "type": "mcq",
+      "question": "Does {student_name} participate actively in classroom discussions and activities?",
+      "category": "academic",
+      "options": [
+        {"value": "actively", "label": "Yes, actively participates", "next": "academic_15"},
+        {"value": "when_prompted", "label": "Only when prompted", "next": "academic_15"},
+        {"value": "reluctant", "label": "Reluctant to participate", "next": "academic_15", "metadata": {"severity": "medium"}},
+        {"value": "avoids", "label": "Avoids participation entirely", "next": "academic_15", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their participation:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "classroom_participation"
+      }
+    },
+    "academic_15": {
+      "type": "mcq",
+      "question": "Does {student_name} learn at the same pace as their classmates?",
+      "category": "academic",
+      "options": [
+        {"value": "faster", "label": "Faster than peers", "next": "academic_16"},
+        {"value": "same", "label": "About the same pace", "next": "academic_16"},
+        {"value": "slower", "label": "Slower than peers", "next": "academic_16", "metadata": {"severity": "medium"}},
+        {"value": "much_slower", "label": "Much slower, needs extra time", "next": "academic_16", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their learning pace:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "learning_pace"
+      }
+    },
+    "academic_16": {
+      "type": "mcq",
+      "question": "How does {student_name} approach problem-solving tasks?",
+      "category": "academic",
+      "options": [
+        {"value": "strategic", "label": "Uses strategies and thinks it through", "next": "academic_17"},
+        {"value": "trial_error", "label": "Trial and error", "next": "academic_17"},
+        {"value": "gives_up", "label": "Gives up quickly", "next": "academic_17", "metadata": {"severity": "medium"}},
+        {"value": "avoids", "label": "Avoids problem-solving tasks", "next": "academic_17", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their problem-solving approach:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "problem_solving"
+      }
+    },
+    "academic_17": {
+      "type": "mcq",
+      "question": "Does {student_name} show creativity and original thinking in schoolwork?",
+      "category": "academic",
+      "options": [
+        {"value": "very", "label": "Yes, very creative", "next": "academic_18"},
+        {"value": "somewhat", "label": "Somewhat creative", "next": "academic_18"},
+        {"value": "limited", "label": "Limited creativity", "next": "academic_18"},
+        {"value": "not_at_all", "label": "Prefers structure, avoids creativity", "next": "academic_18"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their creative thinking:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "creative_thinking"
+      }
+    },
+    "academic_18": {
+      "type": "mcq",
+      "question": "How well does {student_name} organize their school materials, assignments, and projects?",
+      "category": "academic",
+      "options": [
+        {"value": "very_organized", "label": "Very organized", "next": "academic_19"},
+        {"value": "somewhat", "label": "Somewhat organized", "next": "academic_19"},
+        {"value": "disorganized", "label": "Often disorganized", "next": "academic_19", "metadata": {"severity": "medium"}},
+        {"value": "very_disorganized", "label": "Very disorganized, loses assignments", "next": "academic_19", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their school organization:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "organizational_skills_school"
+      }
+    },
+    "academic_19": {
+      "type": "mcq",
+      "question": "Does {student_name} have particular subjects they enjoy or excel at?",
+      "category": "academic",
+      "options": [
+        {"value": "yes_many", "label": "Yes, enjoys many subjects", "next": "academic_20"},
+        {"value": "yes_few", "label": "Enjoys a few specific subjects", "next": "academic_20"},
+        {"value": "no_preference", "label": "No strong preferences", "next": "academic_20"},
+        {"value": "dislikes_all", "label": "Dislikes most school subjects", "next": "academic_20", "metadata": {"severity": "medium"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their subject preferences:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "subject_preferences"
+      }
+    },
+    "academic_20": {
+      "type": "mcq",
+      "question": "How confident is {student_name} in their academic abilities?",
+      "category": "academic",
+      "options": [
+        {"value": "very_confident", "label": "Very confident", "next": "behavioral_intro"},
+        {"value": "somewhat", "label": "Somewhat confident", "next": "behavioral_intro"},
+        {"value": "low", "label": "Low academic confidence", "next": "behavioral_intro", "metadata": {"severity": "medium"}},
+        {"value": "very_low", "label": "Very low, says 'I can't do it'", "next": "behavioral_intro", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their academic confidence:",
+      "metadata": {
+        "category": "academic",
+        "key_indicator": "academic_confidence"
+      }
+    },
+
+    "behavioral_intro": {
+      "type": "message",
+      "content": "⚡ Almost done! Now let's look at {student_name}'s behavior patterns. This final section helps us understand their daily habits and self-regulation.",
+      "next": "behavioral_1",
+      "metadata": {
+        "category": "behavioral"
+      }
+    },
+    "behavioral_1": {
+      "type": "mcq",
+      "question": "Does {student_name} follow rules and instructions at home and school?",
+      "category": "behavioral",
+      "options": [
+        {"value": "always", "label": "Yes, consistently", "next": "behavioral_2"},
+        {"value": "mostly", "label": "Most of the time", "next": "behavioral_2"},
+        {"value": "sometimes", "label": "Sometimes resists", "next": "behavioral_2", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely follows rules", "next": "behavioral_2", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their compliance:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "compliance_with_rules"
+      }
+    },
+    "behavioral_2": {
+      "type": "mcq",
+      "question": "Does {student_name} show aggressive behavior toward others (hitting, pushing, verbal aggression)?",
+      "category": "behavioral",
+      "options": [
+        {"value": "often", "label": "Yes, often", "next": "behavioral_3", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "behavioral_3", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "behavioral_3"},
+        {"value": "never", "label": "Never", "next": "behavioral_3"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe what you observe:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "aggression"
+      }
+    },
+    "behavioral_3": {
+      "type": "mcq",
+      "question": "How well does {student_name} control their impulses and behavior?",
+      "category": "behavioral",
+      "options": [
+        {"value": "very_well", "label": "Very well for their age", "next": "behavioral_4"},
+        {"value": "adequate", "label": "Adequately", "next": "behavioral_4"},
+        {"value": "poor", "label": "Poor self-control", "next": "behavioral_4", "metadata": {"severity": "medium"}},
+        {"value": "very_poor", "label": "Very poor, acts without thinking", "next": "behavioral_4", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their self-control:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "self_control"
+      }
+    },
+    "behavioral_4": {
+      "type": "mcq",
+      "question": "Does {student_name} follow daily routines (morning routine, bedtime routine) without much prompting?",
+      "category": "behavioral",
+      "options": [
+        {"value": "independently", "label": "Yes, independently", "next": "behavioral_5"},
+        {"value": "some_prompting", "label": "With some reminders", "next": "behavioral_5"},
+        {"value": "much_prompting", "label": "Needs constant reminding", "next": "behavioral_5", "metadata": {"severity": "medium"}},
+        {"value": "no_routine", "label": "Does not follow routines", "next": "behavioral_5", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their daily routines:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "daily_routines"
+      }
+    },
+    "behavioral_5": {
+      "type": "mcq",
+      "question": "How are {student_name}'s sleep patterns?",
+      "category": "behavioral",
+      "options": [
+        {"value": "good", "label": "Good, sleeps well regularly", "next": "behavioral_6"},
+        {"value": "occasional_issues", "label": "Occasional sleep difficulties", "next": "behavioral_6"},
+        {"value": "frequent_issues", "label": "Frequent trouble sleeping", "next": "behavioral_6", "metadata": {"severity": "medium"}},
+        {"value": "severe", "label": "Severe sleep problems", "next": "behavioral_6", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their sleep:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "sleep_patterns"
+      }
+    },
+    "behavioral_6": {
+      "type": "mcq",
+      "question": "Does {student_name} have regular and healthy eating habits?",
+      "category": "behavioral",
+      "options": [
+        {"value": "healthy", "label": "Yes, healthy eating habits", "next": "behavioral_7"},
+        {"value": "mostly", "label": "Mostly healthy", "next": "behavioral_7"},
+        {"value": "picky", "label": "Very picky or restricted eating", "next": "behavioral_7", "metadata": {"severity": "medium"}},
+        {"value": "concerning", "label": "Concerning eating patterns", "next": "behavioral_7", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their eating habits:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "eating_habits"
+      }
+    },
+    "behavioral_7": {
+      "type": "mcq",
+      "question": "How much screen time does {student_name} have daily (TV, phone, tablet, gaming)?",
+      "category": "behavioral",
+      "options": [
+        {"value": "under_1", "label": "Less than 1 hour", "next": "behavioral_8"},
+        {"value": "1_2", "label": "1-2 hours", "next": "behavioral_8"},
+        {"value": "2_4", "label": "2-4 hours", "next": "behavioral_8", "metadata": {"severity": "medium"}},
+        {"value": "over_4", "label": "More than 4 hours", "next": "behavioral_8", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their screen time:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "screen_time"
+      }
+    },
+    "behavioral_8": {
+      "type": "mcq",
+      "question": "Does {student_name} take responsibility for their belongings and actions?",
+      "category": "behavioral",
+      "options": [
+        {"value": "very", "label": "Yes, very responsible", "next": "behavioral_9"},
+        {"value": "somewhat", "label": "Somewhat responsible", "next": "behavioral_9"},
+        {"value": "low", "label": "Low sense of responsibility", "next": "behavioral_9", "metadata": {"severity": "medium"}},
+        {"value": "none", "label": "Does not take responsibility", "next": "behavioral_9", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their sense of responsibility:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "responsibility"
+      }
+    },
+    "behavioral_9": {
+      "type": "mcq",
+      "question": "How does {student_name} handle transitions between activities (e.g., stopping play to start homework)?",
+      "category": "behavioral",
+      "options": [
+        {"value": "smoothly", "label": "Transitions smoothly", "next": "behavioral_10"},
+        {"value": "needs_warning", "label": "Needs advance warning", "next": "behavioral_10"},
+        {"value": "resistant", "label": "Often resistant to transitions", "next": "behavioral_10", "metadata": {"severity": "medium"}},
+        {"value": "very_difficult", "label": "Transitions are very difficult", "next": "behavioral_10", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their transitions:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "handling_transitions"
+      }
+    },
+    "behavioral_10": {
+      "type": "mcq",
+      "question": "Does {student_name} follow rules consistently across different settings (home, school, public)?",
+      "category": "behavioral",
+      "options": [
+        {"value": "consistent", "label": "Yes, consistent everywhere", "next": "behavioral_11"},
+        {"value": "mostly", "label": "Mostly consistent", "next": "behavioral_11"},
+        {"value": "varies", "label": "Varies by setting", "next": "behavioral_11", "metadata": {"severity": "medium"}},
+        {"value": "only_some", "label": "Only follows rules in certain settings", "next": "behavioral_11", "metadata": {"severity": "medium"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe the differences:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "rule_following_consistency"
+      }
+    },
+    "behavioral_11": {
+      "type": "mcq",
+      "question": "Does {student_name} lie or make up stories more than typical for their age?",
+      "category": "behavioral",
+      "options": [
+        {"value": "often", "label": "Yes, often", "next": "behavioral_12", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "behavioral_12", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely, age-typical", "next": "behavioral_12"},
+        {"value": "never", "label": "Very honest", "next": "behavioral_12"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe what you observe:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "lying_honesty"
+      }
+    },
+    "behavioral_12": {
+      "type": "mcq",
+      "question": "Has {student_name} ever taken things that don't belong to them?",
+      "category": "behavioral",
+      "options": [
+        {"value": "often", "label": "Yes, this is a pattern", "next": "behavioral_13", "metadata": {"severity": "high"}},
+        {"value": "occasionally", "label": "Occasionally", "next": "behavioral_13", "metadata": {"severity": "medium"}},
+        {"value": "once_twice", "label": "Once or twice", "next": "behavioral_13"},
+        {"value": "never", "label": "Never", "next": "behavioral_13"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or share more details:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "stealing"
+      }
+    },
+    "behavioral_13": {
+      "type": "mcq",
+      "question": "Does {student_name} deliberately break or damage things?",
+      "category": "behavioral",
+      "options": [
+        {"value": "often", "label": "Yes, often", "next": "behavioral_14", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes when upset", "next": "behavioral_14", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "behavioral_14"},
+        {"value": "never", "label": "Never", "next": "behavioral_14"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe the behavior:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "destructive_behavior"
+      }
+    },
+    "behavioral_14": {
+      "type": "mcq",
+      "question": "Does {student_name} engage in risky or dangerous behavior beyond what is typical for their age?",
+      "category": "behavioral",
+      "options": [
+        {"value": "often", "label": "Yes, often", "next": "behavioral_15", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "behavioral_15", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "behavioral_15"},
+        {"value": "never", "label": "Never", "next": "behavioral_15"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe the risk-taking:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "risk_taking"
+      }
+    },
+    "behavioral_15": {
+      "type": "mcq",
+      "question": "Does {student_name} persevere when tasks are difficult, or do they give up easily?",
+      "category": "behavioral",
+      "options": [
+        {"value": "perseveres", "label": "Perseveres through difficulty", "next": "behavioral_16"},
+        {"value": "mostly", "label": "Mostly perseveres", "next": "behavioral_16"},
+        {"value": "gives_up", "label": "Gives up easily", "next": "behavioral_16", "metadata": {"severity": "medium"}},
+        {"value": "always_gives_up", "label": "Always gives up when challenged", "next": "behavioral_16", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their perseverance:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "perseverance"
+      }
+    },
+    "behavioral_16": {
+      "type": "mcq",
+      "question": "How patient is {student_name} when waiting for something (e.g., waiting in line, waiting for their turn)?",
+      "category": "behavioral",
+      "options": [
+        {"value": "very_patient", "label": "Very patient", "next": "behavioral_17"},
+        {"value": "somewhat", "label": "Somewhat patient", "next": "behavioral_17"},
+        {"value": "impatient", "label": "Often impatient", "next": "behavioral_17", "metadata": {"severity": "medium"}},
+        {"value": "very_impatient", "label": "Very impatient, cannot wait", "next": "behavioral_17", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their patience:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "patience"
+      }
+    },
+    "behavioral_17": {
+      "type": "mcq",
+      "question": "Does {student_name} demonstrate good manners and polite behavior?",
+      "category": "behavioral",
+      "options": [
+        {"value": "always", "label": "Yes, consistently polite", "next": "behavioral_18"},
+        {"value": "mostly", "label": "Mostly polite", "next": "behavioral_18"},
+        {"value": "sometimes", "label": "Sometimes rude or impolite", "next": "behavioral_18", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely shows good manners", "next": "behavioral_18", "metadata": {"severity": "medium"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their manners:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "manners"
+      }
+    },
+    "behavioral_18": {
+      "type": "mcq",
+      "question": "How independent is {student_name} in daily activities (dressing, hygiene, packing bag)?",
+      "category": "behavioral",
+      "options": [
+        {"value": "very", "label": "Very independent for their age", "next": "behavioral_19"},
+        {"value": "mostly", "label": "Mostly independent", "next": "behavioral_19"},
+        {"value": "needs_help", "label": "Needs more help than typical", "next": "behavioral_19", "metadata": {"severity": "medium"}},
+        {"value": "very_dependent", "label": "Very dependent on others", "next": "behavioral_19", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their independence:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "independence"
+      }
+    },
+    "behavioral_19": {
+      "type": "mcq",
+      "question": "Does {student_name} complete chores or assigned responsibilities at home?",
+      "category": "behavioral",
+      "options": [
+        {"value": "always", "label": "Yes, without being asked", "next": "behavioral_20"},
+        {"value": "with_reminders", "label": "With reminders", "next": "behavioral_20"},
+        {"value": "resists", "label": "Often resists or refuses", "next": "behavioral_20", "metadata": {"severity": "medium"}},
+        {"value": "never", "label": "Never completes chores", "next": "behavioral_20", "metadata": {"severity": "medium"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their chore habits:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "chore_completion"
+      }
+    },
+    "behavioral_20": {
+      "type": "mcq",
+      "question": "Is {student_name}'s behavior consistent, or does it vary greatly from day to day?",
+      "category": "behavioral",
+      "options": [
+        {"value": "consistent", "label": "Very consistent behavior", "next": "final_thoughts"},
+        {"value": "mostly", "label": "Mostly consistent", "next": "final_thoughts"},
+        {"value": "variable", "label": "Varies quite a bit day to day", "next": "final_thoughts", "metadata": {"severity": "medium"}},
+        {"value": "unpredictable", "label": "Highly unpredictable", "next": "final_thoughts", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe their behavioral consistency:",
+      "metadata": {
+        "category": "behavioral",
+        "key_indicator": "behavioral_consistency"
+      }
+    },
+
+    "final_thoughts": {
+      "type": "text_only",
+      "question": "Is there anything else you'd like to share about {student_name} that we haven't covered?",
+      "category": "summary",
+      "placeholder": "Type your thoughts here... (optional)",
+      "next": "completion",
+      "metadata": {
+        "category": "open_ended",
+        "optional": true
+      }
+    },
+    "completion": {
+      "type": "completion",
+      "content": "Thank you so much for completing this assessment!",
+      "action": "generate_report",
+      "metadata": {
+        "category": "completion"
+      }
+    }
+  }
+}

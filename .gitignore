@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+backend/venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Next.js
+frontend/.next/
+frontend/out/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Database
+*.db
+*.sqlite3
+
+# Docker volumes
+docker-data/
+postgres-data/
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# Secrets
+*.pem
+*.key
+credentials.json
+redis-data/
+backend/.env.render
+storage/
+
+.vercel
+tsconfig.tsbuildinfo

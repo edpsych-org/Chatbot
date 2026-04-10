@@ -1,0 +1,483 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   Ed Psych Practice fonts — matches theedpsych.com
+   Average (serif) + Nunito (sans) are loaded via next/font in layout.tsx,
+   exposed as --font-average and --font-nunito CSS variables.
+   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+/* ============================================
+   Accessibility — root font-size scaling
+   All rem-based classes (Tailwind text-sm/base/lg/xl, spacing)
+   scale with this. Users pick 100/115/130/150% from the menu.
+   Layout stays stable because padding, gaps, and widths are
+   in rem too, so buttons/cards grow in proportion with text.
+   ============================================ */
+html { font-size: 16px; }
+html[data-font-scale="115"] { font-size: 18.4px; }
+html[data-font-scale="130"] { font-size: 20.8px; }
+html[data-font-scale="150"] { font-size: 24px; }
+
+body { overflow-x: hidden; } /* safety net: no horizontal scroll at 150% */
+
+@layer base {
+  body {
+    @apply font-body bg-background text-on-background antialiased;
+    font-family: var(--font-nunito), system-ui, sans-serif;
+    font-size: 1.125rem; /* 18px @ 100% — scales with html */
+    line-height: 1.8;
+    color: #333333;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-average), Georgia, serif;
+    font-weight: 400;
+    color: #333333;
+  }
+  h1 span, h2 span, h3 span {
+    color: #00a1aa;
+  }
+  p {
+    line-height: 1.8;
+  }
+  a {
+    color: #e61844;
+  }
+  a:hover {
+    color: #cf0627;
+  }
+}
+
+@layer utilities {
+  .noise-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.03;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
+
+  .glass-card {
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+
+  .premium-gradient {
+    background: linear-gradient(135deg, #00acb6 0%, #0c888e 100%);
+  }
+
+  .ed-hero {
+    background-color: #eeeeee;
+    min-height: 340px;
+  }
+
+  .ed-nav {
+    background-color: #00acb6;
+    color: #ffffff;
+  }
+
+  .ed-btn-primary {
+    background-color: #e61844;
+    border: 1px solid #e61844;
+    color: #ffffff;
+    padding: 8px 18px;
+    border-radius: 4px;
+    font-family: var(--font-nunito), system-ui, sans-serif;
+    font-weight: 600;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    display: inline-block;
+    text-decoration: none;
+  }
+  .ed-btn-primary:hover {
+    background-color: #cf0627;
+    border-color: #cf0627;
+    color: #ffffff;
+  }
+
+  .ed-btn-teal {
+    background-color: #00acb6;
+    border: 1px solid #00acb6;
+    color: #ffffff;
+    padding: 8px 18px;
+    border-radius: 4px;
+    font-family: var(--font-nunito), system-ui, sans-serif;
+    font-weight: 600;
+    transition: background-color 0.15s ease;
+    display: inline-block;
+    text-decoration: none;
+  }
+  .ed-btn-teal:hover {
+    background-color: #0c888e;
+    border-color: #0c888e;
+    color: #ffffff;
+  }
+
+  .ed-btn-outline {
+    background-color: transparent;
+    border: 1px solid #e61844;
+    color: #e61844;
+    padding: 8px 18px;
+    border-radius: 4px;
+    font-family: var(--font-nunito), system-ui, sans-serif;
+    font-weight: 600;
+    transition: all 0.15s ease;
+    display: inline-block;
+    text-decoration: none;
+  }
+  .ed-btn-outline:hover {
+    background-color: #e61844;
+    color: #ffffff;
+  }
+
+  .ed-card {
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 20px;
+  }
+
+  .ed-card-dashed {
+    background: #ffffff;
+    border: 1px dashed #cccccc;
+    border-radius: 4px;
+    padding: 20px;
+  }
+
+  .brand-wordmark {
+    font-family: var(--font-average), Georgia, serif;
+    color: #0c888e;
+    font-size: 2.25rem; /* 36px @ 100% — scales with html */
+    line-height: 1.1;
+  }
+
+  .brand-tagline {
+    font-family: var(--font-nunito), system-ui, sans-serif;
+    color: #737373;
+    font-size: 1.125rem; /* 18px @ 100% — scales with html */
+    font-style: italic;
+  }
+
+  .floating-label-group {
+    @apply relative;
+  }
+
+  .floating-label-group input:focus ~ label,
+  .floating-label-group input:not(:placeholder-shown) ~ label {
+    top: -0.5rem;
+    left: 0.75rem;
+    font-size: 0.75rem;
+    color: #00acb6;
+    background: #ffffff;
+    padding: 0 0.25rem;
+  }
+
+  .floating-label-group label {
+    @apply absolute top-4 left-4 transition-all duration-200 pointer-events-none;
+    color: #737373;
+  }
+
+  .editorial-shadow {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+
+  .brand-accent {
+    background: linear-gradient(to right, #00acb6, #0c888e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+}
+
+/* ============================================
+   Chat-specific styles & animations
+   ============================================ */
+
+/* ── Core keyframes ─────────────────────────── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Typing dots ─────────────────────────────── */
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+
+.typing-dot {
+  animation: typingBounce 1.4s infinite ease-in-out;
+}
+.typing-dot:nth-child(1) { animation-delay: 0s; }
+.typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+/* ── Progress bar ────────────────────────────── */
+.progress-bar-fill {
+  transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes progressGlow {
+  0%, 100% { box-shadow: 0 0 4px 0 rgba(99, 102, 241, 0.3); }
+  50% { box-shadow: 0 0 12px 2px rgba(99, 102, 241, 0.5); }
+}
+
+.progress-glow {
+  animation: progressGlow 2s ease-in-out infinite;
+}
+
+@keyframes progressShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.progress-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: progressShimmer 2s ease-in-out infinite;
+}
+
+/* ── MCQ options ─────────────────────────────── */
+@keyframes mcqSlideIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.mcq-option-enter {
+  opacity: 0;
+  animation: mcqSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Message bubbles ─────────────────────────── */
+.msg-bot-enter {
+  animation: slideInLeft 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.msg-user-enter {
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.msg-system-enter {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* ── Completion banner ───────────────────────── */
+@keyframes celebrateIn {
+  0% { opacity: 0; transform: scale(0.8) translateY(20px); }
+  60% { transform: scale(1.03) translateY(-3px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes checkDraw {
+  from { stroke-dashoffset: 24; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes confettiDrift {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(-60px) rotate(180deg); opacity: 0; }
+}
+
+@keyframes ringPulse {
+  0%, 100% { transform: rotate(3deg) scale(1); opacity: 0.4; }
+  50% { transform: rotate(3deg) scale(1.08); opacity: 0.7; }
+}
+
+.animate-celebrate-in {
+  animation: celebrateIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-check-draw {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: checkDraw 0.5s ease-out 0.4s forwards;
+}
+
+.animate-ring-pulse {
+  animation: ringPulse 2.5s ease-in-out infinite;
+}
+
+.confetti-particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: confettiDrift 1.5s ease-out forwards;
+}
+
+/* ── Subtle pulse ────────────────────────────── */
+@keyframes subtlePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+  50% { box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15); }
+}
+
+.animate-subtle-pulse {
+  animation: subtlePulse 2s ease-in-out;
+}
+
+/* ── Generic animation helpers ───────────────── */
+.animate-slide-up {
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Avatar glow ─────────────────────────────── */
+@keyframes avatarGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+  50% { box-shadow: 0 0 10px 2px rgba(99, 102, 241, 0.2); }
+}
+
+.avatar-glow {
+  animation: avatarGlow 3s ease-in-out infinite;
+}
+
+/* ── Chat background pattern ─────────────────── */
+.chat-bg-pattern {
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 50% 80%, rgba(59, 130, 246, 0.02) 0%, transparent 50%);
+}
+
+/* ── Header shimmer ──────────────────────────── */
+@keyframes headerShimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.header-shine {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.05) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  background-size: 200% 100%;
+  animation: headerShimmer 8s linear infinite;
+}
+
+/* ── Send button ─────────────────────────────── */
+@keyframes sendPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+.send-tap {
+  animation: sendPulse 0.2s ease-out;
+}
+
+/* ── Skeleton shimmer ────────────────────────── */
+@keyframes skeletonShimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200px 100%;
+  animation: skeletonShimmer 1.5s ease-in-out infinite;
+}
+
+/* ── Input focus ring ────────────────────────── */
+@keyframes focusRing {
+  0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(99, 102, 241, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+
+.input-focus-ring {
+  animation: focusRing 0.6s ease-out;
+}
+
+/* Safe area for iOS bottom bar */
+.chat-input-area {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Scrollbar styling for chat */
+.chat-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.chat-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.chat-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+}
+.chat-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* ── Validation shake ────────────────────────── */
+@keyframes gentleShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+
+.animate-gentle-shake {
+  animation: gentleShake 0.4s ease-out;
+}
+
+/* ── Floating dots background ────────────────── */
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(1); opacity: 0.15; }
+  50% { opacity: 0.25; }
+  100% { transform: translateY(-100vh) scale(0.5); opacity: 0; }
+}
+
+.floating-dot {
+  position: absolute;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.1));
+  animation: floatUp linear infinite;
+  pointer-events: none;
+}
