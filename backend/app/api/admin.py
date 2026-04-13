@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, update, delete as sql_delete
 from typing import List, Optional
 from uuid import UUID
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, model_validator
 from datetime import datetime, timezone
 
 from app.core.database import get_db
@@ -65,12 +65,34 @@ class StudentWithParentCreate(BaseModel):
 
 
 class AssessmentAssignCreate(BaseModel):
-    """Assessment assignment schema"""
+    """
+    Assignment creation schema — supports single-guardian (legacy) and
+    multi-guardian (school + mother + father) flows.
+
+    Legacy clients may send `parent_id`; it is coerced into a single-element
+    `guardian_ids` list so old curl scripts and any un-migrated UI keep working.
+    """
     student_id: UUID
-    parent_id: UUID
+    guardian_ids: List[UUID] = Field(default_factory=list)
+    parent_id: Optional[UUID] = None  # deprecated; coerced into guardian_ids
     assessment_type: str = "parent_assessment"
     due_date: Optional[datetime] = None
     notes: Optional[str] = None
+
+    @model_validator(mode="after")
+    def _coerce_guardian_ids(self):
+        if not self.guardian_ids and self.parent_id:
+            self.guardian_ids = [self.parent_id]
+        if not self.guardian_ids:
+            raise ValueError("At least one guardian_id is required")
+        # de-dupe while preserving order
+        seen, deduped = set(), []
+        for gid in self.guardian_ids:
+            if gid not in seen:
+                seen.add(gid)
+                deduped.append(gid)
+        self.guardian_ids = deduped
+        return self
 
 router = APIRouter(tags=["admin"])
 
@@ -897,15 +919,19 @@ async def admin_assign_assessment(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Assign assessment to a parent and generate a secure magic link (admin only).
+    Assign an assessment for a student to one or more linked guardians
+    (school / mother / father) and send a magic link to each. Admin only.
 
-    1. Create assignment record
-    2. Generate secure magic-link token
-    3. Send email with link to parent
-    4. Return link for admin to share manually if needed
+    Single-guardian flow is unchanged — the schema coerces legacy `parent_id`
+    into a single-element `guardian_ids`. Multi-guardian flow spawns one
+    AssessmentAssignment row per guardian plus one MagicLinkToken + one email.
+
+    Idempotent: guardians who already have an active (ASSIGNED / IN_PROGRESS)
+    assignment for this student are reported as `skipped` rather than
+    duplicated.
     """
 
-    # Verify student exists
+    # 1. Verify student exists
     student_result = await db.execute(
         select(Student).where(Student.id == assignment.student_id)
     )
@@ -915,71 +941,132 @@ async def admin_assign_assessment(
             status_code=status.HTTP_404_NOT_FOUND, detail="Student not found"
         )
 
-    # Verify parent exists
-    parent_result = await db.execute(
-        select(User).where(User.id == assignment.parent_id)
+    # 2. Bulk fetch guardian users
+    users_result = await db.execute(
+        select(User).where(User.id.in_(assignment.guardian_ids))
     )
-    parent = parent_result.scalar_one_or_none()
-    if not parent:
+    users_by_id = {u.id: u for u in users_result.scalars().all()}
+    missing_users = [str(gid) for gid in assignment.guardian_ids if gid not in users_by_id]
+    if missing_users:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Parent not found"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "message": "One or more guardian users not found",
+                "missing_guardian_ids": missing_users,
+            },
         )
 
-    # Check parent-student relationship
-    relationship_result = await db.execute(
+    # 3. Verify every guardian is linked to this student via StudentGuardian
+    sg_result = await db.execute(
         select(StudentGuardian).where(
             and_(
                 StudentGuardian.student_id == assignment.student_id,
-                StudentGuardian.guardian_user_id == assignment.parent_id,
+                StudentGuardian.guardian_user_id.in_(assignment.guardian_ids),
             )
         )
     )
-    relationship = relationship_result.scalar_one_or_none()
-    if not relationship:
+    sg_rows = sg_result.scalars().all()
+    sg_by_user_id = {sg.guardian_user_id: sg for sg in sg_rows}
+    unlinked = [str(gid) for gid in assignment.guardian_ids if gid not in sg_by_user_id]
+    if unlinked:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Parent is not linked to this student",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "message": "One or more guardians are not linked to this student",
+                "unlinked_guardian_ids": unlinked,
+            },
         )
 
-    # Create assignment
-    new_assignment = AssessmentAssignment(
-        assigned_by_psychologist_id=current_user.id,
-        student_id=assignment.student_id,
-        assigned_to_user_id=assignment.parent_id,
-        status=AssignmentStatus.ASSIGNED,
-        due_date=assignment.due_date,
-        notes=assignment.notes,
+    # 4. Idempotency: find guardians with an existing active assignment for this student
+    active_states = [AssignmentStatus.ASSIGNED, AssignmentStatus.IN_PROGRESS]
+    existing_result = await db.execute(
+        select(AssessmentAssignment).where(
+            and_(
+                AssessmentAssignment.student_id == assignment.student_id,
+                AssessmentAssignment.assigned_to_user_id.in_(assignment.guardian_ids),
+                AssessmentAssignment.status.in_(active_states),
+            )
+        )
     )
-    db.add(new_assignment)
-    await db.flush()
+    existing_by_user_id = {a.assigned_to_user_id: a for a in existing_result.scalars().all()}
 
-    # Create magic link for parent access
-    magic_link_token = await create_invite_magic_link(
-        db,
-        str(new_assignment.assigned_to_user_id),
-        str(new_assignment.id),
-        expiry_hours=settings.MAGIC_LINK_EXPIRY_HOURS,
-    )
-    magic_link_url = f"{settings.FRONTEND_URL}/auth/magic/{magic_link_token.token}"
+    created: list[dict] = []
+    skipped: list[dict] = []
 
+    # 5. Create assignment + magic link for each remaining guardian
+    for gid in assignment.guardian_ids:
+        if gid in existing_by_user_id:
+            existing = existing_by_user_id[gid]
+            skipped.append({
+                "guardian_id": str(gid),
+                "reason": "already_has_active_assignment",
+                "existing_assignment_id": str(existing.id),
+            })
+            continue
+
+        new_assignment = AssessmentAssignment(
+            assigned_by_psychologist_id=current_user.id,
+            student_id=assignment.student_id,
+            assigned_to_user_id=gid,
+            status=AssignmentStatus.ASSIGNED,
+            due_date=assignment.due_date,
+            notes=assignment.notes,
+        )
+        db.add(new_assignment)
+        await db.flush()
+
+        token = await create_invite_magic_link(
+            db,
+            str(gid),
+            str(new_assignment.id),
+            expiry_hours=settings.MAGIC_LINK_EXPIRY_HOURS,
+        )
+        magic_link_url = f"{settings.FRONTEND_URL}/auth/magic/{token.token}"
+
+        guardian_user = users_by_id[gid]
+        sg = sg_by_user_id.get(gid)
+        created.append({
+            "assignment_id": str(new_assignment.id),
+            "guardian_id": str(gid),
+            "guardian_name": guardian_user.full_name or guardian_user.email,
+            "guardian_email": guardian_user.email,
+            "relationship_type": (sg.relationship_type if sg and sg.relationship_type else "Guardian"),
+            "magic_link": magic_link_url,
+            "email_sent": False,
+        })
+
+    # 6. Commit once so the transaction is durable before we attempt emails
     await db.commit()
 
-    # Send assessment assignment email with magic link
-    student_name = f"{student.first_name} {student.last_name}"
-    send_assessment_assignment_email(
-        parent_email=parent.email,
-        parent_name=parent.full_name or parent.email,
-        student_name=student_name,
-        psychologist_name=current_user.full_name or "Admin",
-        assessment_link=magic_link_url,
-    )
+    # 7. Send emails outside the transaction — wrap each so one SMTP failure
+    #    doesn't cascade across the rest of the batch
+    student_name = f"{student.first_name} {student.last_name}".strip()
+    for row in created:
+        try:
+            send_assessment_assignment_email(
+                parent_email=row["guardian_email"],
+                parent_name=row["guardian_name"],
+                student_name=student_name,
+                psychologist_name=current_user.full_name or "Admin",
+                assessment_link=row["magic_link"],
+            )
+            row["email_sent"] = True
+        except Exception:
+            # Email failure is non-fatal — the admin can use the magic_link URL directly
+            row["email_sent"] = False
 
     return {
         "success": True,
-        "assignment_id": str(new_assignment.id),
-        "magic_link": magic_link_url,
-        "status": "assigned",
-        "message": "Assessment assigned and notifications sent",
+        "created": created,
+        "skipped": skipped,
+        # Backwards-compatible fields for single-guardian callers
+        "assignment_id": created[0]["assignment_id"] if created else None,
+        "magic_link": created[0]["magic_link"] if created else None,
+        "status": "assigned" if created else "skipped",
+        "message": (
+            f"Created {len(created)} assignment(s), skipped {len(skipped)} "
+            "with active assignments."
+        ),
     }
 
 
@@ -1187,6 +1274,19 @@ async def admin_get_all_assignments(
         )
         assigned_to = assigned_to_result.scalar_one_or_none()
 
+        # Guardian relationship (Mother / Father / School / …) so the UI can
+        # badge each row without doing a separate lookup.
+        sg_result = await db.execute(
+            select(StudentGuardian).where(
+                and_(
+                    StudentGuardian.student_id == assignment.student_id,
+                    StudentGuardian.guardian_user_id == assignment.assigned_to_user_id,
+                )
+            )
+        )
+        sg = sg_result.scalar_one_or_none()
+        relationship_type = sg.relationship_type if sg and sg.relationship_type else None
+
         assignments_with_details.append({
             "id": str(assignment.id),
             "student": (
@@ -1205,10 +1305,12 @@ async def admin_get_all_assignments(
                     "name": assigned_to.full_name,
                     "email": assigned_to.email,
                     "role": assigned_to.role.value,
+                    "relationship_type": relationship_type,
                 }
                 if assigned_to
                 else None
             ),
+            "relationship_type": relationship_type,  # convenience top-level copy
             "status": (
                 assignment.status.value
                 if hasattr(assignment.status, "value")

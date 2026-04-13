@@ -17,13 +17,15 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, Response
 from pydantic import BaseModel
-from sqlalchemy import select, desc
+from sqlalchemy import and_, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import get_current_active_user
 from app.models.user import User, UserRole
 from app.models.student import Student
+from app.models.student_guardian import StudentGuardian
+from app.models.assignment import AssessmentAssignment, AssignmentStatus
 from app.models.chat import ChatSession, ChatSessionStatus
 from app.models.upload import IQTestUpload, UploadStatus, CognitiveProfile
 from app.models.psychologist_report import PsychologistReport
@@ -153,10 +155,11 @@ async def _get_report_or_404(db: AsyncSession, report_id: uuid_lib.UUID) -> Psyc
 async def _latest_completed_session(
     db: AsyncSession, student_id: uuid_lib.UUID
 ) -> Optional[ChatSession]:
-    """Find the most recent COMPLETED ChatSession for this student."""
-    # Chat sessions are linked to students via the assignment_id foreign key.
-    from app.models.assignment import AssessmentAssignment
+    """Find the most recent COMPLETED ChatSession for this student.
 
+    Deprecated: kept for backwards compatibility with pre-multi-party callers.
+    Prefer `_all_assessor_rows` / `_all_completed_perspectives` for new code.
+    """
     result = await db.execute(
         select(ChatSession)
         .join(AssessmentAssignment, ChatSession.assignment_id == AssessmentAssignment.id)
@@ -165,6 +168,93 @@ async def _latest_completed_session(
         .order_by(desc(ChatSession.id))
     )
     return result.scalars().first()
+
+
+async def _all_assessor_rows(
+    db: AsyncSession, student_id: uuid_lib.UUID
+) -> List[dict]:
+    """
+    Return one dict per non-cancelled assessment assignment for the student,
+    with joined guardian + session info. Shape:
+
+        {
+            "assignment_id": UUID,
+            "assignment_status": "ASSIGNED" | "IN_PROGRESS" | "COMPLETED",
+            "guardian_user_id": UUID,
+            "guardian_name": str,
+            "guardian_email": str,
+            "relationship_type": str,   # "Mother" / "Father" / "School" / "Guardian"
+            "session_id": UUID | None,
+            "session_status": str | None,
+            "context_data": dict | None,
+            "started_at": datetime | None,
+            "completed_at": datetime | None,
+        }
+
+    Source of truth for completion is AssessmentAssignment.status (uppercase).
+    Do NOT key completion off ChatSession.status (lowercase) — the session can
+    lag behind the assignment transition in edge cases.
+    """
+    result = await db.execute(
+        select(
+            AssessmentAssignment,
+            User,
+            StudentGuardian,
+            ChatSession,
+        )
+        .join(User, AssessmentAssignment.assigned_to_user_id == User.id)
+        .outerjoin(
+            StudentGuardian,
+            and_(
+                StudentGuardian.student_id == AssessmentAssignment.student_id,
+                StudentGuardian.guardian_user_id == AssessmentAssignment.assigned_to_user_id,
+            ),
+        )
+        .outerjoin(ChatSession, ChatSession.assignment_id == AssessmentAssignment.id)
+        .where(AssessmentAssignment.student_id == student_id)
+        .where(AssessmentAssignment.status != AssignmentStatus.CANCELLED)
+        .order_by(AssessmentAssignment.assigned_at.asc())
+    )
+
+    rows: List[dict] = []
+    for assignment, user, sg, session in result.all():
+        rel = (sg.relationship_type if sg and sg.relationship_type else None) or (
+            user.role.value.title() if user and user.role else "Guardian"
+        )
+        status_val = (
+            assignment.status.value
+            if hasattr(assignment.status, "value")
+            else str(assignment.status)
+        )
+        rows.append({
+            "assignment_id": assignment.id,
+            "assignment_status": status_val,
+            "guardian_user_id": user.id,
+            "guardian_name": user.full_name or user.email,
+            "guardian_email": user.email,
+            "relationship_type": rel,
+            "session_id": session.id if session else None,
+            "session_status": session.status if session else None,
+            "context_data": session.context_data if session else None,
+            "started_at": assignment.started_at,
+            "completed_at": assignment.completed_at,
+        })
+    return rows
+
+
+async def _all_completed_perspectives(
+    db: AsyncSession, student_id: uuid_lib.UUID
+) -> tuple[list[dict], list[dict]]:
+    """
+    Split the assessor rows into (completed, pending).
+
+    Used by the background-summary generator to decide whether to gate
+    and to build the merged context.
+    """
+    rows = await _all_assessor_rows(db, student_id)
+    completed = [r for r in rows if r["assignment_status"] == AssignmentStatus.COMPLETED.value]
+    pending = [r for r in rows if r["assignment_status"] != AssignmentStatus.COMPLETED.value]
+    return completed, pending
 
 
 async def _latest_report(
@@ -198,6 +288,9 @@ async def get_workspace(
     student = await _get_student_or_404(db, student_id)
 
     latest_session = await _latest_completed_session(db, student_id)
+
+    # Multi-party progress: one row per non-cancelled assignment
+    assessor_rows = await _all_assessor_rows(db, student_id)
 
     # All reports for this student, newest first
     reports_result = await db.execute(
@@ -249,6 +342,28 @@ async def get_workspace(
         } if latest_session else None,
         "reports": grouped_reports,
         "cognitive_profiles": profile_dicts,
+        "assessors": [
+            {
+                "assignment_id": str(r["assignment_id"]),
+                "guardian_user_id": str(r["guardian_user_id"]),
+                "guardian_name": r["guardian_name"],
+                "guardian_email": r["guardian_email"],
+                "relationship_type": r["relationship_type"],
+                "status": r["assignment_status"],  # already a string, uppercase
+                "session_id": str(r["session_id"]) if r["session_id"] else None,
+                "session_status": r["session_status"],
+                "started_at": r["started_at"].isoformat() if r["started_at"] else None,
+                "completed_at": r["completed_at"].isoformat() if r["completed_at"] else None,
+            }
+            for r in assessor_rows
+        ],
+        "completion_count": {
+            "done": sum(1 for r in assessor_rows if r["assignment_status"] == AssignmentStatus.COMPLETED.value),
+            "total": len(assessor_rows),
+        },
+        "all_assessors_complete": bool(assessor_rows) and all(
+            r["assignment_status"] == AssignmentStatus.COMPLETED.value for r in assessor_rows
+        ),
     }
 
 
@@ -261,36 +376,100 @@ async def generate_background_summary(
     current_user: User = Depends(require_psychologist_or_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    """Generate a Background Summary from the student's latest completed parent chat session."""
+    """
+    Generate a Background Summary report.
+
+    Strict gate: the report only generates when **every** non-cancelled
+    AssessmentAssignment for this student has reached status COMPLETED.
+    Single-assignee flow is the trivial 1-of-1 case of this rule.
+
+    For multi-party cases (school + mother + father) the agent receives a
+    merged context with role attribution so the final report weaves
+    every perspective together.
+    """
     student = await _get_student_or_404(db, student_id)
 
-    session = await _latest_completed_session(db, student_id)
-    if not session:
+    completed, pending = await _all_completed_perspectives(db, student_id)
+    total = len(completed) + len(pending)
+
+    if total == 0:
         raise HTTPException(
             status_code=400,
-            detail="No completed parent assessment session found for this student. "
-                   "The parent must finish their assessment before a background summary can be generated.",
+            detail=(
+                "No assessment assignments exist for this student. "
+                "An admin must assign the assessment to at least one guardian first."
+            ),
         )
 
-    context_data = session.context_data or {}
+    if pending:
+        pending_roles = sorted({p["relationship_type"] or "Guardian" for p in pending})
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": f"Waiting for {len(pending)} of {total} assessors to complete.",
+                "pending_roles": pending_roles,
+                "completed_count": len(completed),
+                "total_count": total,
+            },
+        )
+
     student_name = f"{student.first_name} {student.last_name}".strip() or "the student"
+
+    # Build merged context. With a single completed assignee this degrades
+    # to a single-entry perspectives list — agent behaviour stays identical
+    # apart from the added role prefix in the prompt.
+    merged_context = {
+        "student_info": {
+            "first_name": student.first_name,
+            "last_name": student.last_name,
+            "date_of_birth": student.date_of_birth.isoformat() if student.date_of_birth else None,
+            "year_group": student.year_group,
+            "school_name": student.school_name,
+        },
+        "perspectives": [
+            {
+                "role": p["relationship_type"],
+                "respondent_name": p["guardian_name"],
+                "respondent_user_id": str(p["guardian_user_id"]),
+                "session_id": str(p["session_id"]) if p["session_id"] else None,
+                "context": p["context_data"] or {},
+            }
+            for p in completed
+        ],
+    }
 
     agent = BackgroundSummaryAgent()
     started = time.time()
     try:
-        markdown = await agent.generate(context_data, student_name)
+        markdown = await agent.generate(merged_context, student_name)
     except Exception as e:
         logger.error(f"BackgroundSummaryAgent raised: {e}", exc_info=True)
         raise HTTPException(status_code=502, detail=f"Agent failed: {str(e)}")
     generation_ms = int((time.time() - started) * 1000)
+
+    # Persist: source_chat_session_id is a single FK so point it at the
+    # most recent session; stash the full set in source_data for provenance.
+    session_ids = [p["session_id"] for p in completed if p["session_id"]]
+    primary_session_id = session_ids[-1] if session_ids else None
 
     report = PsychologistReport(
         student_id=student_id,
         created_by_user_id=current_user.id,
         report_type="background_summary",
         content_markdown=markdown,
-        source_data={"chat_session_context": context_data},
-        source_chat_session_id=session.id,
+        source_data={
+            "session_ids": [str(sid) for sid in session_ids],
+            "perspectives": [
+                {
+                    "role": p["relationship_type"],
+                    "respondent_name": p["guardian_name"],
+                    "respondent_user_id": str(p["guardian_user_id"]),
+                    "session_id": str(p["session_id"]) if p["session_id"] else None,
+                }
+                for p in completed
+            ],
+        },
+        source_chat_session_id=primary_session_id,
         status="draft",
         generation_ms=generation_ms,
     )

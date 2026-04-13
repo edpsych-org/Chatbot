@@ -78,6 +78,24 @@ export interface GroupedReports {
   [key: string]: Report[];
 }
 
+export interface Assessor {
+  assignment_id: string;
+  guardian_user_id: string;
+  guardian_name: string;
+  guardian_email: string;
+  relationship_type: string;
+  status: "ASSIGNED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+  session_id: string | null;
+  session_status: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+}
+
+export interface CompletionCount {
+  done: number;
+  total: number;
+}
+
 export interface WorkspaceResponse {
   student: {
     id: string;
@@ -88,4 +106,7 @@ export interface WorkspaceResponse {
   latest_completed_session: LatestSession | null;
   reports: GroupedReports;
   cognitive_profiles: CognitiveProfile[];
+  assessors?: Assessor[];
+  completion_count?: CompletionCount;
+  all_assessors_complete?: boolean;
 }
