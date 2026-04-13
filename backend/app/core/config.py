@@ -17,11 +17,6 @@ class Settings(BaseSettings):
     DATABASE_PASSWORD: str = "edpsych_secure_password"
     DATABASE_NAME: str = "edpsych_db"
 
-    # ==================== REDIS ====================
-    REDIS_URL: str = "redis://localhost:6379"
-    REDIS_HOST: str = "localhost"
-    REDIS_PORT: int = 6379
-
     # ==================== MINIO ====================
     MINIO_ENDPOINT: str = "localhost:9000"
     MINIO_ACCESS_KEY: str = "minioadmin"

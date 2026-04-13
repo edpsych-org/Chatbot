@@ -443,7 +443,7 @@ def section_tech_stack():
                 ("Frontend hosting", "Vercel (auto-deploy from GitHub)"),
                 ("Database", "Neon serverless PostgreSQL (production); PostgreSQL 16+ (local)"),
                 ("Container runtime", "Docker 24+ (Dockerfile in backend/)"),
-                ("Local stack", "docker-compose: Postgres 16, Redis 7, MinIO"),
+                ("Local stack", "docker-compose: Postgres 16, MinIO"),
                 ("Email provider", "Brevo transactional (API key required for real sends)"),
                 ("LLM provider (prod)", "Groq llama-3.1-8b-instant"),
                 ("OCR runtime", "Tesseract-OCR system binary (apt in Docker)"),
@@ -558,7 +558,7 @@ def section_directory():
         _h("Infrastructure (repo root)", 2),
         _code(
             "edpsych-production-prototype/\n"
-            "├── docker-compose.yml       # Postgres + Redis + MinIO local stack\n"
+            "├── docker-compose.yml       # Postgres + MinIO local stack\n"
             "├── .env.example             # Root env template\n"
             "├── vercel.json              # Vercel experimental services config\n"
             "├── backend/...\n"
@@ -603,7 +603,6 @@ def section_env_vars():
         ("BACKEND_HOST", "BE", "Uvicorn bind address", "0.0.0.0", "N"),
         ("BACKEND_PORT", "BE", "Overridden by Railway PORT", "8000", "N"),
         ("DEBUG_MODE", "BE", "Verbose errors + echo SQL", "false", "N"),
-        ("REDIS_URL", "BE", "Redis connection (unused today)", "localhost:6379", "N"),
         ("AI_TEMPERATURE", "BE", "LLM creativity (0..1)", "0.3", "N"),
         ("AI_MAX_TOKENS", "BE", "LLM max output tokens", "2000", "N"),
         ("AI_RETRY_ATTEMPTS", "BE", "LLM retry count", "3", "N"),
@@ -1172,7 +1171,7 @@ def section_local_dev():
         ),
         _h("Step 2 — PostgreSQL (option A: docker-compose)", 2),
         _code(
-            "docker compose up -d postgres redis minio\n"
+            "docker compose up -d postgres minio\n"
             "# postgres is on localhost:5432\n"
             "# minio is on localhost:9000 (console 9001)"
         ),
