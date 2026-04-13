@@ -682,7 +682,7 @@ export default function AdminDashboard() {
         Assignments / Data Explorer) because it's rendered once at the
         top of this page.
       */}
-      <header className="bg-white backdrop-blur-xl border-b border-[#dedede] sticky top-0 z-40">
+      <header className="site-header-pinned bg-white backdrop-blur-xl border-b border-[#dedede] sticky top-0 z-40">
         <div className="max-w-[1400px] mx-auto" style={{ paddingLeft: "21px", paddingRight: "21px" }}>
           <div className="flex items-center justify-between" style={{ height: "73px" }}>
             <div className="flex items-center" style={{ gap: "16px" }}>
