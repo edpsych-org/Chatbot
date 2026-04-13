@@ -6,6 +6,7 @@ import { API_BASE } from "@/lib/api";
 import BackgroundSummaryCard from "@/src/components/workspace/BackgroundSummaryCard";
 import CognitiveReportCard from "@/src/components/workspace/CognitiveReportCard";
 import UnifiedInsightsCard from "@/src/components/workspace/UnifiedInsightsCard";
+import BrandTopBar from "@/components/BrandTopBar";
 import type {
   CognitiveProfile,
   Report,
@@ -167,8 +168,11 @@ export default function ReportsWorkspacePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/30 to-emerald-50/30">
-      {/* Sticky header */}
-      <header className="bg-white/90 backdrop-blur border-b border-slate-200 sticky top-0 z-40">
+      {/* Branded top bar — same chrome as the admin dashboard */}
+      <BrandTopBar subtitle="Reports Workspace" />
+
+      {/* Page header with back button + student name */}
+      <header className="bg-white/90 backdrop-blur border-b border-slate-200 sticky top-[73px] z-30">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
