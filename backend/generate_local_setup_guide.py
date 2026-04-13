@@ -343,7 +343,7 @@ def section_what_youll_run():
                 "<b>PostgreSQL 18</b> on localhost:5432 holding the <font face='Courier'>edpsych_db</font> database",
                 "<b>FastAPI backend</b> via uvicorn on <font face='Courier'>http://localhost:8000</font>",
                 "<b>Next.js 14 frontend</b> via <font face='Courier'>next dev</font> on <font face='Courier'>http://localhost:3000</font>",
-                "<b>Groq</b> as the LLM provider (small cloud API call, no local GPU needed) OR Ollama if you prefer fully offline",
+                "<b>OpenAI</b> as the LLM provider (cloud API call for report generation)",
                 "<b>Seeded test users</b> — admin, psychologists, parents — ready to log in",
             ]
         ),
@@ -400,7 +400,6 @@ def section_prerequisites():
                     "IQ PDF extraction (optional if you won't upload PDFs locally)",
                     "github.com/UB-Mannheim/tesseract (Windows)",
                 ],
-                ["Ollama", "any", "Optional: fully offline LLM", "ollama.com"],
             ],
             col_widths=[28 * mm, 20 * mm, 62 * mm, 60 * mm],
         ),
@@ -521,17 +520,13 @@ def section_env():
             "CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000\n"
             "FRONTEND_URL=http://localhost:3000\n"
             "\n"
-            "# ==================== LLM (pick one) ====================\n"
-            "# Option A — Groq (recommended, small API call):\n"
-            "USE_GROQ=true\n"
-            "GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n"
-            "GROQ_MODEL=llama-3.1-8b-instant\n"
+            "# ==================== LLM (OpenAI for reports) ====================\n"
+            "USE_OPENAI=true\n"
+            "OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n"
+            "OPENAI_MODEL=gpt-4o-mini\n"
             "\n"
-            "# Option B — Ollama (fully offline):\n"
-            "# USE_GROQ=false\n"
-            "# USE_LOCAL_LLM=true\n"
-            "# OLLAMA_BASE_URL=http://localhost:11434\n"
-            "# OLLAMA_MODEL=qwen2.5:3b\n"
+            "# Groq is reserved for future chat-flow features — leave disabled:\n"
+            "USE_GROQ=false\n"
             "\n"
             "# ==================== EMAIL (optional) ====================\n"
             "# Leave blank to log magic links to terminal instead of sending:\n"
@@ -554,8 +549,8 @@ def section_env():
         ),
         _warn(
             "Never commit your .env file. It's already in <font face='Courier'>.gitignore</font>. "
-            "If you don't have a Groq key, Option B (Ollama) works offline — just run "
-            "<font face='Courier'>ollama pull qwen2.5:3b</font> first."
+            "<font face='Courier'>OPENAI_API_KEY</font> is required for report generation — "
+            "get one from platform.openai.com and paste it above."
         ),
     ]
 
@@ -809,7 +804,7 @@ def section_directory():
             "│   ├── api/                    # One file per router (auth, admin, ...)\n"
             "│   ├── models/                 # SQLAlchemy models (one per table)\n"
             "│   ├── services/\n"
-            "│   │   ├── local_llm.py        # Groq/OpenAI/Ollama abstraction\n"
+            "│   │   ├── local_llm.py        # OpenAI / Groq abstraction\n"
             "│   │   └── pdf_extractor.py    # Tesseract OCR for IQ PDFs\n"
             "│   └── utils/\n"
             "│       ├── email.py            # Brevo sender + dev log fallback\n"

@@ -18,7 +18,7 @@ FastAPI backend + Next.js 14 frontend + PostgreSQL.
 | PostgreSQL | 16 or 18 | Database |
 | Git | any | Clone the repo |
 
-Optional: Tesseract OCR (for IQ PDF extraction), Ollama (for offline LLM).
+Optional: Tesseract OCR (for IQ PDF extraction).
 
 ---
 
@@ -216,7 +216,7 @@ cd backend && python generate_local_setup_guide.py
 - **Backend**: FastAPI 0.109 + SQLAlchemy 2.0 (async) + asyncpg + Uvicorn
 - **Frontend**: Next.js 14 App Router + React 18 + TypeScript + Tailwind 3.4
 - **Database**: PostgreSQL 16/18
-- **LLM**: Groq (prod) / OpenAI / Ollama — runtime switchable
+- **LLM**: OpenAI (reports, active) / Groq (chat, reserved) — set via USE_OPENAI / USE_GROQ
 - **Email**: Brevo API (falls back to terminal log in dev)
 - **Auth**: JWT (HS256) + invite-based magic links (48h expiry)
 - **Fonts**: Average (serif) + Nunito (sans) via `next/font`

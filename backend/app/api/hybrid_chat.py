@@ -1506,7 +1506,7 @@ async def complete_chat_session(
 
 
 async def _run_report_generation_job(job_id: UUID, job_type: str, chatbot_data: dict):
-    """Background task for report generation. Handles Ollama being down gracefully."""
+    """Background task for report generation. Handles the LLM being unavailable gracefully."""
     from app.core.database import AsyncSessionLocal
     from app.services.local_llm import llm_service
 
@@ -1545,7 +1545,7 @@ async def _run_report_generation_job(job_id: UUID, job_type: str, chatbot_data: 
             if llm_result.get("success"):
                 job.status = 'completed'
                 job.output_text = llm_result.get("text", "")
-                job.model_used = llm_result.get("model", settings.OLLAMA_MODEL)
+                job.model_used = llm_result.get("model", settings.OPENAI_MODEL)
                 job.tokens_used = llm_result.get("tokens", 0)
                 job.generation_time_seconds = duration
                 job.completed_at = end_time

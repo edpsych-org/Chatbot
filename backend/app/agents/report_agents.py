@@ -11,7 +11,7 @@ Architecture:
   CognitiveReportAgent   : structured scores -> narrative markdown (also multi-stage)
   UnifiedInsightsAgent   : background + cognitive markdowns -> bridging narrative
 
-Each agent inherits from BaseAgent and uses Groq/Ollama via call_llm / call_llm_json.
+Each agent inherits from BaseAgent and uses OpenAI (or Groq) via call_llm / call_llm_json.
 """
 
 import asyncio

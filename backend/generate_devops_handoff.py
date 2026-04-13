@@ -378,7 +378,7 @@ def section_overview():
         _p(
             "<b>Frontend</b> (Vercel) → <b>Backend</b> (Railway, Docker) → "
             "<b>Database</b> (Neon PostgreSQL) + <b>LLM provider</b> "
-            "(Groq default; Ollama local; OpenAI optional) + <b>Email</b> (Brevo API) + "
+            "(OpenAI default; Groq reserved for chat) + <b>Email</b> (Brevo API) + "
             "<b>Storage</b> (MinIO local, S3-ready)."
         ),
         _code(
@@ -413,7 +413,7 @@ def section_tech_stack():
                 ("Database driver", "asyncpg 0.29.0 (async) + psycopg2-binary 2.9.9 (fallback)"),
                 ("ORM", "SQLAlchemy 2.0.25 (async), Alembic 1.13.1 (available, not active)"),
                 ("Auth", "python-jose 3.3.0 (JWT HS256), passlib 1.7.4 (bcrypt)"),
-                ("LLM providers", "Groq (production), OpenAI (optional), Ollama (local dev)"),
+                ("LLM providers", "OpenAI (reports, active) — Groq reserved for chat flow"),
                 ("Email", "Brevo HTTP API v3 via requests; falls back to stdout log mode"),
                 ("Storage", "MinIO 7.2.3 / boto3 1.34.34 (S3-compatible)"),
                 ("OCR", "pytesseract 0.3.10 + pdf2image 1.17.0 + PyMuPDF 1.23.26 + Pillow 10.2.0"),
@@ -501,7 +501,7 @@ def section_directory():
             "│   │   ├── admin.py             # User + student + assignment management\n"
             "│   │   ├── uploads.py  reports.py  verification.py\n"
             "│   ├── services/\n"
-            "│   │   ├── local_llm.py         # Ollama/Groq/OpenAI abstraction\n"
+            "│   │   ├── local_llm.py         # OpenAI / Groq abstraction\n"
             "│   │   └── pdf_extractor.py     # Tesseract + PyMuPDF OCR pipeline\n"
             "│   └── utils/\n"
             "│       ├── email.py             # Brevo send + DEV log fallback\n"
@@ -587,9 +587,6 @@ def section_env_vars():
         ("USE_OPENAI", "BE", "Enable OpenAI provider", "false", "N"),
         ("OPENAI_API_KEY", "BE", "OpenAI API key", "&lt;empty&gt;", "Y if USE_OPENAI"),
         ("OPENAI_MODEL", "BE", "OpenAI model id", "gpt-4o-mini", "N"),
-        ("USE_LOCAL_LLM", "BE", "Enable Ollama local LLM", "true", "N"),
-        ("OLLAMA_BASE_URL", "BE", "Ollama host", "localhost:11434", "N"),
-        ("OLLAMA_MODEL", "BE", "Ollama model id", "qwen2.5:3b", "N"),
         ("BREVO_API_KEY", "BE", "Brevo transactional email key", "&lt;empty&gt;", "Y for real emails"),
         ("EMAIL_FROM_NAME", "BE", "From name on emails", "The EdPsych Practice", "N"),
         ("EMAIL_FROM_ADDRESS", "BE", "From address on emails", "noreply@...", "N"),
@@ -976,7 +973,7 @@ def section_workflows():
             "5. Generate background summary\n"
             "   POST /psychologist-reports/students/{id}/background-summary/generate\n"
             "     - creates AIGenerationJob (pending)\n"
-            "     - background task calls local_llm_service (Groq/OpenAI/Ollama)\n"
+            "     - background task calls local_llm_service (OpenAI)\n"
             "     - fills profile_text section of PsychologistReport\n"
             "6. Generate cognitive report (same pattern)\n"
             "7. Generate unified insights (synthesises all above)\n"
@@ -1166,7 +1163,7 @@ def section_local_dev():
             "#   SECRET_KEY=$(openssl rand -hex 32)\n"
             "#   CORS_ORIGINS=http://localhost:3000\n"
             "#   FRONTEND_URL=http://localhost:3000\n"
-            "#   USE_GROQ=true  (and GROQ_API_KEY=...)  OR  USE_LOCAL_LLM=true\n"
+            "#   USE_OPENAI=true  (and OPENAI_API_KEY=...)\n"
             "#   BREVO_API_KEY=...  (optional — skip for DEV log mode)"
         ),
         _h("Step 2 — PostgreSQL (option A: docker-compose)", 2),
@@ -1256,13 +1253,6 @@ def section_external_services():
             [
                 "Drop-in alternative to Groq (same code path). Set <font face='Courier'>USE_OPENAI=true, OPENAI_API_KEY</font>, pick model.",
                 "Default model: gpt-4o-mini",
-            ]
-        ),
-        _h("Ollama (LLM provider, local dev)", 2),
-        *_bullets(
-            [
-                "Local-only LLM runtime. <font face='Courier'>ollama pull qwen2.5:3b</font> before first run.",
-                "Env vars: <font face='Courier'>USE_LOCAL_LLM=true, OLLAMA_BASE_URL=http://localhost:11434</font>",
             ]
         ),
         _h("Brevo transactional email", 2),

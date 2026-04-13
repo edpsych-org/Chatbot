@@ -1,6 +1,13 @@
 """
-Base Agent - Common LLM integration with robust error handling
-All agents inherit from this for Ollama and Groq communication.
+Base Agent — common cloud-LLM integration with retry and error handling.
+All concrete agents inherit from this class.
+
+Provider selection:
+    USE_OPENAI=true  → call OpenAI (default, used for report generation)
+    USE_GROQ=true    → call Groq (reserved for future chat-flow features)
+
+There is no local / Ollama fallback; calls fail fast and return None
+if neither provider is configured.
 """
 
 import asyncio
@@ -15,12 +22,10 @@ logger = logging.getLogger(__name__)
 
 
 class BaseAgent:
-    """Base agent with LLM integration (OpenAI, Groq, or Ollama) and retry logic."""
+    """Base agent with cloud LLM integration (OpenAI or Groq) and retry logic."""
 
     def __init__(self, name: str, timeout: float = 15.0, max_tokens: int = 300):
         self.name = name
-        self.ollama_url = settings.OLLAMA_BASE_URL
-        self.ollama_model = settings.OLLAMA_MODEL
         self.groq_model = settings.GROQ_MODEL
         self.timeout = timeout
         self.max_tokens = max_tokens
@@ -32,12 +37,15 @@ class BaseAgent:
         max_tokens: Optional[int] = None,
         temperature: float = 0.3,
     ) -> Optional[str]:
-        """Call LLM (OpenAI, Groq, or Ollama) with error handling. Returns raw text or None on failure."""
+        """Call the configured cloud LLM. Returns raw text or None on failure."""
         if settings.USE_OPENAI:
             return await self._call_openai(prompt, format_json, max_tokens, temperature)
         if settings.USE_GROQ:
             return await self._call_groq(prompt, format_json, max_tokens, temperature)
-        return await self._call_ollama(prompt, format_json, max_tokens, temperature)
+        logger.error(
+            f"[{self.name}] No LLM provider enabled — set USE_OPENAI=true or USE_GROQ=true"
+        )
+        return None
 
     async def _call_openai(
         self,
@@ -187,48 +195,13 @@ class BaseAgent:
         logger.warning(f"[{self.name}] Groq exhausted all {max_retries} retries")
         return None
 
-    async def _call_ollama(
-        self,
-        prompt: str,
-        format_json: bool = False,
-        max_tokens: Optional[int] = None,
-        temperature: float = 0.3,
-    ) -> Optional[str]:
-        """Call Ollama API. Returns raw text or None on failure."""
-        tokens = max_tokens or self.max_tokens
-
-        payload = {
-            "model": self.ollama_model,
-            "prompt": prompt,
-            "stream": False,
-            "options": {
-                "num_predict": tokens,
-                "temperature": temperature,
-            },
-        }
-        if format_json:
-            payload["format"] = "json"
-
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                resp = await client.post(f"{self.ollama_url}/api/generate", json=payload)
-                if resp.status_code == 200:
-                    return resp.json().get("response", "").strip()
-                logger.warning(f"[{self.name}] Ollama returned {resp.status_code}")
-        except httpx.TimeoutException:
-            logger.warning(f"[{self.name}] Ollama timeout after {self.timeout}s")
-        except Exception as e:
-            logger.warning(f"[{self.name}] LLM call failed: {e}")
-
-        return None
-
     async def call_llm_json(
         self,
         prompt: str,
         max_tokens: Optional[int] = None,
         temperature: float = 0.3,
     ) -> Optional[dict]:
-        """Call Ollama expecting JSON response. Returns parsed dict or None."""
+        """Call the cloud LLM expecting a JSON response. Returns parsed dict or None."""
         raw = await self.call_llm(prompt, format_json=True, max_tokens=max_tokens, temperature=temperature)
         if not raw:
             return None

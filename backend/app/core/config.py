@@ -26,12 +26,6 @@ class Settings(BaseSettings):
     MINIO_BUCKET_REPORTS: str = "reports"
     MINIO_BUCKET_TEMP: str = "temp"
 
-    # ==================== OLLAMA (Local LLM) ====================
-    OLLAMA_BASE_URL: str = "http://localhost:11434"
-    OLLAMA_MODEL: str = "qwen2.5:3b"
-    OLLAMA_TIMEOUT: int = 120
-    USE_LOCAL_LLM: bool = True
-
     # ==================== GROQ (Cloud LLM) ====================
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "llama-3.1-8b-instant"
