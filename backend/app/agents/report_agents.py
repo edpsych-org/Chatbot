@@ -81,8 +81,8 @@ Completed Q&A Pairs:
             # Truncate to stay within Groq TPM limits
             analyst_output = analyst_output[:3000]
 
-            # Wait for Groq rate limit (skipped for OpenAI)
-            if settings.USE_GROQ:
+            # Wait for Groq rate limit — only relevant when the agent itself uses Groq
+            if self._resolve_provider() == "groq":
                 logger.info(f"[BackgroundSummaryAgent] Stage 1 complete, waiting 35s for Groq rate limit...")
                 await asyncio.sleep(35)
 
@@ -95,8 +95,8 @@ Completed Q&A Pairs:
                 interpreter_output = f"Clinical interpretation unavailable — synthesizer should work directly from analyst output."
             interpreter_output = interpreter_output[:3000]
 
-            # Wait for Groq rate limit (skipped for OpenAI)
-            if settings.USE_GROQ:
+            # Wait for Groq rate limit — only relevant when the agent itself uses Groq
+            if self._resolve_provider() == "groq":
                 logger.info(f"[BackgroundSummaryAgent] Stage 2 complete, waiting 35s for Groq rate limit...")
                 await asyncio.sleep(35)
 
@@ -396,8 +396,8 @@ class CognitiveReportAgent(BaseAgent):
             if not interpretation:
                 interpretation = "Score interpretation unavailable — proceed with direct analysis."
 
-            # Wait for Groq rate limit (skipped for OpenAI)
-            if settings.USE_GROQ:
+            # Wait for Groq rate limit — only relevant when the agent itself uses Groq
+            if self._resolve_provider() == "groq":
                 await asyncio.sleep(20)
 
             # Stage 2: Report Writer — produce the final clinical narrative
@@ -549,8 +549,8 @@ class UnifiedInsightsAgent(BaseAgent):
             if not analysis:
                 analysis = "Pattern analysis unavailable — proceed with direct synthesis."
 
-            # Wait for Groq rate limit (skipped for OpenAI)
-            if settings.USE_GROQ:
+            # Wait for Groq rate limit — only relevant when the agent itself uses Groq
+            if self._resolve_provider() == "groq":
                 await asyncio.sleep(20)
 
             # Stage 2: Synthesizer — write the final unified report
