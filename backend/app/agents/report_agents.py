@@ -40,10 +40,12 @@ class BackgroundSummaryAgent(BaseAgent):
     """
 
     def __init__(self):
+        # Report-time agent → OpenAI (quality matters for final narrative)
         super().__init__(
             name="BackgroundSummaryAgent",
             timeout=90.0,
             max_tokens=3000,
+            default_provider="openai",
         )
 
     async def generate(self, context_data: dict, student_name: str) -> str:
@@ -278,6 +280,7 @@ class IQScoreExtractorAgent(BaseAgent):
             name="IQScoreExtractorAgent",
             timeout=60.0,
             max_tokens=3000,
+            default_provider="openai",
         )
 
     async def extract(self, raw_text: str) -> dict:
@@ -379,6 +382,7 @@ class CognitiveReportAgent(BaseAgent):
             name="CognitiveReportAgent",
             timeout=90.0,
             max_tokens=3000,
+            default_provider="openai",
         )
 
     async def generate(self, parsed_scores: dict, student_name: str) -> str:
@@ -525,6 +529,7 @@ class UnifiedInsightsAgent(BaseAgent):
             name="UnifiedInsightsAgent",
             timeout=90.0,
             max_tokens=3000,
+            default_provider="openai",
         )
 
     async def synthesize(

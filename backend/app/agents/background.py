@@ -15,7 +15,16 @@ class BackgroundGenerator(BaseAgent):
     """Generates comprehensive background profiles from assessment data."""
 
     def __init__(self):
-        super().__init__(name="BackgroundGenerator", timeout=25.0, max_tokens=800)
+        # Chat-flow agent — builds a rolling context summary while the
+        # parent chats. Routed to Groq (cheap, fast). Not to be confused
+        # with the report-time BackgroundSummaryAgent in report_agents.py
+        # which stays on OpenAI.
+        super().__init__(
+            name="BackgroundGenerator",
+            timeout=25.0,
+            max_tokens=800,
+            default_provider="groq",
+        )
 
     async def generate_profile(self, assessment_data: dict, student_info: dict) -> dict:
         """

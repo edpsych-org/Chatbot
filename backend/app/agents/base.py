@@ -3,11 +3,14 @@ Base Agent — common cloud-LLM integration with retry and error handling.
 All concrete agents inherit from this class.
 
 Provider selection:
-    USE_OPENAI=true  → call OpenAI (default, used for report generation)
-    USE_GROQ=true    → call Groq (reserved for future chat-flow features)
+    Each subclass sets ``default_provider`` in its __init__:
+        "openai" → always call OpenAI (used by report agents)
+        "groq"   → always call Groq   (used by chat-flow acknowledgement agents)
+        "auto"   → honour USE_OPENAI / USE_GROQ flags in settings
+                   (OpenAI wins, then Groq)
 
 There is no local / Ollama fallback; calls fail fast and return None
-if neither provider is configured.
+if the chosen provider is not configured.
 """
 
 import asyncio
@@ -24,11 +27,32 @@ logger = logging.getLogger(__name__)
 class BaseAgent:
     """Base agent with cloud LLM integration (OpenAI or Groq) and retry logic."""
 
-    def __init__(self, name: str, timeout: float = 15.0, max_tokens: int = 300):
+    def __init__(
+        self,
+        name: str,
+        timeout: float = 15.0,
+        max_tokens: int = 300,
+        default_provider: str = "auto",
+    ):
         self.name = name
         self.groq_model = settings.GROQ_MODEL
         self.timeout = timeout
         self.max_tokens = max_tokens
+        # "openai" | "groq" | "auto" — subclasses pin this per their role.
+        self.default_provider = default_provider
+
+    def _resolve_provider(self) -> str:
+        """Pick which provider this agent should hit."""
+        if self.default_provider == "openai":
+            return "openai"
+        if self.default_provider == "groq":
+            return "groq"
+        # auto — honour flags
+        if settings.USE_OPENAI:
+            return "openai"
+        if settings.USE_GROQ:
+            return "groq"
+        return ""  # nothing enabled
 
     async def call_llm(
         self,
@@ -38,12 +62,13 @@ class BaseAgent:
         temperature: float = 0.3,
     ) -> Optional[str]:
         """Call the configured cloud LLM. Returns raw text or None on failure."""
-        if settings.USE_OPENAI:
+        provider = self._resolve_provider()
+        if provider == "openai":
             return await self._call_openai(prompt, format_json, max_tokens, temperature)
-        if settings.USE_GROQ:
+        if provider == "groq":
             return await self._call_groq(prompt, format_json, max_tokens, temperature)
         logger.error(
-            f"[{self.name}] No LLM provider enabled — set USE_OPENAI=true or USE_GROQ=true"
+            f"[{self.name}] No LLM provider available — set USE_OPENAI=true or USE_GROQ=true"
         )
         return None
 

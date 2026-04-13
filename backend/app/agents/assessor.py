@@ -54,7 +54,13 @@ class AssessmentAgent(BaseAgent):
     """Extracts clinical assessment data from parent responses."""
 
     def __init__(self):
-        super().__init__(name="AssessmentAgent", timeout=10.0, max_tokens=200)
+        # Chat-flow agent → Groq
+        super().__init__(
+            name="AssessmentAgent",
+            timeout=10.0,
+            max_tokens=200,
+            default_provider="groq",
+        )
 
     async def analyze(
         self,
