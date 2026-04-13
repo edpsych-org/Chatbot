@@ -1,5 +1,10 @@
 version: '3.8'
 
+# Local-dev only. Object storage is not simulated locally anymore —
+# the backend uses real AWS S3 (bucket name in .env). If you need to
+# work offline without AWS, the S3 service gracefully degrades to
+# a dev-mode log rather than running a MinIO container.
+
 services:
   # PostgreSQL Database
   postgres:
@@ -22,50 +27,9 @@ services:
       timeout: 5s
       retries: 5
 
-  # MinIO (S3 Alternative)
-  minio:
-    image: minio/minio:latest
-    container_name: edpsych_minio
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin123
-    ports:
-      - "9000:9000"  # API
-      - "9001:9001"  # Console UI
-    volumes:
-      - ./storage:/data
-    networks:
-      - edpsych-network
-    command: server /data --console-address ":9001"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
-
-  # MinIO Client (Create buckets on startup)
-  minio-setup:
-    image: minio/mc:latest
-    container_name: edpsych_minio_setup
-    depends_on:
-      - minio
-    networks:
-      - edpsych-network
-    entrypoint: >
-      /bin/sh -c "
-      sleep 5;
-      /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin123;
-      /usr/bin/mc mb myminio/iq-tests --ignore-existing;
-      /usr/bin/mc mb myminio/reports --ignore-existing;
-      /usr/bin/mc mb myminio/temp --ignore-existing;
-      /usr/bin/mc anonymous set download myminio/reports;
-      exit 0;
-      "
-
 networks:
   edpsych-network:
     driver: bridge
 
 volumes:
   postgres-data:
-  minio-data:

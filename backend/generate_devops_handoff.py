@@ -590,11 +590,13 @@ def section_env_vars():
         ("BREVO_API_KEY", "BE", "Brevo transactional email key", "&lt;empty&gt;", "Y for real emails"),
         ("EMAIL_FROM_NAME", "BE", "From name on emails", "The EdPsych Practice", "N"),
         ("EMAIL_FROM_ADDRESS", "BE", "From address on emails", "noreply@...", "N"),
-        ("MINIO_ENDPOINT", "BE", "S3-compatible endpoint", "localhost:9000", "N"),
-        ("MINIO_ACCESS_KEY", "BE", "MinIO root user", "minioadmin", "N"),
-        ("MINIO_SECRET_KEY", "BE", "MinIO root password", "minioadmin123", "N"),
-        ("MINIO_BUCKET_IQ_TESTS", "BE", "Bucket name for IQ uploads", "iq-tests", "N"),
-        ("MINIO_BUCKET_REPORTS", "BE", "Bucket name for generated reports", "reports", "N"),
+        ("AWS_ACCESS_KEY_ID", "BE", "AWS IAM key for S3", "", "Y"),
+        ("AWS_SECRET_ACCESS_KEY", "BE", "AWS IAM secret for S3", "", "Y"),
+        ("AWS_REGION", "BE", "S3 region", "eu-west-2", "Y"),
+        ("S3_BUCKET_IQ_TESTS", "BE", "Bucket for raw IQ test uploads", "", "Y"),
+        ("S3_BUCKET_REPORTS", "BE", "Bucket for generated reports", "", "Y"),
+        ("S3_BUCKET_TEMP", "BE", "Bucket for temp artefacts", "", "Y"),
+        ("S3_ENDPOINT_URL", "BE", "Custom S3 endpoint (blank = default AWS)", "", "N"),
         ("TESSERACT_PATH", "BE", "Windows path to tesseract.exe", "C:/Program Files/...", "N (Docker)"),
         ("TESSERACT_LANG", "BE", "OCR language", "eng", "N"),
         ("BACKEND_HOST", "BE", "Uvicorn bind address", "0.0.0.0", "N"),
@@ -1168,9 +1170,9 @@ def section_local_dev():
         ),
         _h("Step 2 — PostgreSQL (option A: docker-compose)", 2),
         _code(
-            "docker compose up -d postgres minio\n"
+            "docker compose up -d postgres\n"
             "# postgres is on localhost:5432\n"
-            "# minio is on localhost:9000 (console 9001)"
+            "# S3 is remote — the backend uses real AWS buckets"
         ),
         _h("Step 2 — PostgreSQL (option B: native)", 2),
         _code(
@@ -1264,13 +1266,14 @@ def section_external_services():
                 "Fallback: if BREVO_API_KEY is missing, <font face='Courier'>app/utils/email.py</font> logs emails to stdout instead of sending",
             ]
         ),
-        _h("MinIO / S3 (object storage, optional)", 2),
+        _h("AWS S3 (object storage)", 2),
         *_bullets(
             [
                 "Provides: IQ test PDFs, generated reports, temp files",
-                "Buckets: iq-tests, reports, temp",
-                "Dev: docker-compose minio service on :9000 (console :9001)",
-                "Production: can be swapped for AWS S3 by pointing <font face='Courier'>MINIO_ENDPOINT</font> at S3 (boto3 handles it)",
+                "Buckets: single bucket with <font face='Courier'>iq-tests/</font>, <font face='Courier'>reports/</font>, <font face='Courier'>temp/</font> prefixes (configured via <font face='Courier'>S3_BUCKET_*</font> env vars)",
+                "Client: boto3 wrapped by <font face='Courier'>backend/app/services/s3_storage.py</font>",
+                "Credentials: IAM user with S3 read/write on the target bucket. Store keys as <font face='Courier'>AWS_ACCESS_KEY_ID</font> / <font face='Courier'>AWS_SECRET_ACCESS_KEY</font> in Railway secrets (never commit).",
+                "Dev fallback: if <font face='Courier'>AWS_ACCESS_KEY_ID</font> is empty the service logs instead of uploading — app keeps working without credentials.",
             ]
         ),
         _h("Tesseract OCR (system binary)", 2),

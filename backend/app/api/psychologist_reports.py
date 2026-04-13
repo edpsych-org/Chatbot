@@ -34,6 +34,7 @@ from app.agents.report_agents import (
     UnifiedInsightsAgent,
 )
 from app.services.pdf_extractor import extract_text_from_pdf
+from app.services.s3_storage import s3_storage
 
 logger = logging.getLogger(__name__)
 
@@ -313,8 +314,14 @@ async def upload_cognitive_report_pdf(
     """
     Accept an IQ test PDF/image, extract text (text-layer or OCR),
     call the IQScoreExtractorAgent, and persist IQTestUpload + CognitiveProfile.
-    The uploaded file itself is DELETED after extraction — only the extracted
-    text + structured scores persist in the database.
+
+    The uploaded file itself is persisted to the AWS S3 bucket
+    configured as S3_BUCKET_IQ_TESTS (key pattern
+    iq-tests/{student_id}/{uuid}.pdf). The S3 key is stored in
+    IQTestUpload.file_path for later retrieval via presigned URL.
+
+    The local temp copy created for OCR is always deleted in the
+    finally block.
     """
     await _get_student_or_404(db, student_id)
 
@@ -377,12 +384,30 @@ async def upload_cognitive_report_pdf(
         if isinstance(parsed, dict) and parsed.get("error"):
             raise HTTPException(status_code=422, detail=parsed["error"])
 
-        # 3. Create IQTestUpload row (file_path stored for provenance even though file is deleted)
+        # 3. Persist the raw file to S3 for long-term retention. If S3
+        #    isn't configured (e.g. local dev without AWS creds) the
+        #    storage service falls back to dev-mode logging and returns
+        #    the key so IQTestUpload.file_path still gets populated.
+        s3_key = s3_storage.iq_test_key(str(student_id), ext)
+        stored_key = s3_storage.upload_bytes(
+            data=file_bytes,
+            key=s3_key,
+            content_type=file.content_type,
+        )
+        if not stored_key:
+            # Upload failed and storage is supposedly enabled — fall back
+            # to the temp path so we at least have provenance.
+            logger.warning(
+                "S3 upload failed for student %s — recording temp_path only",
+                student_id,
+            )
+            stored_key = temp_path
+
         iq_upload = IQTestUpload(
             student_id=student_id,
             uploaded_by_user_id=current_user.id,
             file_name=file.filename or f"upload{ext}",
-            file_path=temp_path,
+            file_path=stored_key,  # S3 key (or fallback temp path)
             file_size_bytes=size,
             mime_type=file.content_type,
             upload_status=UploadStatus.COMPLETED,

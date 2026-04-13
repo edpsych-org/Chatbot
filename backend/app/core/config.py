@@ -17,14 +17,15 @@ class Settings(BaseSettings):
     DATABASE_PASSWORD: str = "edpsych_secure_password"
     DATABASE_NAME: str = "edpsych_db"
 
-    # ==================== MINIO ====================
-    MINIO_ENDPOINT: str = "localhost:9000"
-    MINIO_ACCESS_KEY: str = "minioadmin"
-    MINIO_SECRET_KEY: str = "minioadmin123"
-    MINIO_SECURE: bool = False
-    MINIO_BUCKET_IQ_TESTS: str = "iq-tests"
-    MINIO_BUCKET_REPORTS: str = "reports"
-    MINIO_BUCKET_TEMP: str = "temp"
+    # ==================== AWS S3 (object storage) ====================
+    AWS_ACCESS_KEY_ID: str = ""
+    AWS_SECRET_ACCESS_KEY: str = ""
+    AWS_REGION: str = "eu-west-2"
+    S3_BUCKET_IQ_TESTS: str = ""
+    S3_BUCKET_REPORTS: str = ""
+    S3_BUCKET_TEMP: str = ""
+    # Optional — leave blank for default AWS; set only for custom / VPC endpoints.
+    S3_ENDPOINT_URL: str = ""
 
     # ==================== GROQ (Cloud LLM) ====================
     GROQ_API_KEY: str = ""
