@@ -927,16 +927,41 @@ export default function AdminDashboard() {
                             ) : <span className="text-slate-600">No guardian</span>}
                           </td>
                           <td className="px-5 py-3.5">
-                            {s.assignment_status ? (
-                              <div className="flex items-center gap-2">
-                                <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-semibold ${s.assignment_status === "completed" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
-                                  {s.assignment_status.toUpperCase()}
-                                </span>
-                                {s.progress_percentage > 0 && s.assignment_status !== "completed" && (
-                                  <span className="text-[0.6875rem] text-[#737373]">{s.progress_percentage}%</span>
-                                )}
-                              </div>
-                            ) : <span className="text-[0.6875rem] text-slate-600">No assignment</span>}
+                            {(() => {
+                              const sum = s.assessors_summary || { done: 0, total: s.active_assignments || 0, percent: s.progress_percentage || 0 };
+                              const pct = Math.max(0, Math.min(100, sum.percent ?? 0));
+                              const st = s.assignment_status as string | null;
+                              if (!st && sum.total === 0) {
+                                return <span className="text-[0.6875rem] text-slate-600">No assignment</span>;
+                              }
+                              const barColor = st === "completed" ? "bg-emerald-500" : pct > 0 ? "bg-[#00acb6]" : "bg-[#dedede]";
+                              const labelColor = st === "completed" ? "text-emerald-700" : "text-[#0c888e]";
+                              return (
+                                <div className="flex flex-col gap-1 min-w-[140px]">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className={`text-[0.625rem] font-semibold uppercase tracking-wider ${labelColor}`}>
+                                      {st === "completed" ? "Completed" : st === "in_progress" ? "In Progress" : "Assigned"}
+                                    </span>
+                                    <span className="text-[0.6875rem] font-semibold text-[#333] tabular-nums">
+                                      {sum.total > 1 ? `${sum.done}/${sum.total}` : `${pct}%`}
+                                    </span>
+                                  </div>
+                                  <div className="h-1.5 w-full bg-[#eeeeee] rounded-full overflow-hidden">
+                                    <div
+                                      className={`h-full ${barColor} transition-all duration-500`}
+                                      style={{ width: `${pct}%` }}
+                                    />
+                                  </div>
+                                  {sum.total > 1 && (
+                                    <span className="text-[0.625rem] text-[#737373] mt-0.5">
+                                      {sum.done === sum.total
+                                        ? `All ${sum.total} assessors complete`
+                                        : `${sum.done} of ${sum.total} assessors complete`}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </td>
                           <td className="px-5 py-3.5 text-right">
                             <div className="flex items-center justify-end gap-3">

@@ -1179,27 +1179,57 @@ async def admin_get_all_students_with_details(
         )
         assignments = assignments_result.scalars().all()
 
-        # Calculate progress from chat sessions
-        progress_pct = 0
-        for asgn in assignments:
-            if asgn.status in [AssignmentStatus.ASSIGNED, AssignmentStatus.IN_PROGRESS]:
-                sess_result = await db.execute(
-                    select(ChatSession)
-                    .where(ChatSession.assignment_id == asgn.id)
-                    .order_by(ChatSession.started_at.desc())
+        # ── Aggregate progress across all non-cancelled assignees ──
+        # With multi-party assignments (school + mother + father) "progress"
+        # is more meaningful as a count of completed assessors than a single
+        # chat's node-count. We compute both so the admin can see
+        # "2 of 3 complete" plus an aggregate percentage for a bar.
+        total_assignees = len(assignments)
+        done_assignees = sum(
+            1 for a in assignments if a.status == AssignmentStatus.COMPLETED
+        )
+        in_progress_assignees = sum(
+            1 for a in assignments if a.status == AssignmentStatus.IN_PROGRESS
+        )
+
+        if total_assignees == 0:
+            aggregate_status: Optional[str] = None
+            aggregate_percent = 0
+        elif done_assignees == total_assignees:
+            aggregate_status = "completed"
+            aggregate_percent = 100
+        else:
+            aggregate_status = "in_progress" if (in_progress_assignees > 0 or done_assignees > 0) else "assigned"
+            aggregate_percent = round((done_assignees / total_assignees) * 100) if total_assignees else 0
+
+        # Also compute a single-assignee node-count progress for the
+        # common single-assessor case — shown as a secondary hint
+        # only when there's exactly one active assignment and nobody
+        # has completed yet.
+        single_chat_progress = 0
+        if total_assignees == 1 and done_assignees == 0:
+            asgn = assignments[0]
+            sess_result = await db.execute(
+                select(ChatSession)
+                .where(ChatSession.assignment_id == asgn.id)
+                .order_by(ChatSession.started_at.desc())
+            )
+            chat_session = sess_result.scalars().first()
+            if chat_session and chat_session.context_data:
+                answered = chat_session.context_data.get("answered_node_ids", [])
+                total_nodes = 102  # parent_assessment_v1 answerable nodes
+                single_chat_progress = (
+                    round((len(answered) / total_nodes) * 100) if total_nodes > 0 else 0
                 )
-                chat_session = sess_result.scalars().first()
-                if chat_session and chat_session.context_data:
-                    answered = chat_session.context_data.get("answered_node_ids", [])
-                    total_nodes = 102  # parent_assessment_v1 answerable nodes
-                    progress_pct = (
-                        round((len(answered) / total_nodes) * 100)
-                        if total_nodes > 0
-                        else 0
-                    )
-                    if chat_session.status == "completed":
-                        progress_pct = 100
-                break  # use the first active assignment for progress
+                if chat_session.status == "completed":
+                    single_chat_progress = 100
+        # For single-assignee students, promote the chat progress onto the
+        # aggregate bar so the admin sees forward motion before the whole
+        # assignment flips to COMPLETED.
+        if total_assignees == 1 and aggregate_percent == 0 and single_chat_progress > 0:
+            aggregate_percent = single_chat_progress
+            if aggregate_status == "assigned":
+                aggregate_status = "in_progress"
 
         students_with_details.append({
             "id": str(student.id),
@@ -1237,7 +1267,14 @@ async def admin_get_all_students_with_details(
                 a.status in [AssignmentStatus.ASSIGNED, AssignmentStatus.IN_PROGRESS]
                 for a in assignments
             ),
-            "progress_percentage": progress_pct,
+            # Aggregate progress (multi-party aware)
+            "assignment_status": aggregate_status,
+            "progress_percentage": aggregate_percent,
+            "assessors_summary": {
+                "done": done_assignees,
+                "total": total_assignees,
+                "percent": aggregate_percent,
+            },
         })
 
     return {
