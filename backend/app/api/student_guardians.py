@@ -356,8 +356,10 @@ async def invite_parent_and_link(
     await db.commit()
     await db.refresh(new_parent)
 
-    # Generate magic link for passwordless login
-    magic_link_token = await create_magic_link(db, str(new_parent.id), expiry_hours=24)
+    # Generate magic link for passwordless login — match the global config
+    magic_link_token = await create_magic_link(
+        db, str(new_parent.id), expiry_hours=settings.MAGIC_LINK_EXPIRY_HOURS
+    )
     magic_link_url = f"{settings.FRONTEND_URL}/auth/magic-login?token={magic_link_token.token}"
 
     # Send invitation email with magic link
@@ -374,9 +376,11 @@ async def invite_parent_and_link(
             parent_email=new_parent.email,
             parent_name=new_parent.full_name,
             student_name=f"{student.first_name} {student.last_name}",
-            psychologist_name=current_user.full_name,
+            psychologist_name=current_user.full_name or "The Ed Psych Practice",
             magic_link=magic_link_url,
-            email_service=email_service
+            email_service=email_service,
+            relationship_type=invite_data.relationship_type,
+            expiry_hours=settings.MAGIC_LINK_EXPIRY_HOURS,
         )
 
         email_status = "sent" if email_sent else "failed"

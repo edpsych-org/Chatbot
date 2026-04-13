@@ -1041,14 +1041,19 @@ async def admin_assign_assessment(
     # 7. Send emails outside the transaction — wrap each so one SMTP failure
     #    doesn't cascade across the rest of the batch
     student_name = f"{student.first_name} {student.last_name}".strip()
+    due_str = assignment.due_date.strftime("%d %b %Y") if assignment.due_date else None
     for row in created:
         try:
             send_assessment_assignment_email(
                 parent_email=row["guardian_email"],
                 parent_name=row["guardian_name"],
                 student_name=student_name,
-                psychologist_name=current_user.full_name or "Admin",
+                psychologist_name=current_user.full_name or "The Ed Psych Practice",
                 assessment_link=row["magic_link"],
+                relationship_type=row.get("relationship_type"),
+                due_date=due_str,
+                notes=assignment.notes,
+                expiry_hours=settings.MAGIC_LINK_EXPIRY_HOURS,
             )
             row["email_sent"] = True
         except Exception:
@@ -1117,16 +1122,35 @@ async def admin_resend_magic_link(
     )
     magic_link_url = f"{settings.FRONTEND_URL}/auth/magic/{magic_link_token.token}"
 
-    # Send email
+    # Look up the relationship_type so the email phrasing adapts (school
+    # invitees get "the student", parents get "your child").
+    rel_type = None
+    if student:
+        sg_result = await db.execute(
+            select(StudentGuardian).where(
+                and_(
+                    StudentGuardian.student_id == student.id,
+                    StudentGuardian.guardian_user_id == parent.id,
+                )
+            )
+        )
+        sg = sg_result.scalar_one_or_none()
+        if sg:
+            rel_type = sg.relationship_type
+
     student_name = (
-        f"{student.first_name} {student.last_name}" if student else "your child"
+        f"{student.first_name} {student.last_name}" if student else "the student"
     )
     send_assessment_assignment_email(
         parent_email=parent.email,
         parent_name=parent.full_name or parent.email,
         student_name=student_name,
-        psychologist_name=current_user.full_name or "Admin",
+        psychologist_name=current_user.full_name or "The Ed Psych Practice",
         assessment_link=magic_link_url,
+        relationship_type=rel_type,
+        due_date=(assignment.due_date.strftime("%d %b %Y") if assignment.due_date else None),
+        notes=assignment.notes,
+        expiry_hours=settings.MAGIC_LINK_EXPIRY_HOURS,
     )
 
     return {
