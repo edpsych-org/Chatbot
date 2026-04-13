@@ -41,7 +41,7 @@ async def lifespan(app: FastAPI):
     elif getattr(settings, 'USE_GROQ', False):
         logger.info(f"🧠 LLM: Groq ({settings.GROQ_MODEL})")
     else:
-        logger.info(f"🧠 LLM: {settings.OLLAMA_MODEL} @ {settings.OLLAMA_BASE_URL}")
+        logger.info("🧠 LLM: disabled (no provider enabled — set USE_OPENAI or USE_GROQ)")
 
     # Create database tables
     async with engine.begin() as conn:
@@ -119,7 +119,12 @@ async def root():
 # Health check endpoint
 @app.get("/health")
 async def health_check():
-    llm_status = "openai" if getattr(settings, 'USE_OPENAI', False) else ("groq" if getattr(settings, 'USE_GROQ', False) else ("ollama" if settings.USE_LOCAL_LLM else "disabled"))
+    if getattr(settings, 'USE_OPENAI', False):
+        llm_status = "openai"
+    elif getattr(settings, 'USE_GROQ', False):
+        llm_status = "groq"
+    else:
+        llm_status = "disabled"
     return {
         "status": "healthy",
         "database": "connected",

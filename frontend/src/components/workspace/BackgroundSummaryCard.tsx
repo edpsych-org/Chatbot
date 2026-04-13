@@ -10,7 +10,10 @@ import type { Report } from "./types";
 interface BackgroundSummaryCardProps {
   studentId: string;
   existingReport: Report | null;
-  hasParentData: boolean;
+  hasParentData?: boolean;
+  allAssessorsComplete?: boolean;
+  pendingRoles?: string[];
+  completionCount?: { done: number; total: number };
   onReportChange: (r: Report) => void;
 }
 
@@ -26,13 +29,10 @@ async function callEndpoint(path: string, body?: object): Promise<Report> {
     body: body ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) {
+    const errBody = await res.json().catch(() => null);
     let detail = `Request failed (${res.status})`;
-    try {
-      const b = await res.json();
-      if (b?.detail) detail = b.detail;
-    } catch {
-      /* ignore */
-    }
+    if (typeof errBody?.detail === "string") detail = errBody.detail;
+    else if (errBody?.detail && typeof errBody.detail === "object" && typeof errBody.detail.message === "string") detail = errBody.detail.message;
     throw new Error(detail);
   }
   return (await res.json()) as Report;
@@ -42,8 +42,15 @@ export default function BackgroundSummaryCard({
   studentId,
   existingReport,
   hasParentData,
+  allAssessorsComplete,
+  pendingRoles,
+  completionCount,
   onReportChange,
 }: BackgroundSummaryCardProps) {
+  const gateReady = allAssessorsComplete ?? hasParentData ?? false;
+  const waitingTitle = pendingRoles && pendingRoles.length > 0
+    ? `Waiting for: ${pendingRoles.join(", ")}`
+    : "Waiting for the parent assessment to complete.";
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { confirm, confirmProps } = useConfirm();
@@ -158,7 +165,9 @@ export default function BackgroundSummaryCard({
             <button
               type="button"
               onClick={doGenerate}
-              disabled={!hasParentData || busy}
+              disabled={!gateReady || busy}
+              title={!gateReady ? waitingTitle : undefined}
+              aria-disabled={!gateReady || busy}
               className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold rounded-xl shadow hover:shadow-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Generate from parent data
@@ -172,9 +181,16 @@ export default function BackgroundSummaryCard({
               Start blank
             </button>
           </div>
-          {!hasParentData && (
-            <p className="mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 inline-block">
-              Parent hasn't completed the assessment yet — you can still start blank.
+          {!gateReady && (
+            <p className="text-[0.75rem] text-amber-600 mt-2">
+              {pendingRoles && pendingRoles.length > 0
+                ? `Waiting for: ${pendingRoles.join(", ")}`
+                : "Waiting for the parent assessment to complete."}
+            </p>
+          )}
+          {gateReady && completionCount && completionCount.total > 1 && (
+            <p className="text-[0.75rem] text-emerald-600 mt-2">
+              All {completionCount.total} assessors complete.
             </p>
           )}
         </div>
@@ -188,7 +204,9 @@ export default function BackgroundSummaryCard({
             <button
               type="button"
               onClick={doRegenerate}
-              disabled={!hasParentData || busy}
+              disabled={!gateReady || busy}
+              title={!gateReady ? waitingTitle : undefined}
+              aria-disabled={!gateReady || busy}
               className="px-4 py-2 text-sm bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {busy ? "Regenerating…" : "Regenerate from parent data"}

@@ -60,7 +60,13 @@ class EmpathyAgent(BaseAgent):
     """Generates very short, natural acknowledgments to parent input."""
 
     def __init__(self):
-        super().__init__(name="EmpathyAgent", timeout=8.0, max_tokens=60)
+        # Chat-flow agent → always hit Groq (fast, cheap, fine for short acks)
+        super().__init__(
+            name="EmpathyAgent",
+            timeout=8.0,
+            max_tokens=60,
+            default_provider="groq",
+        )
         self._response_index = {}
 
     async def generate_response(

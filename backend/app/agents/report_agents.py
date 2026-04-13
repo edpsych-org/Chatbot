@@ -11,7 +11,7 @@ Architecture:
   CognitiveReportAgent   : structured scores -> narrative markdown (also multi-stage)
   UnifiedInsightsAgent   : background + cognitive markdowns -> bridging narrative
 
-Each agent inherits from BaseAgent and uses Groq/Ollama via call_llm / call_llm_json.
+Each agent inherits from BaseAgent and uses OpenAI (or Groq) via call_llm / call_llm_json.
 """
 
 import asyncio
@@ -40,34 +40,30 @@ class BackgroundSummaryAgent(BaseAgent):
     """
 
     def __init__(self):
+        # Report-time agent → OpenAI (quality matters for final narrative)
         super().__init__(
             name="BackgroundSummaryAgent",
             timeout=90.0,
             max_tokens=3000,
+            default_provider="openai",
         )
 
     async def generate(self, context_data: dict, student_name: str) -> str:
         try:
-            user_profile = context_data.get("user_profile", {}) or {}
-            assessment_data = context_data.get("assessment_data", {}) or {}
-            completed_qa_pairs = context_data.get("completed_qa_pairs", []) or []
-
-            profile_json = json.dumps(user_profile, indent=2, default=str)
-            assessment_json = json.dumps(assessment_data, indent=2, default=str)
-            qa_json = json.dumps(completed_qa_pairs, indent=2, default=str)
+            is_multi = "perspectives" in context_data
 
             first_name = student_name.split()[0] if student_name else "the child"
 
-            raw_data_block = f"""User Profile:
-{profile_json}
+            if is_multi:
+                raw_data_block = self._build_multi_perspective_block(context_data)
+            else:
+                raw_data_block = self._build_single_perspective_block(context_data)
 
-Assessment Responses:
-{assessment_json}
-
-Completed Q&A Pairs:
-{qa_json}"""
-            # Truncate raw data to fit within Groq free tier token limits
-            raw_data_block = raw_data_block[:4000]
+            # Dynamic budget cap — single-perspective stays at 4000;
+            # each additional perspective gets 2500 more chars, hard cap at 12000.
+            n_perspectives = max(1, len(context_data.get("perspectives", []) or []) if is_multi else 1)
+            max_len = min(12000, 4000 + 2500 * max(0, n_perspectives - 1))
+            raw_data_block = raw_data_block[:max_len]
 
             # ── STAGE 1: Data Analyst ──
             logger.info(f"[BackgroundSummaryAgent] Stage 1/3: Data Analyst for {student_name}")
@@ -79,8 +75,8 @@ Completed Q&A Pairs:
             # Truncate to stay within Groq TPM limits
             analyst_output = analyst_output[:3000]
 
-            # Wait for Groq rate limit (skipped for OpenAI)
-            if settings.USE_GROQ:
+            # Wait for Groq rate limit — only relevant when the agent itself uses Groq
+            if self._resolve_provider() == "groq":
                 logger.info(f"[BackgroundSummaryAgent] Stage 1 complete, waiting 35s for Groq rate limit...")
                 await asyncio.sleep(35)
 
@@ -93,8 +89,8 @@ Completed Q&A Pairs:
                 interpreter_output = f"Clinical interpretation unavailable — synthesizer should work directly from analyst output."
             interpreter_output = interpreter_output[:3000]
 
-            # Wait for Groq rate limit (skipped for OpenAI)
-            if settings.USE_GROQ:
+            # Wait for Groq rate limit — only relevant when the agent itself uses Groq
+            if self._resolve_provider() == "groq":
                 logger.info(f"[BackgroundSummaryAgent] Stage 2 complete, waiting 35s for Groq rate limit...")
                 await asyncio.sleep(35)
 
@@ -113,6 +109,54 @@ Completed Q&A Pairs:
         except Exception as e:
             logger.error(f"[BackgroundSummaryAgent] pipeline failed: {e}", exc_info=True)
             return f"Unable to generate background summary: {str(e)}"
+
+    def _build_single_perspective_block(self, context_data: dict) -> str:
+        """Legacy single-perspective shape: {user_profile, assessment_data, completed_qa_pairs}."""
+        user_profile = context_data.get("user_profile", {}) or {}
+        assessment_data = context_data.get("assessment_data", {}) or {}
+        completed_qa_pairs = context_data.get("completed_qa_pairs", []) or []
+
+        profile_json = json.dumps(user_profile, indent=2, default=str)
+        assessment_json = json.dumps(assessment_data, indent=2, default=str)
+        qa_json = json.dumps(completed_qa_pairs, indent=2, default=str)
+
+        return f"""User Profile:
+{profile_json}
+
+Assessment Responses:
+{assessment_json}
+
+Completed Q&A Pairs:
+{qa_json}"""
+
+    def _build_multi_perspective_block(self, context_data: dict) -> str:
+        """Multi-perspective shape: {student_info, perspectives:[{role, respondent_name, session_id, context}, …]}."""
+        blocks: list[str] = []
+        for perspective in context_data.get("perspectives", []) or []:
+            role = perspective.get("role") or "Guardian"
+            respondent_name = perspective.get("respondent_name") or "Unknown"
+            ctx = perspective.get("context", {}) or {}
+            user_profile = ctx.get("user_profile", {}) or {}
+            assessment_data = ctx.get("assessment_data", {}) or {}
+            completed_qa_pairs = ctx.get("completed_qa_pairs", []) or []
+
+            profile_json = json.dumps(user_profile, indent=2, default=str)
+            assessment_json = json.dumps(assessment_data, indent=2, default=str)
+            qa_json = json.dumps(completed_qa_pairs, indent=2, default=str)
+
+            blocks.append(
+                f"""=== PERSPECTIVE: {role} ({respondent_name}) ===
+User Profile:
+{profile_json}
+
+Assessment Responses:
+{assessment_json}
+
+Completed Q&A Pairs:
+{qa_json}
+"""
+            )
+        return "\n".join(blocks)
 
     async def _run_data_analyst(
         self, raw_data: str, student_name: str, first_name: str
@@ -167,7 +211,9 @@ TEST CONDITIONS:
 
 IMPORTANT: Extract the ACTUAL data. If a parent answered "often" to a question about focus difficulties, record "Parent reported focus difficulties occur 'often'". If the data for a category is thin, still extract what exists — even a single data point matters. Do NOT write "no data available" — instead note what CAN be inferred from adjacent responses. Be concise — use short bullet points, not long paragraphs.
 
-TONE: Always extract and highlight STRENGTHS and POSITIVE observations alongside any difficulties. Note interests, talents, supportive relationships, positive coping strategies, and areas where the child is thriving. Every child has strengths — make sure they are captured."""
+TONE: Always extract and highlight STRENGTHS and POSITIVE observations alongside any difficulties. Note interests, talents, supportive relationships, positive coping strategies, and areas where the child is thriving. Every child has strengths — make sure they are captured.
+
+If the RAW QUESTIONNAIRE DATA contains multiple `=== PERSPECTIVE: ROLE (NAME) ===` blocks, PREFIX every extracted observation with the source role (e.g., 'School reports…', 'Mother described…', 'Father noted…'). Where two perspectives agree, write 'Both parents reported…'. Where they conflict, surface it explicitly: 'School reports X; Mother reports Y — note the discrepancy'."""
 
         return await self.call_llm(prompt, max_tokens=1500, temperature=0.2)
 
@@ -218,7 +264,9 @@ Be bold in your interpretations. Draw on your clinical knowledge to connect dots
 
 CRITICAL TONE REQUIREMENT: This report will be read by PARENTS. Adopt a STRENGTHS-BASED, empathetic tone throughout. Lead each section with positives before discussing areas of difficulty. Frame difficulties as "areas for development" or "areas where support would be beneficial" — NEVER use deficit-focused or negative language. Highlight the child's resilience, effort, and potential. Even when noting clinical concerns, balance them with protective factors and strengths. Parents should feel understood and hopeful after reading this report, not distressed.
 
-NEVER CRITICISE PARENTS OR SCHOOLS: Do NOT imply that parents have been neglectful, unsupportive, or have failed their child. Do NOT suggest schools have been inadequate, incompetent, or have missed things. If interventions were delayed or support was limited, frame it neutrally — e.g., "Further assessment was sought to better understand {first_name}'s needs" rather than "The school failed to identify..." or "Despite parents not seeking help earlier...". Acknowledge the efforts parents and schools have already made. Frame gaps in support as systemic or as opportunities for enhanced provision, NEVER as failures by individuals or institutions."""
+NEVER CRITICISE PARENTS OR SCHOOLS: Do NOT imply that parents have been neglectful, unsupportive, or have failed their child. Do NOT suggest schools have been inadequate, incompetent, or have missed things. If interventions were delayed or support was limited, frame it neutrally — e.g., "Further assessment was sought to better understand {first_name}'s needs" rather than "The school failed to identify..." or "Despite parents not seeking help earlier...". Acknowledge the efforts parents and schools have already made. Frame gaps in support as systemic or as opportunities for enhanced provision, NEVER as failures by individuals or institutions.
+
+When the analyst output attributes observations to specific perspectives, preserve that attribution. If perspectives diverge on the same behaviour, surface the discrepancy as an item for the synthesizer to reconcile."""
 
         return await self.call_llm(prompt, max_tokens=1500, temperature=0.4)
 
@@ -262,7 +310,9 @@ Cover current home life, family structure, reason for referral, current emotiona
 ## TEST CONDITIONS
 Describe the assessment conditions including where the assessment took place, rapport established, {first_name}'s engagement and presentation during assessment, and any factors that may have affected the validity of results.
 
-Prose only, no bullets/lists/tables. Do NOT mention AI. Use {first_name} naturally. Begin directly with ## BACKGROUND INFORMATION."""
+Prose only, no bullets/lists/tables. Do NOT mention AI. Use {first_name} naturally. Begin directly with ## BACKGROUND INFORMATION.
+
+When the source material attributes statements to specific respondents (School, Mother, Father), preserve that attribution in the prose: 'School staff observed…', 'Both parents described…', 'Mother reported…', 'Father noted…'."""
 
         return await self.call_llm(prompt, max_tokens=2500, temperature=0.3)
 
@@ -278,6 +328,7 @@ class IQScoreExtractorAgent(BaseAgent):
             name="IQScoreExtractorAgent",
             timeout=60.0,
             max_tokens=3000,
+            default_provider="openai",
         )
 
     async def extract(self, raw_text: str) -> dict:
@@ -379,6 +430,7 @@ class CognitiveReportAgent(BaseAgent):
             name="CognitiveReportAgent",
             timeout=90.0,
             max_tokens=3000,
+            default_provider="openai",
         )
 
     async def generate(self, parsed_scores: dict, student_name: str) -> str:
@@ -392,8 +444,8 @@ class CognitiveReportAgent(BaseAgent):
             if not interpretation:
                 interpretation = "Score interpretation unavailable — proceed with direct analysis."
 
-            # Wait for Groq rate limit (skipped for OpenAI)
-            if settings.USE_GROQ:
+            # Wait for Groq rate limit — only relevant when the agent itself uses Groq
+            if self._resolve_provider() == "groq":
                 await asyncio.sleep(20)
 
             # Stage 2: Report Writer — produce the final clinical narrative
@@ -525,6 +577,7 @@ class UnifiedInsightsAgent(BaseAgent):
             name="UnifiedInsightsAgent",
             timeout=90.0,
             max_tokens=3000,
+            default_provider="openai",
         )
 
     async def synthesize(
@@ -544,8 +597,8 @@ class UnifiedInsightsAgent(BaseAgent):
             if not analysis:
                 analysis = "Pattern analysis unavailable — proceed with direct synthesis."
 
-            # Wait for Groq rate limit (skipped for OpenAI)
-            if settings.USE_GROQ:
+            # Wait for Groq rate limit — only relevant when the agent itself uses Groq
+            if self._resolve_provider() == "groq":
                 await asyncio.sleep(20)
 
             # Stage 2: Synthesizer — write the final unified report

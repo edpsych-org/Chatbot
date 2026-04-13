@@ -137,7 +137,13 @@ class InputValidatorAgent(BaseAgent):
     """Validates whether parent input is detailed enough for assessment."""
 
     def __init__(self):
-        super().__init__(name="InputValidator", timeout=8.0, max_tokens=150)
+        # Chat-flow agent → Groq
+        super().__init__(
+            name="InputValidator",
+            timeout=8.0,
+            max_tokens=150,
+            default_provider="groq",
+        )
 
     async def validate(
         self,

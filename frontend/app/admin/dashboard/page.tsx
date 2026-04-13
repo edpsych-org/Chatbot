@@ -210,7 +210,7 @@ export default function AdminDashboard() {
   const [assignmentsLoading, setAssignmentsLoading] = useState(false);
   const [showAssignForm, setShowAssignForm] = useState(false);
   const [assignStudents, setAssignStudents] = useState<any[]>([]);
-  const [assignForm, setAssignForm] = useState({ student_id: "", parent_id: "", notes: "" });
+  const [assignForm, setAssignForm] = useState<{ student_id: string; guardian_ids: string[]; notes: string }>({ student_id: "", guardian_ids: [], notes: "" });
   const [assignFormError, setAssignFormError] = useState("");
   const [assigning, setAssigning] = useState(false);
   const [selectedStudentGuardians, setSelectedStudentGuardians] = useState<any[]>([]);
@@ -315,7 +315,7 @@ export default function AdminDashboard() {
   };
 
   const handleStudentSelectForAssign = (studentId: string) => {
-    setAssignForm({ ...assignForm, student_id: studentId, parent_id: "" });
+    setAssignForm({ ...assignForm, student_id: studentId, guardian_ids: [] });
     const student = assignStudents.find((s: any) => s.id === studentId);
     setSelectedStudentGuardians(student?.guardians || []);
   };
@@ -323,20 +323,36 @@ export default function AdminDashboard() {
   const handleAssign = async (e: React.FormEvent) => {
     e.preventDefault();
     setAssignFormError("");
-    if (!assignForm.student_id || !assignForm.parent_id) { setAssignFormError("Select both student and parent"); return; }
+    if (!assignForm.student_id) { setAssignFormError("Select a student"); return; }
+    if (!assignForm.guardian_ids.length) { setAssignFormError("Select at least one assessor"); return; }
     setAssigning(true);
     try {
       const token = localStorage.getItem("access_token");
       const res = await fetch(`${API_BASE}/admin/assignments/assign`, {
         method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(assignForm),
+        body: JSON.stringify({
+          student_id: assignForm.student_id,
+          guardian_ids: assignForm.guardian_ids,
+          notes: assignForm.notes,
+        }),
       });
       if (res.ok) {
+        const data = await res.json().catch(() => ({ created: [], skipped: [] }));
+        const created = Array.isArray(data?.created) ? data.created : [];
+        const skipped = Array.isArray(data?.skipped) ? data.skipped : [];
         setShowAssignForm(false);
-        setAssignForm({ student_id: "", parent_id: "", notes: "" });
+        setAssignForm({ student_id: "", guardian_ids: [], notes: "" });
         fetchAdminAssignments();
-        showAlert("Success", "Assessment assigned and magic link sent!", "success");
-      } else { const d = await res.json().catch(() => null); setAssignFormError(d?.detail || "Failed to assign"); }
+        const message = `Assessment assigned to ${created.length} assessor(s).${skipped.length ? ' Skipped: ' + skipped.length + ' with existing active assignments.' : ''}`;
+        showAlert("Success", message, "success");
+      } else {
+        const d = await res.json().catch(() => null);
+        const detail = d?.detail;
+        const detailStr = typeof detail === "string"
+          ? detail
+          : (detail && typeof detail === "object" && typeof detail.message === "string" ? detail.message : "Failed to assign");
+        setAssignFormError(detailStr);
+      }
     } catch { setAssignFormError("Network error."); }
     finally { setAssigning(false); }
   };
@@ -1105,15 +1121,44 @@ export default function AdminDashboard() {
               </select>
             </div>
             <div>
-              <label className="block text-[0.6875rem] font-medium text-[#737373] mb-1">Assign To (Parent/Guardian)</label>
-              <select required value={assignForm.parent_id} onChange={(e) => setAssignForm({ ...assignForm, parent_id: e.target.value })} className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
-                <option value="">Select parent/guardian...</option>
-                {selectedStudentGuardians.map((g: any) => (
-                  <option key={g.id} value={g.id}>{g.name} ({g.email}) - {g.relationship}</option>
-                ))}
-              </select>
-              {assignForm.student_id && selectedStudentGuardians.length === 0 && (
-                <p className="text-[0.6875rem] text-amber-500 mt-1">No guardians linked to this student. Add a guardian first.</p>
+              <label className="block text-[0.6875rem] font-medium text-slate-500 uppercase tracking-wider mb-2">
+                Assessors — select one or more
+              </label>
+              <div className="space-y-1 max-h-[220px] overflow-y-auto rounded-lg border border-slate-200 p-2 bg-white">
+                {selectedStudentGuardians.length === 0 ? (
+                  <p className="text-[0.75rem] text-amber-600 px-2 py-3">
+                    {assignForm.student_id
+                      ? "No guardians linked to this student. Add a guardian first under Students → Edit."
+                      : "Pick a student to see their guardians."}
+                  </p>
+                ) : (
+                  selectedStudentGuardians.map((g: any) => {
+                    const checked = assignForm.guardian_ids.includes(g.id);
+                    return (
+                      <label key={g.id} className={`flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-slate-50 cursor-pointer ${checked ? "bg-blue-50/50" : ""}`}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => {
+                            const next = e.target.checked
+                              ? [...assignForm.guardian_ids, g.id]
+                              : assignForm.guardian_ids.filter((id) => id !== g.id);
+                            setAssignForm({ ...assignForm, guardian_ids: next });
+                          }}
+                          className="h-4 w-4 rounded"
+                        />
+                        <span className="text-[0.8125rem] text-slate-700 flex-1">
+                          {g.name}
+                          <span className="text-slate-400 ml-1">({g.relationship || "Guardian"})</span>
+                        </span>
+                        {g.email && <span className="text-[0.6875rem] text-slate-400">{g.email}</span>}
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+              {selectedStudentGuardians.length > 0 && assignForm.guardian_ids.length === 0 && (
+                <p className="text-[0.6875rem] text-amber-600 mt-1">Select at least one assessor.</p>
               )}
             </div>
             <div>

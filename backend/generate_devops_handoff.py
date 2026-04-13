@@ -378,7 +378,7 @@ def section_overview():
         _p(
             "<b>Frontend</b> (Vercel) → <b>Backend</b> (Railway, Docker) → "
             "<b>Database</b> (Neon PostgreSQL) + <b>LLM provider</b> "
-            "(Groq default; Ollama local; OpenAI optional) + <b>Email</b> (Brevo API) + "
+            "(OpenAI default; Groq reserved for chat) + <b>Email</b> (Brevo API) + "
             "<b>Storage</b> (MinIO local, S3-ready)."
         ),
         _code(
@@ -413,7 +413,7 @@ def section_tech_stack():
                 ("Database driver", "asyncpg 0.29.0 (async) + psycopg2-binary 2.9.9 (fallback)"),
                 ("ORM", "SQLAlchemy 2.0.25 (async), Alembic 1.13.1 (available, not active)"),
                 ("Auth", "python-jose 3.3.0 (JWT HS256), passlib 1.7.4 (bcrypt)"),
-                ("LLM providers", "Groq (production), OpenAI (optional), Ollama (local dev)"),
+                ("LLM providers", "OpenAI (reports, active) — Groq reserved for chat flow"),
                 ("Email", "Brevo HTTP API v3 via requests; falls back to stdout log mode"),
                 ("Storage", "MinIO 7.2.3 / boto3 1.34.34 (S3-compatible)"),
                 ("OCR", "pytesseract 0.3.10 + pdf2image 1.17.0 + PyMuPDF 1.23.26 + Pillow 10.2.0"),
@@ -443,7 +443,7 @@ def section_tech_stack():
                 ("Frontend hosting", "Vercel (auto-deploy from GitHub)"),
                 ("Database", "Neon serverless PostgreSQL (production); PostgreSQL 16+ (local)"),
                 ("Container runtime", "Docker 24+ (Dockerfile in backend/)"),
-                ("Local stack", "docker-compose: Postgres 16, Redis 7, MinIO"),
+                ("Local stack", "docker-compose: Postgres 16, MinIO"),
                 ("Email provider", "Brevo transactional (API key required for real sends)"),
                 ("LLM provider (prod)", "Groq llama-3.1-8b-instant"),
                 ("OCR runtime", "Tesseract-OCR system binary (apt in Docker)"),
@@ -501,7 +501,7 @@ def section_directory():
             "│   │   ├── admin.py             # User + student + assignment management\n"
             "│   │   ├── uploads.py  reports.py  verification.py\n"
             "│   ├── services/\n"
-            "│   │   ├── local_llm.py         # Ollama/Groq/OpenAI abstraction\n"
+            "│   │   ├── local_llm.py         # OpenAI / Groq abstraction\n"
             "│   │   └── pdf_extractor.py     # Tesseract + PyMuPDF OCR pipeline\n"
             "│   └── utils/\n"
             "│       ├── email.py             # Brevo send + DEV log fallback\n"
@@ -558,7 +558,7 @@ def section_directory():
         _h("Infrastructure (repo root)", 2),
         _code(
             "edpsych-production-prototype/\n"
-            "├── docker-compose.yml       # Postgres + Redis + MinIO local stack\n"
+            "├── docker-compose.yml       # Postgres + MinIO local stack\n"
             "├── .env.example             # Root env template\n"
             "├── vercel.json              # Vercel experimental services config\n"
             "├── backend/...\n"
@@ -587,23 +587,21 @@ def section_env_vars():
         ("USE_OPENAI", "BE", "Enable OpenAI provider", "false", "N"),
         ("OPENAI_API_KEY", "BE", "OpenAI API key", "&lt;empty&gt;", "Y if USE_OPENAI"),
         ("OPENAI_MODEL", "BE", "OpenAI model id", "gpt-4o-mini", "N"),
-        ("USE_LOCAL_LLM", "BE", "Enable Ollama local LLM", "true", "N"),
-        ("OLLAMA_BASE_URL", "BE", "Ollama host", "localhost:11434", "N"),
-        ("OLLAMA_MODEL", "BE", "Ollama model id", "qwen2.5:3b", "N"),
         ("BREVO_API_KEY", "BE", "Brevo transactional email key", "&lt;empty&gt;", "Y for real emails"),
         ("EMAIL_FROM_NAME", "BE", "From name on emails", "The EdPsych Practice", "N"),
         ("EMAIL_FROM_ADDRESS", "BE", "From address on emails", "noreply@...", "N"),
-        ("MINIO_ENDPOINT", "BE", "S3-compatible endpoint", "localhost:9000", "N"),
-        ("MINIO_ACCESS_KEY", "BE", "MinIO root user", "minioadmin", "N"),
-        ("MINIO_SECRET_KEY", "BE", "MinIO root password", "minioadmin123", "N"),
-        ("MINIO_BUCKET_IQ_TESTS", "BE", "Bucket name for IQ uploads", "iq-tests", "N"),
-        ("MINIO_BUCKET_REPORTS", "BE", "Bucket name for generated reports", "reports", "N"),
+        ("AWS_ACCESS_KEY_ID", "BE", "AWS IAM key for S3", "", "Y"),
+        ("AWS_SECRET_ACCESS_KEY", "BE", "AWS IAM secret for S3", "", "Y"),
+        ("AWS_REGION", "BE", "S3 region", "eu-west-2", "Y"),
+        ("S3_BUCKET_IQ_TESTS", "BE", "Bucket for raw IQ test uploads", "", "Y"),
+        ("S3_BUCKET_REPORTS", "BE", "Bucket for generated reports", "", "Y"),
+        ("S3_BUCKET_TEMP", "BE", "Bucket for temp artefacts", "", "Y"),
+        ("S3_ENDPOINT_URL", "BE", "Custom S3 endpoint (blank = default AWS)", "", "N"),
         ("TESSERACT_PATH", "BE", "Windows path to tesseract.exe", "C:/Program Files/...", "N (Docker)"),
         ("TESSERACT_LANG", "BE", "OCR language", "eng", "N"),
         ("BACKEND_HOST", "BE", "Uvicorn bind address", "0.0.0.0", "N"),
         ("BACKEND_PORT", "BE", "Overridden by Railway PORT", "8000", "N"),
         ("DEBUG_MODE", "BE", "Verbose errors + echo SQL", "false", "N"),
-        ("REDIS_URL", "BE", "Redis connection (unused today)", "localhost:6379", "N"),
         ("AI_TEMPERATURE", "BE", "LLM creativity (0..1)", "0.3", "N"),
         ("AI_MAX_TOKENS", "BE", "LLM max output tokens", "2000", "N"),
         ("AI_RETRY_ATTEMPTS", "BE", "LLM retry count", "3", "N"),
@@ -977,7 +975,7 @@ def section_workflows():
             "5. Generate background summary\n"
             "   POST /psychologist-reports/students/{id}/background-summary/generate\n"
             "     - creates AIGenerationJob (pending)\n"
-            "     - background task calls local_llm_service (Groq/OpenAI/Ollama)\n"
+            "     - background task calls local_llm_service (OpenAI)\n"
             "     - fills profile_text section of PsychologistReport\n"
             "6. Generate cognitive report (same pattern)\n"
             "7. Generate unified insights (synthesises all above)\n"
@@ -1167,14 +1165,14 @@ def section_local_dev():
             "#   SECRET_KEY=$(openssl rand -hex 32)\n"
             "#   CORS_ORIGINS=http://localhost:3000\n"
             "#   FRONTEND_URL=http://localhost:3000\n"
-            "#   USE_GROQ=true  (and GROQ_API_KEY=...)  OR  USE_LOCAL_LLM=true\n"
+            "#   USE_OPENAI=true  (and OPENAI_API_KEY=...)\n"
             "#   BREVO_API_KEY=...  (optional — skip for DEV log mode)"
         ),
         _h("Step 2 — PostgreSQL (option A: docker-compose)", 2),
         _code(
-            "docker compose up -d postgres redis minio\n"
+            "docker compose up -d postgres\n"
             "# postgres is on localhost:5432\n"
-            "# minio is on localhost:9000 (console 9001)"
+            "# S3 is remote — the backend uses real AWS buckets"
         ),
         _h("Step 2 — PostgreSQL (option B: native)", 2),
         _code(
@@ -1259,13 +1257,6 @@ def section_external_services():
                 "Default model: gpt-4o-mini",
             ]
         ),
-        _h("Ollama (LLM provider, local dev)", 2),
-        *_bullets(
-            [
-                "Local-only LLM runtime. <font face='Courier'>ollama pull qwen2.5:3b</font> before first run.",
-                "Env vars: <font face='Courier'>USE_LOCAL_LLM=true, OLLAMA_BASE_URL=http://localhost:11434</font>",
-            ]
-        ),
         _h("Brevo transactional email", 2),
         *_bullets(
             [
@@ -1275,13 +1266,14 @@ def section_external_services():
                 "Fallback: if BREVO_API_KEY is missing, <font face='Courier'>app/utils/email.py</font> logs emails to stdout instead of sending",
             ]
         ),
-        _h("MinIO / S3 (object storage, optional)", 2),
+        _h("AWS S3 (object storage)", 2),
         *_bullets(
             [
                 "Provides: IQ test PDFs, generated reports, temp files",
-                "Buckets: iq-tests, reports, temp",
-                "Dev: docker-compose minio service on :9000 (console :9001)",
-                "Production: can be swapped for AWS S3 by pointing <font face='Courier'>MINIO_ENDPOINT</font> at S3 (boto3 handles it)",
+                "Buckets: single bucket with <font face='Courier'>iq-tests/</font>, <font face='Courier'>reports/</font>, <font face='Courier'>temp/</font> prefixes (configured via <font face='Courier'>S3_BUCKET_*</font> env vars)",
+                "Client: boto3 wrapped by <font face='Courier'>backend/app/services/s3_storage.py</font>",
+                "Credentials: IAM user with S3 read/write on the target bucket. Store keys as <font face='Courier'>AWS_ACCESS_KEY_ID</font> / <font face='Courier'>AWS_SECRET_ACCESS_KEY</font> in Railway secrets (never commit).",
+                "Dev fallback: if <font face='Courier'>AWS_ACCESS_KEY_ID</font> is empty the service logs instead of uploading — app keeps working without credentials.",
             ]
         ),
         _h("Tesseract OCR (system binary)", 2),

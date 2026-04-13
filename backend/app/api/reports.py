@@ -12,6 +12,7 @@ from datetime import datetime, date
 import logging
 
 from app.core.database import get_db
+from app.core.config import settings
 from app.core.security import get_current_active_user
 from app.models.user import User, UserRole
 from app.models.student import Student
@@ -72,7 +73,7 @@ async def generate_report_section_bg(
         if result.get("success"):
             job.status = 'completed'
             job.output_text = result.get("text", "")
-            job.model_used = result.get("model", "qwen2.5:7b")
+            job.model_used = result.get("model", settings.OPENAI_MODEL)
             job.tokens_used = result.get("tokens", 0)
             job.generation_time_seconds = duration
             job.completed_at = end_time

@@ -82,7 +82,13 @@ export default function ReportsWorkspacePage() {
     [workspace]
   );
 
-  const hasParentData = Boolean(workspace?.latest_completed_session);
+  const assessors = workspace?.assessors ?? [];
+  const completionCount = workspace?.completion_count ?? { done: 0, total: 0 };
+  const allAssessorsComplete = Boolean(workspace?.all_assessors_complete);
+  const pendingRoles = assessors
+    .filter((a) => a.status !== "COMPLETED" && a.status !== "CANCELLED")
+    .map((a) => a.relationship_type || "Guardian");
+  const hasParentData = allAssessorsComplete;
 
   const upsertReport = (incoming: Report) => {
     setWorkspace((prev) => {
@@ -196,10 +202,58 @@ export default function ReportsWorkspacePage() {
       {/* Main content */}
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         <div className="space-y-6 sm:space-y-8">
+          <section className="glass-card p-6 sm:p-8 rounded-2xl shadow-xl">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div>
+                <h2 className="text-lg font-bold text-on-background">Assessment Progress</h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  {completionCount.total > 0
+                    ? `${completionCount.done} of ${completionCount.total} complete`
+                    : "No assessments assigned yet"}
+                </p>
+              </div>
+            </div>
+            {assessors.length === 0 ? (
+              <p className="text-sm text-slate-400 italic">No assessments assigned yet</p>
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {assessors.map((a) => {
+                  const statusStyles =
+                    a.status === "COMPLETED"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : a.status === "IN_PROGRESS"
+                      ? "bg-amber-100 text-amber-700"
+                      : a.status === "CANCELLED"
+                      ? "bg-slate-100 text-slate-400 line-through"
+                      : "bg-slate-100 text-slate-600";
+                  return (
+                    <li key={a.assignment_id} className="flex items-center gap-3 py-2.5">
+                      <span className="text-sm font-medium text-slate-700 flex-1 min-w-0 truncate">
+                        {a.guardian_name}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md text-[0.6875rem] font-medium bg-slate-50 border border-slate-200 text-slate-600">
+                        {a.relationship_type || "Guardian"}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold ${statusStyles}`}>
+                        {a.status}
+                      </span>
+                      <span className="text-[0.6875rem] text-slate-400 w-32 text-right">
+                        {a.completed_at ? new Date(a.completed_at).toLocaleString() : "—"}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
+
           <BackgroundSummaryCard
             studentId={studentId}
             existingReport={backgroundReport}
             hasParentData={hasParentData}
+            allAssessorsComplete={allAssessorsComplete}
+            pendingRoles={pendingRoles}
+            completionCount={completionCount}
             onReportChange={upsertReport}
           />
 
