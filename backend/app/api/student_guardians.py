@@ -356,8 +356,10 @@ async def invite_parent_and_link(
     await db.commit()
     await db.refresh(new_parent)
 
-    # Generate magic link for passwordless login
-    magic_link_token = await create_magic_link(db, str(new_parent.id), expiry_hours=24)
+    # Generate magic link for passwordless login — match the global config
+    magic_link_token = await create_magic_link(
+        db, str(new_parent.id), expiry_hours=settings.MAGIC_LINK_EXPIRY_HOURS
+    )
     magic_link_url = f"{settings.FRONTEND_URL}/auth/magic-login?token={magic_link_token.token}"
 
     # Send invitation email with magic link
@@ -374,9 +376,11 @@ async def invite_parent_and_link(
             parent_email=new_parent.email,
             parent_name=new_parent.full_name,
             student_name=f"{student.first_name} {student.last_name}",
-            psychologist_name=current_user.full_name,
+            psychologist_name=current_user.full_name or "The Ed Psych Practice",
             magic_link=magic_link_url,
-            email_service=email_service
+            email_service=email_service,
+            relationship_type=invite_data.relationship_type,
+            expiry_hours=settings.MAGIC_LINK_EXPIRY_HOURS,
         )
 
         email_status = "sent" if email_sent else "failed"
@@ -395,6 +399,57 @@ async def invite_parent_and_link(
         "email_status": email_status,
         "magic_link": magic_link_url,  # For testing/development - can be removed in production
         "note": "Parent will receive an email with a one-click login link. No password needed!"
+    }
+
+
+class StudentGuardianUpdate(BaseModel):
+    """PATCH body for a guardian relationship — edit relationship_type or is_primary."""
+    relationship_type: str | None = None
+    is_primary: str | None = None  # "true" / "false"
+
+
+@router.patch("/{relationship_id}")
+async def update_student_guardian_relationship(
+    relationship_id: UUID,
+    update: StudentGuardianUpdate,
+    current_user: User = Depends(require_psychologist_or_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Update a student-guardian relationship (Psychologist/Admin only).
+
+    Only allows editing `relationship_type` (e.g. Mother/Father/School) and
+    `is_primary`. Editing the guardian user's own attributes (name, email,
+    phone) is done via PATCH /admin/users/{id} — this endpoint doesn't
+    cross that boundary.
+    """
+    result = await db.execute(
+        select(StudentGuardian).where(StudentGuardian.id == relationship_id)
+    )
+    relationship = result.scalar_one_or_none()
+
+    if not relationship:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Relationship not found"
+        )
+
+    if update.relationship_type is not None:
+        relationship.relationship_type = update.relationship_type
+    if update.is_primary is not None:
+        # Normalise to the canonical "true"/"false" string stored in the DB.
+        val = str(update.is_primary).strip().lower()
+        relationship.is_primary = "true" if val in ("true", "1", "yes") else "false"
+
+    await db.commit()
+    await db.refresh(relationship)
+
+    return {
+        "id": str(relationship.id),
+        "student_id": str(relationship.student_id),
+        "guardian_user_id": str(relationship.guardian_user_id),
+        "relationship_type": relationship.relationship_type,
+        "is_primary": relationship.is_primary,
     }
 
 
