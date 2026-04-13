@@ -63,7 +63,7 @@ export default function DataExplorer() {
   const currentRows = cache[activeTab] ?? [];
 
   return (
-    <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-5">
+    <div className="bg-[#f4f4f4] backdrop-blur-sm rounded-2xl border border-[#dedede] p-5">
       {/* Tab bar */}
       <div className="flex flex-wrap gap-1.5 mb-5">
         {TAB_LABELS.map((tab) => (
@@ -73,8 +73,8 @@ export default function DataExplorer() {
             onClick={() => setActiveTab(tab.key)}
             className={`px-4 py-2 rounded-lg text-xs font-medium transition-all ${
               activeTab === tab.key
-                ? "bg-blue-600 text-white"
-                : "bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white"
+                ? "bg-[#00acb6] text-[#333]"
+                : "bg-[#f4f4f4] text-[#737373] hover:bg-[#eeeeee] hover:text-[#333]"
             }`}
           >
             {tab.label}
@@ -84,7 +84,7 @@ export default function DataExplorer() {
 
       {/* Row count */}
       {!loading && !error && (
-        <p className="text-[0.6875rem] font-medium text-slate-500 mb-3">
+        <p className="text-[0.6875rem] font-medium text-[#737373] mb-3">
           {currentRows.length} {currentRows.length === 1 ? "row" : "rows"}
         </p>
       )}
@@ -100,7 +100,7 @@ export default function DataExplorer() {
       {loading && (
         <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-12 bg-white/5 rounded-lg animate-pulse" />
+            <div key={i} className="h-12 bg-[#f4f4f4] rounded-lg animate-pulse" />
           ))}
         </div>
       )}
