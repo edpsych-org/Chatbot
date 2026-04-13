@@ -1221,7 +1221,9 @@ async def admin_get_all_students_with_details(
             ),
             "guardians": [
                 {
-                    "id": str(user.id),
+                    "id": str(user.id),                # user id (kept for back-compat)
+                    "user_id": str(user.id),           # explicit user id
+                    "relationship_id": str(guardian.id),  # StudentGuardian.id — use for PATCH / DELETE
                     "name": user.full_name,
                     "email": user.email,
                     "phone": user.phone,

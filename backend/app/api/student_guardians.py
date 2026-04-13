@@ -398,6 +398,57 @@ async def invite_parent_and_link(
     }
 
 
+class StudentGuardianUpdate(BaseModel):
+    """PATCH body for a guardian relationship — edit relationship_type or is_primary."""
+    relationship_type: str | None = None
+    is_primary: str | None = None  # "true" / "false"
+
+
+@router.patch("/{relationship_id}")
+async def update_student_guardian_relationship(
+    relationship_id: UUID,
+    update: StudentGuardianUpdate,
+    current_user: User = Depends(require_psychologist_or_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Update a student-guardian relationship (Psychologist/Admin only).
+
+    Only allows editing `relationship_type` (e.g. Mother/Father/School) and
+    `is_primary`. Editing the guardian user's own attributes (name, email,
+    phone) is done via PATCH /admin/users/{id} — this endpoint doesn't
+    cross that boundary.
+    """
+    result = await db.execute(
+        select(StudentGuardian).where(StudentGuardian.id == relationship_id)
+    )
+    relationship = result.scalar_one_or_none()
+
+    if not relationship:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Relationship not found"
+        )
+
+    if update.relationship_type is not None:
+        relationship.relationship_type = update.relationship_type
+    if update.is_primary is not None:
+        # Normalise to the canonical "true"/"false" string stored in the DB.
+        val = str(update.is_primary).strip().lower()
+        relationship.is_primary = "true" if val in ("true", "1", "yes") else "false"
+
+    await db.commit()
+    await db.refresh(relationship)
+
+    return {
+        "id": str(relationship.id),
+        "student_id": str(relationship.student_id),
+        "guardian_user_id": str(relationship.guardian_user_id),
+        "relationship_type": relationship.relationship_type,
+        "is_primary": relationship.is_primary,
+    }
+
+
 @router.delete("/{relationship_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_student_guardian_relationship(
     relationship_id: UUID,

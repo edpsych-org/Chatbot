@@ -215,6 +215,17 @@ export default function AdminDashboard() {
   const [assigning, setAssigning] = useState(false);
   const [selectedStudentGuardians, setSelectedStudentGuardians] = useState<any[]>([]);
 
+  /* ─── Manage Guardians modal state ─── */
+  const [manageGuardiansFor, setManageGuardiansFor] = useState<any | null>(null);
+  const [guardianAddForm, setGuardianAddForm] = useState({
+    parent_name: "", parent_email: "", relationship_type: "Mother", is_primary: "false",
+  });
+  const [guardianAddError, setGuardianAddError] = useState("");
+  const [guardianAddBusy, setGuardianAddBusy] = useState(false);
+  const [editingGuardianId, setEditingGuardianId] = useState<string | null>(null);
+  const [editingGuardianDraft, setEditingGuardianDraft] = useState<{ relationship_type: string; is_primary: string }>({ relationship_type: "Guardian", is_primary: "false" });
+  const [guardianRowBusy, setGuardianRowBusy] = useState<string | null>(null);
+
   const showAlert = (title: string, message: string, variant: "info" | "warning" | "danger" | "success" = "info") => {
     setDialog({ open: true, title, message, variant, confirmLabel: "OK", onConfirm: () => setDialog((d) => ({ ...d, open: false })) });
   };
@@ -383,6 +394,142 @@ export default function AdminDashboard() {
         else showAlert("Error", "Failed to cancel", "danger");
       } catch { showAlert("Error", "Network error", "danger"); }
     });
+  };
+
+  /* ─── Manage Guardians modal handlers ─── */
+  const openGuardiansModal = (student: any) => {
+    setManageGuardiansFor(student);
+    setGuardianAddForm({ parent_name: "", parent_email: "", relationship_type: "Mother", is_primary: "false" });
+    setGuardianAddError("");
+    setEditingGuardianId(null);
+  };
+
+  const closeGuardiansModal = () => {
+    setManageGuardiansFor(null);
+    setEditingGuardianId(null);
+    setGuardianAddError("");
+  };
+
+  const refreshCurrentStudent = async (studentId: string) => {
+    // Re-fetch the admin students list and update the modal's in-memory student
+    const token = localStorage.getItem("access_token");
+    try {
+      const res = await fetch(`${API_BASE}/admin/students/all-with-details`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) return;
+      const data = await res.json();
+      const students = data.students || data;
+      setAdminStudents(students);
+      const updated = students.find((s: any) => s.id === studentId);
+      if (updated) setManageGuardiansFor(updated);
+    } catch { /* network */ }
+  };
+
+  const handleAddGuardian = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manageGuardiansFor) return;
+    if (!guardianAddForm.parent_name.trim() || !guardianAddForm.parent_email.trim()) {
+      setGuardianAddError("Name and email are required.");
+      return;
+    }
+    setGuardianAddBusy(true);
+    setGuardianAddError("");
+    const token = localStorage.getItem("access_token");
+    try {
+      const res = await fetch(`${API_BASE}/student-guardians/invite-parent`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          student_id: manageGuardiansFor.id,
+          parent_email: guardianAddForm.parent_email.trim(),
+          parent_name: guardianAddForm.parent_name.trim(),
+          relationship_type: guardianAddForm.relationship_type,
+          is_primary: guardianAddForm.is_primary,
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const detail = typeof body.detail === "string" ? body.detail : body.detail?.message || "Failed to add guardian.";
+        setGuardianAddError(detail);
+        return;
+      }
+      await refreshCurrentStudent(manageGuardiansFor.id);
+      setGuardianAddForm({ parent_name: "", parent_email: "", relationship_type: "Mother", is_primary: "false" });
+      showAlert("Added", "Guardian linked to student.", "success");
+    } catch {
+      setGuardianAddError("Network error.");
+    } finally {
+      setGuardianAddBusy(false);
+    }
+  };
+
+  const startEditGuardian = (g: any) => {
+    setEditingGuardianId(g.id);
+    setEditingGuardianDraft({
+      relationship_type: g.relationship || g.relationship_type || "Guardian",
+      is_primary: String(g.is_primary ?? "false"),
+    });
+  };
+
+  const cancelEditGuardian = () => {
+    setEditingGuardianId(null);
+  };
+
+  const saveEditGuardian = async (guardian: any) => {
+    if (!manageGuardiansFor) return;
+    const relationshipId = guardian.relationship_id || guardian.id; // fallback to id on legacy responses
+    setGuardianRowBusy(guardian.id);
+    const token = localStorage.getItem("access_token");
+    try {
+      const res = await fetch(`${API_BASE}/student-guardians/${relationshipId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          relationship_type: editingGuardianDraft.relationship_type,
+          is_primary: editingGuardianDraft.is_primary,
+        }),
+      });
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}));
+        showAlert("Error", typeof b.detail === "string" ? b.detail : "Failed to update guardian.", "danger");
+        return;
+      }
+      await refreshCurrentStudent(manageGuardiansFor.id);
+      setEditingGuardianId(null);
+    } catch {
+      showAlert("Error", "Network error.", "danger");
+    } finally {
+      setGuardianRowBusy(null);
+    }
+  };
+
+  const removeGuardian = (g: any) => {
+    if (!manageGuardiansFor) return;
+    const relationshipId = g.relationship_id || g.id;
+    showConfirm(
+      "Remove guardian",
+      `Unlink ${g.name || "this guardian"} from ${manageGuardiansFor.first_name} ${manageGuardiansFor.last_name}? The guardian's account is kept but they will no longer be associated with this student.`,
+      "danger",
+      "Unlink",
+      async () => {
+        setGuardianRowBusy(g.id);
+        const token = localStorage.getItem("access_token");
+        try {
+          const res = await fetch(`${API_BASE}/student-guardians/${relationshipId}`, {
+            method: "DELETE", headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.status === 204 || res.ok) {
+            await refreshCurrentStudent(manageGuardiansFor.id);
+            showAlert("Removed", "Guardian unlinked from student.", "info");
+          } else {
+            showAlert("Error", "Failed to unlink guardian.", "danger");
+          }
+        } catch {
+          showAlert("Error", "Network error.", "danger");
+        } finally {
+          setGuardianRowBusy(null);
+        }
+      }
+    );
   };
 
   /* ─── Fetch students/assignments when switching tabs ─── */
@@ -792,7 +939,19 @@ export default function AdminDashboard() {
                             ) : <span className="text-[0.6875rem] text-slate-600">No assignment</span>}
                           </td>
                           <td className="px-5 py-3.5 text-right">
-                            <a href={`/student/${s.id}/workspace`} className="text-[0.6875rem] font-medium text-[#00acb6] hover:text-[#0c888e]">Reports Workspace</a>
+                            <div className="flex items-center justify-end gap-3">
+                              <button
+                                type="button"
+                                onClick={() => openGuardiansModal(s)}
+                                className="text-[0.6875rem] font-medium text-[#0c888e] hover:text-[#00acb6] border border-[#dedede] hover:border-[#00acb6] px-2.5 py-1 rounded transition-colors"
+                                title="Add or edit parents / schools for this student"
+                              >
+                                Manage Guardians
+                              </button>
+                              <a href={`/student/${s.id}/workspace`} className="text-[0.6875rem] font-medium text-[#00acb6] hover:text-[#0c888e]">
+                                Reports Workspace
+                              </a>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -1172,6 +1331,192 @@ export default function AdminDashboard() {
               </button>
             </div>
           </form>
+        </div>
+      </ModalOverlay>
+
+      {/* ── Manage Guardians Modal ── */}
+      <ModalOverlay open={!!manageGuardiansFor} onClose={closeGuardiansModal} maxW="max-w-2xl">
+        <div className="p-6">
+          <div className="mb-5">
+            <h3 className="font-serif text-xl font-bold text-[#333]">Manage Guardians</h3>
+            <p className="text-[0.8125rem] text-[#737373] mt-0.5">
+              Parents or schools linked to{" "}
+              <span className="font-semibold text-[#333]">
+                {manageGuardiansFor ? `${manageGuardiansFor.first_name} ${manageGuardiansFor.last_name}` : ""}
+              </span>
+              . Add a new guardian, edit a relationship, or unlink one from this student.
+            </p>
+          </div>
+
+          {/* Existing guardians list */}
+          <div className="mb-6">
+            <h4 className="text-[0.75rem] font-semibold text-[#737373] uppercase tracking-wider mb-2">
+              Current guardians{manageGuardiansFor?.guardians?.length ? ` (${manageGuardiansFor.guardians.length})` : ""}
+            </h4>
+            {!manageGuardiansFor?.guardians?.length ? (
+              <p className="text-[0.8125rem] text-[#737373] italic">No guardians linked yet. Add one below.</p>
+            ) : (
+              <ul className="divide-y divide-[#eeeeee] border border-[#dedede] rounded-lg overflow-hidden">
+                {manageGuardiansFor.guardians.map((g: any) => (
+                  <li key={g.id} className="px-3 py-2.5 bg-white">
+                    {editingGuardianId === g.id ? (
+                      <div className="flex flex-col gap-2">
+                        <div className="text-[0.8125rem] font-medium text-[#333]">{g.name}</div>
+                        <div className="text-[0.6875rem] text-[#737373]">{g.email}</div>
+                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                          <select
+                            value={editingGuardianDraft.relationship_type}
+                            onChange={(e) => setEditingGuardianDraft({ ...editingGuardianDraft, relationship_type: e.target.value })}
+                            className="h-8 px-2 text-[0.75rem] border border-[#dedede] rounded"
+                          >
+                            {["Mother", "Father", "Guardian", "School", "Other"].map(opt => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </select>
+                          <label className="inline-flex items-center gap-1.5 text-[0.75rem] text-[#333]">
+                            <input
+                              type="checkbox"
+                              checked={editingGuardianDraft.is_primary === "true"}
+                              onChange={(e) => setEditingGuardianDraft({ ...editingGuardianDraft, is_primary: e.target.checked ? "true" : "false" })}
+                            />
+                            Primary contact
+                          </label>
+                          <div className="flex items-center gap-1.5 ml-auto">
+                            <button
+                              type="button"
+                              onClick={cancelEditGuardian}
+                              className="h-7 px-2 text-[0.6875rem] font-medium text-slate-600 border border-slate-200 rounded hover:bg-slate-50"
+                              disabled={guardianRowBusy === g.id}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => saveEditGuardian(g)}
+                              disabled={guardianRowBusy === g.id}
+                              className="h-7 px-2.5 text-[0.6875rem] font-semibold text-white bg-[#00acb6] hover:bg-[#0c888e] rounded disabled:opacity-50"
+                            >
+                              {guardianRowBusy === g.id ? "Saving..." : "Save"}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-[0.8125rem] font-medium text-[#333] truncate">{g.name}</p>
+                            {String(g.is_primary) === "true" && (
+                              <span className="text-[0.625rem] font-semibold text-[#00acb6] bg-[#e6f7f8] px-1.5 py-0.5 rounded">Primary</span>
+                            )}
+                          </div>
+                          <p className="text-[0.6875rem] text-[#737373] truncate">
+                            {g.relationship || g.relationship_type || "Guardian"} · {g.email}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => startEditGuardian(g)}
+                            className="h-7 px-2 text-[0.6875rem] font-medium text-[#0c888e] border border-[#dedede] hover:border-[#00acb6] rounded"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeGuardian(g)}
+                            disabled={guardianRowBusy === g.id}
+                            className="h-7 px-2 text-[0.6875rem] font-medium text-[#e61844] border border-[#dedede] hover:border-[#e61844] rounded disabled:opacity-50"
+                          >
+                            {guardianRowBusy === g.id ? "..." : "Unlink"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Add guardian form */}
+          <div className="border-t border-[#dedede] pt-5">
+            <h4 className="text-[0.75rem] font-semibold text-[#737373] uppercase tracking-wider mb-3">
+              Add a guardian
+            </h4>
+            <form onSubmit={handleAddGuardian} className="space-y-3">
+              {guardianAddError && (
+                <div className="text-[0.75rem] text-[#e61844] bg-[#fdecec] border border-[#e61844]/30 rounded p-2">
+                  {guardianAddError}
+                </div>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[0.6875rem] font-medium text-[#737373] uppercase tracking-wider mb-1">Full name</label>
+                  <input
+                    type="text"
+                    value={guardianAddForm.parent_name}
+                    onChange={(e) => setGuardianAddForm({ ...guardianAddForm, parent_name: e.target.value })}
+                    required
+                    className="w-full h-9 px-3 text-[0.8125rem] border border-[#dedede] rounded focus:outline-none focus:ring-2 focus:ring-[#00acb6]/20"
+                    placeholder="e.g. Jane Doe"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[0.6875rem] font-medium text-[#737373] uppercase tracking-wider mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={guardianAddForm.parent_email}
+                    onChange={(e) => setGuardianAddForm({ ...guardianAddForm, parent_email: e.target.value })}
+                    required
+                    className="w-full h-9 px-3 text-[0.8125rem] border border-[#dedede] rounded focus:outline-none focus:ring-2 focus:ring-[#00acb6]/20"
+                    placeholder="jane@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[0.6875rem] font-medium text-[#737373] uppercase tracking-wider mb-1">Relationship</label>
+                  <select
+                    value={guardianAddForm.relationship_type}
+                    onChange={(e) => setGuardianAddForm({ ...guardianAddForm, relationship_type: e.target.value })}
+                    className="w-full h-9 px-2 text-[0.8125rem] border border-[#dedede] rounded"
+                  >
+                    {["Mother", "Father", "Guardian", "School", "Other"].map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-end">
+                  <label className="inline-flex items-center gap-1.5 text-[0.8125rem] text-[#333]">
+                    <input
+                      type="checkbox"
+                      checked={guardianAddForm.is_primary === "true"}
+                      onChange={(e) => setGuardianAddForm({ ...guardianAddForm, is_primary: e.target.checked ? "true" : "false" })}
+                    />
+                    Primary contact
+                  </label>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={closeGuardiansModal}
+                  className="h-9 px-3 text-[0.8125rem] font-medium text-slate-600 border border-slate-200 rounded hover:bg-slate-50"
+                >
+                  Done
+                </button>
+                <button
+                  type="submit"
+                  disabled={guardianAddBusy}
+                  className="h-9 px-4 text-[0.8125rem] font-semibold text-white bg-[#e61844] hover:bg-[#cf0627] rounded disabled:opacity-50"
+                >
+                  {guardianAddBusy ? "Adding..." : "Add guardian"}
+                </button>
+              </div>
+              <p className="text-[0.6875rem] text-[#737373]">
+                If an account with this email already exists, it will simply be linked to the student — no duplicate user is created.
+              </p>
+            </form>
+          </div>
         </div>
       </ModalOverlay>
 
