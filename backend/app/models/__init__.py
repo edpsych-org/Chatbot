@@ -7,7 +7,6 @@ from app.models.upload import IQTestUpload, CognitiveProfile
 from app.models.report import AIGenerationJob, GeneratedReport, ReportReview, FinalReport
 from app.models.magic_link import MagicLinkToken
 from app.models.chat import ChatSession, ChatMessage, FlowDefinition, ConversationTemplate
-from app.models.verification_token import VerificationToken
 
 __all__ = [
     "User",
@@ -27,5 +26,4 @@ __all__ = [
     "ChatMessage",
     "FlowDefinition",
     "ConversationTemplate",
-    "VerificationToken",
 ]

@@ -13,7 +13,7 @@ import logging
 from app.core.config import settings
 from app.core.database import engine, Base
 from app.api import auth, students, chatbot, assignments, student_guardians, hybrid_chat, psychologist, psychologist_reports
-from app.models import user, student, assessment, report, assignment, student_guardian, chat, magic_link, verification_token, upload, psychologist_report  # Import all models
+from app.models import user, student, assessment, report, assignment, student_guardian, chat, magic_link, upload, psychologist_report  # Import all models
 
 # Optional imports - these may fail in chatbot-only deployment
 try:
