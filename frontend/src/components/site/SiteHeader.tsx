@@ -47,7 +47,7 @@ export default function SiteHeader() {
       <div className="bg-primary text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-baseline gap-3 min-w-0">
-            <span className="brand-wordmark text-lg sm:text-xl font-bold truncate">
+            <span className="brand-wordmark !text-white text-lg sm:text-xl font-bold truncate">
               The Ed Psych Practice
             </span>
             <em className="hidden md:inline text-xs sm:text-sm text-white/85 not-italic">
