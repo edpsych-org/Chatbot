@@ -9,19 +9,21 @@ recipient's relationship to the student:
     Anything else                     → "the student {student}"
 """
 
-import os
 import requests
 from typing import Optional
 import logging
 
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
-BREVO_API_KEY = os.getenv("BREVO_API_KEY")
-EMAIL_FROM_NAME = os.getenv("EMAIL_FROM_NAME", "The Ed Psych Practice")
-EMAIL_FROM_ADDRESS = os.getenv("EMAIL_FROM_ADDRESS", "noreply@theedpsych.com")
+# All of these come from .env via Settings — no hardcoded fallbacks here.
+BREVO_API_KEY = settings.BREVO_API_KEY
+EMAIL_FROM_NAME = settings.EMAIL_FROM_NAME
+EMAIL_FROM_ADDRESS = settings.EMAIL_FROM_ADDRESS
 
-# Default magic link expiry the rest of the codebase uses (config.MAGIC_LINK_EXPIRY_HOURS)
-DEFAULT_LINK_EXPIRY_HOURS = 48
+# Default magic link expiry — uses settings if explicitly configured.
+DEFAULT_LINK_EXPIRY_HOURS = settings.MAGIC_LINK_EXPIRY_HOURS
 
 # Brand palette — match frontend tailwind tokens
 COLOR_TEAL = "#00acb6"

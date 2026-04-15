@@ -5,15 +5,8 @@ Loads from .env file
 
 from pydantic_settings import BaseSettings
 from typing import List
-from pathlib import Path
 from urllib.parse import urlparse
 import os
-
-
-# Resolve the project root's .env absolutely so the loader works no matter
-# which directory the app is launched from.
-_PROJECT_ROOT = Path(__file__).resolve().parents[3]
-_ENV_FILE = str(_PROJECT_ROOT / ".env")
 
 
 class Settings(BaseSettings):
@@ -60,7 +53,9 @@ class Settings(BaseSettings):
     USE_OPENAI: bool = False
 
     # ==================== TESSERACT OCR ====================
-    TESSERACT_PATH: str = "C:/Program Files/Tesseract-OCR/tesseract.exe"
+    # Linux container default. Override on Windows dev:
+    #   TESSERACT_PATH=C:/Program Files/Tesseract-OCR/tesseract.exe
+    TESSERACT_PATH: str = "/usr/bin/tesseract"
     TESSERACT_LANG: str = "eng"
 
     # ==================== BACKEND ====================
@@ -71,13 +66,17 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
     # ==================== JWT AUTHENTICATION ====================
-    SECRET_KEY: str = "your-super-secret-key-change-this-in-production-min-32-chars"
+    # Required — startup fails if missing. Generate per env:
+    #   python -c "import secrets; print(secrets.token_urlsafe(48))"
+    SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
     MAGIC_LINK_EXPIRY_HOURS: int = 48
 
     # ==================== CORS ====================
-    CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001,http://localhost:3002,http://127.0.0.1:3002"
+    # Required — comma-separated allowed origins. Must include the deployed
+    # frontend URL in production.
+    CORS_ORIGINS: str
 
     # ==================== FILE UPLOAD ====================
     MAX_FILE_SIZE_MB: int = 10
@@ -103,17 +102,33 @@ class Settings(BaseSettings):
     REPORT_FONT_SIZE: int = 11
     REPORT_PAGE_SIZE: str = "A4"
 
-    # ==================== EMAIL ====================
+    # ==================== EMAIL (Brevo transactional API) ====================
+    BREVO_API_KEY: str = ""  # blank in dev → emails log to backend/logs/app.log
+    EMAIL_FROM_NAME: str = "The Ed Psych Practice"
+    EMAIL_FROM_ADDRESS: str = "noreply@theedpsych.com"
+
+    # ==================== FRONTEND URL ====================
+    # Required — used in magic-link emails and CORS. No default so a missing
+    # value can't silently send people to the wrong place in production.
+    FRONTEND_URL: str
+
+    # ==================== EMAIL — DEPRECATED SMTP FALLBACK ====================
+    # Kept only because legacy assignments.py + student_guardians.py still
+    # reference these. Brevo is the active path; leave SMTP_* unset.
     SMTP_SERVER: str = "smtp.gmail.com"
     SMTP_PORT: int = 587
     SMTP_USERNAME: str | None = None
     SMTP_PASSWORD: str | None = None
     SMTP_USE_TLS: bool = True
-    EMAIL_FROM: str = "noreply@edpsych.com"
-    FRONTEND_URL: str = "http://localhost:3002"
 
     class Config:
-        env_file = _ENV_FILE
+        # Relative to current working directory.
+        # - In Docker:  the WORKDIR is /app, so /app/.env (mounted via compose
+        #               or env vars injected via env_file:) is used.
+        # - Locally:    run the backend from the project root so .env resolves
+        #               there, OR copy .env into backend/, OR export the vars
+        #               in your shell.
+        env_file = ".env"
         case_sensitive = True
         extra = "ignore"  # Ignore extra fields from .env (like frontend vars)
 

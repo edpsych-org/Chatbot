@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 backend/venv/
+backend/venv_old/
 __pycache__/
 *.pyc
 *.pyo
@@ -39,6 +40,9 @@ npm-debug.log*
 # Docker volumes
 docker-data/
 postgres-data/
+
+# Local Postgres data dir (mounted by docker-compose / native Postgres)
+database/data/
 
 # Build
 dist/
