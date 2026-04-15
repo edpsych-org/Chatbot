@@ -1,12 +1,48 @@
-venv/
-venv_old/
+# Python artefacts
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+.Python
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtualenvs
+venv/
+venv_old/
+.venv/
+env/
+
+# Local / dev
 .env
 .env.*
-*.egg-info/
+!.env.example
+logs/
+*.log
+uploads/
+tmp/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Version control
 .git/
 .gitignore
+.github/
+
+# Docs / scratch
 *.md
-tests/
+docs/
+.scrape/
+.playwright-mcp/
+
+# OS junk
+.DS_Store
+Thumbs.db

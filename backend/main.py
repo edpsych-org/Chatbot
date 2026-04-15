@@ -7,6 +7,8 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
+from sqlalchemy import text
+import asyncio
 import time
 import logging
 
@@ -29,35 +31,75 @@ logger = logging.getLogger(__name__)
 http_logger = logging.getLogger("http")
 
 
-def _validate_runtime_config():
-    """Log loud warnings for insecure-but-common misconfigurations."""
-    if "change-this" in settings.SECRET_KEY or len(settings.SECRET_KEY) < 32:
-        logger.error(
-            "SECRET_KEY is using the default placeholder — JWT tokens are NOT secure. "
-            "Set a strong SECRET_KEY (32+ random chars) in .env before deploying."
-        )
+def _log_loaded_config() -> None:
+    """Emit the banner + a masked dump of every setting at INFO level."""
+    logger.info("🚀 Starting EdPsych AI Backend...")
+    logger.info("📊 Database: %s:%s", settings.database_host, settings.database_port)
+    if getattr(settings, "USE_OPENAI", False):
+        logger.info("🧠 LLM: OpenAI (%s)", settings.OPENAI_MODEL)
+    elif getattr(settings, "USE_GROQ", False):
+        logger.info("🧠 LLM: Groq (%s)", settings.GROQ_MODEL)
+    else:
+        logger.info("🧠 LLM: disabled (no provider enabled — set USE_OPENAI or USE_GROQ)")
+
+    safe = settings.safe_dict()
+    for key in sorted(safe):
+        logger.info("  %s = %s", key, safe[key])
+
+
+def _validate_runtime_config() -> None:
+    """Log loud warnings for remaining runtime-level inconsistencies.
+
+    Schema validation (required fields, SECRET_KEY length, URL shape) now
+    happens in Settings field_validators, so startup already fails loudly
+    on those. This only catches cross-field issues.
+    """
     if getattr(settings, "USE_OPENAI", False) and not settings.OPENAI_API_KEY:
-        logger.error("USE_OPENAI=true but OPENAI_API_KEY is empty in .env")
+        logger.error("USE_OPENAI=true but OPENAI_API_KEY is empty — chat/report calls will fail.")
     if getattr(settings, "USE_GROQ", False) and not settings.GROQ_API_KEY:
-        logger.error("USE_GROQ=true but GROQ_API_KEY is empty in .env")
+        logger.error("USE_GROQ=true but GROQ_API_KEY is empty — chat acknowledgements will fail.")
+
+
+async def _wait_for_db(max_attempts: int = 8, base_delay: float = 1.0) -> None:
+    """Block startup until the database accepts a connection.
+
+    Uses exponential backoff (1, 2, 4, 8, … capped at 30 seconds between
+    attempts). Raises the last exception if the DB never becomes ready.
+    Fixes the compose race where backend starts before postgres is
+    accepting TCP, and is the same pattern you want on AWS RDS when the
+    cluster is still warming up.
+    """
+    last_exc: Exception | None = None
+    for attempt in range(1, max_attempts + 1):
+        try:
+            async with engine.connect() as conn:
+                await conn.execute(text("SELECT 1"))
+            logger.info("✅ Database reachable at %s:%s", settings.database_host, settings.database_port)
+            return
+        except Exception as exc:  # noqa: BLE001 — any connection failure is retryable here
+            last_exc = exc
+            delay = min(base_delay * (2 ** (attempt - 1)), 30.0)
+            logger.warning(
+                "⏳ Database not ready (attempt %s/%s): %s — retry in %.1fs",
+                attempt, max_attempts, exc.__class__.__name__, delay,
+            )
+            if attempt < max_attempts:
+                await asyncio.sleep(delay)
+
+    logger.error("❌ Database still unreachable after %s attempts.", max_attempts)
+    raise last_exc  # type: ignore[misc]
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan events"""
-    # Startup
-    logger.info("🚀 Starting EdPsych AI Backend...")
-    logger.info(f"📊 Database: {settings.DATABASE_HOST}:{settings.DATABASE_PORT}")
-    if getattr(settings, 'USE_OPENAI', False):
-        logger.info(f"🧠 LLM: OpenAI ({settings.OPENAI_MODEL})")
-    elif getattr(settings, 'USE_GROQ', False):
-        logger.info(f"🧠 LLM: Groq ({settings.GROQ_MODEL})")
-    else:
-        logger.info("🧠 LLM: disabled (no provider enabled — set USE_OPENAI or USE_GROQ)")
-
+    """Application lifespan events."""
+    _log_loaded_config()
     _validate_runtime_config()
 
-    # Create database tables
+    # Wait for Postgres to accept connections before touching the schema.
+    await _wait_for_db()
+
+    # Create / verify database tables
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     logger.info("✅ Database tables created/verified")

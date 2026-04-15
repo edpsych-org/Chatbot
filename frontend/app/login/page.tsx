@@ -68,10 +68,10 @@ export default function LoginPage() {
           <span className="text-white font-serif text-xl tracking-wide">The Ed Psych Practice</span>
         </div>
         <nav className="hidden md:flex items-center gap-6 text-white text-[0.8125rem] uppercase tracking-wider">
-          <a href="#" className="hover:opacity-80 text-white">Home</a>
-          <a href="#" className="hover:opacity-80 text-white">About</a>
-          <a href="#" className="hover:opacity-80 text-white">Services</a>
-          <a href="#" className="hover:opacity-80 text-white">Contact</a>
+          <a href="/" className="hover:opacity-80 text-white">Home</a>
+          <a href="/about" className="hover:opacity-80 text-white">About</a>
+          <a href="/services" className="hover:opacity-80 text-white">Services</a>
+          <a href="/contact" className="hover:opacity-80 text-white">Contact</a>
         </nav>
       </div>
 
@@ -216,9 +216,9 @@ export default function LoginPage() {
 
             <footer className="mt-12 text-center">
               <div className="flex justify-center gap-6 text-[0.6875rem] font-semibold uppercase tracking-[0.15em] text-[#737373]">
-                <a href="#" className="hover:text-[#e61844] transition-colors">Documentation</a>
-                <a href="#" className="hover:text-[#e61844] transition-colors">Support</a>
-                <a href="#" className="hover:text-[#e61844] transition-colors">Privacy</a>
+                <a href="/faq" className="hover:text-[#e61844] transition-colors">FAQs</a>
+                <a href="/contact" className="hover:text-[#e61844] transition-colors">Support</a>
+                <a href="/terms-and-conditions" className="hover:text-[#e61844] transition-colors">Privacy</a>
               </div>
               <div className="mt-6 text-[0.75rem] text-[#737373]">
                 © 2026 The Ed Psych Practice. All clinical data encrypted.

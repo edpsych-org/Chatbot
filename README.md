@@ -3,10 +3,6 @@
 An educational-psychology assessment and report-generation platform.
 FastAPI backend + Next.js 14 frontend + PostgreSQL.
 
-> Full reference PDFs live at the repo root:
-> - **`EdPsych_Local_Setup_Guide.pdf`** — 16-page developer onboarding
-> - **`EdPsych_DevOps_Handoff.pdf`** — 29-page production deployment reference
-
 ---
 
 ## Prerequisites
@@ -150,7 +146,7 @@ Try the accessibility menu (bottom-right Aa button) at 100 / 115 / 130 / 150% �
 | Magic link email never arrives | Expected without `BREVO_API_KEY`. Check backend terminal for the logged URL, or use the admin dashboard's **Resend Link** button |
 | `ModuleNotFoundError` on `pip install` complete | Venv isn't activated — re-activate and verify `pip show fastapi` points into `backend/venv` |
 
-Full troubleshooting table is in section 12 of `EdPsych_Local_Setup_Guide.pdf`.
+For more, check the **Logs & Debugging** and **Running with Docker** sections below.
 
 ---
 
@@ -161,11 +157,12 @@ edpsych-production-prototype/
 ├── .env                          # Root env file (git-ignored)
 ├── .env.example                  # Template
 ├── README.md                     # this file
-├── EdPsych_DevOps_Handoff.pdf    # Production deployment doc
-├── EdPsych_Local_Setup_Guide.pdf # Full developer onboarding doc
+├── docker-compose.yml            # Local 3-service stack
 ├── backend/
 │   ├── main.py                   # FastAPI entrypoint
-│   ├── requirements.txt          # Python deps
+│   ├── Dockerfile                # Production backend image
+│   ├── requirements.txt          # Full Python deps (dev)
+│   ├── requirements-deploy.txt   # Slim deps (Docker image)
 │   ├── seed_test_users.py        # Test accounts
 │   ├── app/core/                 # config, database, security
 │   ├── app/api/                  # Route handlers
@@ -203,10 +200,6 @@ SELECT token, expires_at FROM magic_link_tokens ORDER BY created_at DESC LIMIT 5
 
 # Reset everything (dev only — drops all data)
 cd backend && python reset_database.py && python seed_test_users.py
-
-# Regenerate the handoff PDFs
-cd backend && python generate_devops_handoff.py
-cd backend && python generate_local_setup_guide.py
 ```
 
 ---
@@ -259,6 +252,61 @@ want rotated files on disk too.
 
 ---
 
+## Running with Docker
+
+One command to boot the whole stack (Postgres + backend + frontend):
+
+```bash
+docker compose up --build
+```
+
+That launches:
+
+- `postgres:16-alpine` on `:5432` with a named volume so data survives restarts
+- `edpsych-backend:local` on `:8000` (FastAPI, Uvicorn, non-root user, healthcheck)
+- `edpsych-frontend:local` on `:3000` (Next.js 14 standalone build, non-root user, healthcheck)
+
+The compose file overrides `DATABASE_URL` so the backend resolves
+`postgres:5432` via the Docker network instead of `localhost`. All other
+environment variables come from the root `.env`.
+
+**Build the images individually** (e.g. for `docker push` to ECR):
+
+```bash
+docker build -t edpsych-backend:latest  ./backend
+docker build -t edpsych-frontend:latest ./frontend \
+    --build-arg NEXT_PUBLIC_API_URL=https://api.theedpsych.com/api/v1
+```
+
+**Stop and reset state:**
+
+```bash
+docker compose down         # stop containers (data kept)
+docker compose down -v      # also drop the Postgres volume (wipe DB)
+```
+
+**Image details:**
+
+- Backend: `python:3.11-slim`, Tesseract + Poppler for OCR, multi-stage build, runs as UID 1001, tini as PID 1, healthcheck hits `/health`.
+- Frontend: three-stage Node 20 Alpine build — `deps → builder → runner`. Uses Next.js `output: "standalone"` so the runtime image is ~200 MB and ships only what the server needs. Runs as `nextjs` (UID 1001).
+- `NEXT_PUBLIC_API_URL` is baked into the static bundle at build time — override with `--build-arg` when building per-environment images.
+
+---
+
 ## Production deployment
 
-See `EdPsych_DevOps_Handoff.pdf` (Railway for backend, Vercel for frontend, Neon for database).
+The Dockerfiles above are AWS-ready — on
+ECS / App Runner / EKS the backend logs to stdout (CloudWatch captures
+automatically), and the frontend standalone server needs no custom
+config. For ECR:
+
+```bash
+aws ecr get-login-password --region eu-west-2 | \
+    docker login --username AWS --password-stdin <account>.dkr.ecr.eu-west-2.amazonaws.com
+docker tag  edpsych-backend:latest  <account>.dkr.ecr.eu-west-2.amazonaws.com/edpsych-backend:latest
+docker push                            <account>.dkr.ecr.eu-west-2.amazonaws.com/edpsych-backend:latest
+```
+
+Set environment variables on the task definition from AWS Secrets
+Manager (for `*_API_KEY`, `SECRET_KEY`, `DATABASE_URL`) and Parameter
+Store (everything else) — do not copy `.env` into the image.

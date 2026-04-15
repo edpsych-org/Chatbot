@@ -1,0 +1,50 @@
+# syntax=docker/dockerfile:1.6
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# ---- System deps ----
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    tesseract-ocr \
+    poppler-utils \
+    libpq5 \
+    tini \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# ---- App setup ----
+WORKDIR /app
+
+# ---- Install dependencies ----
+COPY backend/requirements-deploy.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# ✅ COPY .env FROM ROOT (THIS IS THE KEY FIX)
+COPY .env /app/.env
+
+# ✅ Copy backend code
+COPY backend/ .
+
+# ---- Build-time check ----
+RUN set -e; \
+    export DATABASE_URL=postgresql+asyncpg://build:build@localhost:5432/build; \
+    export SECRET_KEY=build-time-only-do-not-use-in-production-min-32-chars; \
+    export CORS_ORIGINS=http://localhost:3000; \
+    export FRONTEND_URL=http://localhost:3000; \
+    python -m compileall -q app main.py; \
+    python -c "import main; print('main import OK')"
+
+# ---- Runtime user ----
+RUN useradd --system --uid 1001 --home-dir /app --shell /usr/sbin/nologin edpsych \
+    && mkdir -p /app/logs \
+    && chown -R edpsych:edpsych /app
+
+USER edpsych
+
+EXPOSE 8000
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
