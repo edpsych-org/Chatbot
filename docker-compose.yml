@@ -33,8 +33,8 @@ services:
 
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile-be
     image: edpsych-backend:local
     container_name: edpsych_backend
     restart: unless-stopped

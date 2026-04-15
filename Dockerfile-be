@@ -38,14 +38,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 #   3. `docker run --env-file .env`  (one-off)
 COPY backend/ .
 
-# ---- Build-time smoke check (dummy envs, scoped to this RUN only) ----
-RUN set -e; \
-    export DATABASE_URL=postgresql+asyncpg://build:build@localhost:5432/build; \
-    export SECRET_KEY=build-time-only-do-not-use-in-production-min-32-chars; \
-    export CORS_ORIGINS=http://localhost:3000; \
-    export FRONTEND_URL=http://localhost:3000; \
-    python -m compileall -q app main.py; \
-    python -c "import main; print('main import OK')"
+# ---- Build-time smoke check ----
+# No env vars here on purpose — real values must come from the platform
+# at runtime (compose env_file / ECS task def / Secrets Manager).
+# Instead we: (a) bytecode-compile every file so syntax errors fail the
+# build, and (b) import each heavy third-party dep directly so a missing
+# line in requirements.txt fails the build, not the running container.
+# 'import main' is intentionally NOT called here because Settings()
+# requires real env values and we don't want those in build scope.
+RUN python -m compileall -q app main.py \
+    && python -c "import boto3, fastapi, sqlalchemy, asyncpg, jose, passlib, pydantic_settings, httpx, requests, aiohttp, fitz, pdf2image, pytesseract, PIL; print('deps OK')"
 
 # ---- Runtime user ----
 RUN useradd --system --uid 1001 --home-dir /app --shell /usr/sbin/nologin edpsych \
