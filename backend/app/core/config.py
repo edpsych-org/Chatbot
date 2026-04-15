@@ -4,9 +4,33 @@ Loads from .env file
 """
 
 from pydantic_settings import BaseSettings
-from typing import List
+from pydantic import field_validator
+from typing import List, Dict, Any
 from urllib.parse import urlparse
 import os
+
+
+# Fields whose values must never appear in logs or the /health banner.
+# safe_dict() replaces these with masked placeholders.
+_SECRET_FIELDS = {
+    "SECRET_KEY",
+    "DATABASE_URL",
+    "OPENAI_API_KEY",
+    "GROQ_API_KEY",
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY",
+    "BREVO_API_KEY",
+    "SMTP_PASSWORD",
+}
+
+
+def _mask(v: Any) -> str:
+    s = "" if v is None else str(v)
+    if not s:
+        return "<unset>"
+    if len(s) <= 8:
+        return "****"
+    return f"{s[:4]}…{s[-4:]} (len={len(s)})"
 
 
 class Settings(BaseSettings):
@@ -14,6 +38,17 @@ class Settings(BaseSettings):
     # Single source of truth — matches every managed Postgres on AWS, Neon,
     # Supabase, etc. No default: startup must fail loudly if missing.
     DATABASE_URL: str
+
+    @field_validator("DATABASE_URL")
+    @classmethod
+    def _validate_database_url(cls, v: str) -> str:
+        if not v or not v.startswith(("postgresql://", "postgresql+asyncpg://")):
+            raise ValueError(
+                "DATABASE_URL must start with 'postgresql://' or "
+                "'postgresql+asyncpg://'. Got: "
+                + (v[:40] + "…" if len(v) > 40 else v or "<empty>")
+            )
+        return v
 
     @property
     def database_host(self) -> str:
@@ -69,6 +104,24 @@ class Settings(BaseSettings):
     # Required — startup fails if missing. Generate per env:
     #   python -c "import secrets; print(secrets.token_urlsafe(48))"
     SECRET_KEY: str
+
+    @field_validator("SECRET_KEY")
+    @classmethod
+    def _validate_secret_key(cls, v: str) -> str:
+        if not v:
+            raise ValueError("SECRET_KEY is required and must not be empty.")
+        if len(v) < 32:
+            raise ValueError(
+                f"SECRET_KEY must be at least 32 chars (got {len(v)}). "
+                "Generate one with: python -c \"import secrets; print(secrets.token_urlsafe(48))\""
+            )
+        if "change-this" in v.lower() or "your-super-secret" in v.lower():
+            raise ValueError(
+                "SECRET_KEY is still the placeholder value. Replace it with "
+                "a generated secret before starting the app."
+            )
+        return v
+
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
     MAGIC_LINK_EXPIRY_HOURS: int = 48
@@ -77,6 +130,16 @@ class Settings(BaseSettings):
     # Required — comma-separated allowed origins. Must include the deployed
     # frontend URL in production.
     CORS_ORIGINS: str
+
+    @field_validator("CORS_ORIGINS")
+    @classmethod
+    def _validate_cors(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError(
+                "CORS_ORIGINS is required (comma-separated origins, e.g. "
+                "'http://localhost:3000,https://app.theedpsych.com')."
+            )
+        return v
 
     # ==================== FILE UPLOAD ====================
     MAX_FILE_SIZE_MB: int = 10
@@ -120,6 +183,18 @@ class Settings(BaseSettings):
     SMTP_USERNAME: str | None = None
     SMTP_PASSWORD: str | None = None
     SMTP_USE_TLS: bool = True
+
+    def safe_dict(self) -> Dict[str, Any]:
+        """Return settings as a dict with every secret masked.
+
+        Use this for startup banners, debug endpoints, and support dumps —
+        never log `settings.dict()` directly, it includes every secret.
+        """
+        data = self.model_dump()
+        for k in list(data.keys()):
+            if k in _SECRET_FIELDS:
+                data[k] = _mask(data[k])
+        return data
 
     class Config:
         # Relative to current working directory.
