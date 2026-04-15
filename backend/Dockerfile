@@ -27,6 +27,17 @@ RUN pip install --no-cache-dir -r requirements.txt
 # ---- App source ----
 COPY . .
 
+# ---- Build-time smoke check ----
+# Fail the build (not runtime) if any third-party dep is missing from
+# requirements.txt. Bytecode-compile everything and directly import the
+# heavy externals that the app relies on. We set a dummy DATABASE_URL so
+# pydantic-settings doesn't reject the validation at import time.
+ENV DATABASE_URL=postgresql+asyncpg://build:build@localhost:5432/build
+RUN python -m compileall -q app main.py \
+    && python -c "import boto3, fastapi, sqlalchemy, asyncpg, jose, passlib, pydantic_settings, httpx, requests, aiohttp, fitz, pdf2image, pytesseract, PIL; print('deps import OK')" \
+    && python -c "import main; print('main import OK')"
+ENV DATABASE_URL=
+
 # ---- Runtime user ----
 RUN useradd --system --uid 1001 --home-dir /app --shell /usr/sbin/nologin edpsych \
     && mkdir -p /app/logs \
