@@ -259,6 +259,61 @@ want rotated files on disk too.
 
 ---
 
+## Running with Docker
+
+One command to boot the whole stack (Postgres + backend + frontend):
+
+```bash
+docker compose up --build
+```
+
+That launches:
+
+- `postgres:16-alpine` on `:5432` with a named volume so data survives restarts
+- `edpsych-backend:local` on `:8000` (FastAPI, Uvicorn, non-root user, healthcheck)
+- `edpsych-frontend:local` on `:3000` (Next.js 14 standalone build, non-root user, healthcheck)
+
+The compose file overrides `DATABASE_URL` so the backend resolves
+`postgres:5432` via the Docker network instead of `localhost`. All other
+environment variables come from the root `.env`.
+
+**Build the images individually** (e.g. for `docker push` to ECR):
+
+```bash
+docker build -t edpsych-backend:latest  ./backend
+docker build -t edpsych-frontend:latest ./frontend \
+    --build-arg NEXT_PUBLIC_API_URL=https://api.theedpsych.com/api/v1
+```
+
+**Stop and reset state:**
+
+```bash
+docker compose down         # stop containers (data kept)
+docker compose down -v      # also drop the Postgres volume (wipe DB)
+```
+
+**Image details:**
+
+- Backend: `python:3.11-slim`, Tesseract + Poppler for OCR, multi-stage build, runs as UID 1001, tini as PID 1, healthcheck hits `/health`.
+- Frontend: three-stage Node 20 Alpine build — `deps → builder → runner`. Uses Next.js `output: "standalone"` so the runtime image is ~200 MB and ships only what the server needs. Runs as `nextjs` (UID 1001).
+- `NEXT_PUBLIC_API_URL` is baked into the static bundle at build time — override with `--build-arg` when building per-environment images.
+
+---
+
 ## Production deployment
 
-See `EdPsych_DevOps_Handoff.pdf` (Railway for backend, Vercel for frontend, Neon for database).
+See `EdPsych_DevOps_Handoff.pdf`. The Dockerfiles above are AWS-ready — on
+ECS / App Runner / EKS the backend logs to stdout (CloudWatch captures
+automatically), and the frontend standalone server needs no custom
+config. For ECR:
+
+```bash
+aws ecr get-login-password --region eu-west-2 | \
+    docker login --username AWS --password-stdin <account>.dkr.ecr.eu-west-2.amazonaws.com
+docker tag  edpsych-backend:latest  <account>.dkr.ecr.eu-west-2.amazonaws.com/edpsych-backend:latest
+docker push                            <account>.dkr.ecr.eu-west-2.amazonaws.com/edpsych-backend:latest
+```
+
+Set environment variables on the task definition from AWS Secrets
+Manager (for `*_API_KEY`, `SECRET_KEY`, `DATABASE_URL`) and Parameter
+Store (everything else) — do not copy `.env` into the image.

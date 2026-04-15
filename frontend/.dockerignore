@@ -1,0 +1,44 @@
+# Node artefacts
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store/
+
+# Next.js build output (will be rebuilt inside the image)
+.next/
+out/
+
+# Local / dev
+.env
+.env.*
+!.env.example
+!.env.production
+logs/
+*.log
+.cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Version control
+.git/
+.gitignore
+.github/
+
+# Tests / coverage
+coverage/
+.nyc_output/
+
+# Docs / scratch
+*.md
+!next.config.js
+.scrape/
+.playwright-mcp/
+
+# OS junk
+.DS_Store
+Thumbs.db

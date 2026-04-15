@@ -1,15 +1,20 @@
-version: '3.8'
-
-# Local-dev only. Object storage is not simulated locally anymore —
-# the backend uses real AWS S3 (bucket name in .env). If you need to
-# work offline without AWS, the S3 service gracefully degrades to
-# a dev-mode log rather than running a MinIO container.
+# EdPsych AI — local container stack
+# ===================================
+# One-command boot for the whole thing:  docker compose up --build
+#
+# - postgres:  Postgres 16 with a named volume so data survives restarts
+# - backend:   FastAPI on :8000, reads the root .env
+# - frontend:  Next.js on :3000, points at the backend service hostname
+#
+# Object storage is AWS S3 (real) — configure AWS_* in .env. No MinIO.
+# On AWS itself, services come from managed pieces (RDS, ECS, ECR) — this
+# file is a local-dev convenience, not a production definition.
 
 services:
-  # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
     container_name: edpsych_postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: edpsych
       POSTGRES_PASSWORD: edpsych_secure_password
@@ -17,19 +22,60 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./database/data:/var/lib/postgresql/data
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - edpsych_pgdata:/var/lib/postgresql/data
     networks:
       - edpsych-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U edpsych"]
+      test: ["CMD-SHELL", "pg_isready -U edpsych -d edpsych_db"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: edpsych-backend:local
+    container_name: edpsych_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Override the .env default so the backend reaches Postgres
+      # through the internal network instead of "localhost".
+      DATABASE_URL: postgresql+asyncpg://edpsych:edpsych_secure_password@postgres:5432/edpsych_db
+      BACKEND_RELOAD: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      # Keep logs readable on the host.
+      - ./backend/logs:/app/logs
+    networks:
+      - edpsych-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Baked into the static bundle at build time.
+        NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+    image: edpsych-frontend:local
+    container_name: edpsych_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    networks:
+      - edpsych-network
 
 networks:
   edpsych-network:
     driver: bridge
 
 volumes:
-  postgres-data:
+  edpsych_pgdata:
