@@ -6,6 +6,7 @@ Loads from .env file
 from pydantic_settings import BaseSettings
 from typing import List
 from pathlib import Path
+from urllib.parse import urlparse
 import os
 
 
@@ -17,14 +18,24 @@ _ENV_FILE = str(_PROJECT_ROOT / ".env")
 
 class Settings(BaseSettings):
     # ==================== DATABASE ====================
-    # No default — startup must fail loudly if DATABASE_URL is missing
-    # instead of silently falling back to localhost.
+    # Single source of truth — matches every managed Postgres on AWS, Neon,
+    # Supabase, etc. No default: startup must fail loudly if missing.
     DATABASE_URL: str
-    DATABASE_HOST: str = "localhost"
-    DATABASE_PORT: int = 5432
-    DATABASE_USER: str = "edpsych"
-    DATABASE_PASSWORD: str = "edpsych_secure_password"
-    DATABASE_NAME: str = "edpsych_db"
+
+    @property
+    def database_host(self) -> str:
+        """Host parsed from DATABASE_URL — used for the startup log line only."""
+        try:
+            return urlparse(self.DATABASE_URL).hostname or "unknown"
+        except Exception:
+            return "unknown"
+
+    @property
+    def database_port(self) -> int:
+        try:
+            return urlparse(self.DATABASE_URL).port or 5432
+        except Exception:
+            return 5432
 
     # ==================== AWS S3 (object storage) ====================
     AWS_ACCESS_KEY_ID: str = ""

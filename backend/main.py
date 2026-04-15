@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI):
     """Application lifespan events"""
     # Startup
     logger.info("🚀 Starting EdPsych AI Backend...")
-    logger.info(f"📊 Database: {settings.DATABASE_HOST}:{settings.DATABASE_PORT}")
+    logger.info(f"📊 Database: {settings.database_host}:{settings.database_port}")
     if getattr(settings, 'USE_OPENAI', False):
         logger.info(f"🧠 LLM: OpenAI ({settings.OPENAI_MODEL})")
     elif getattr(settings, 'USE_GROQ', False):
