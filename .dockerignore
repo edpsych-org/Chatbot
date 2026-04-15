@@ -1,0 +1,68 @@
+# Applies when `docker build` uses the project root as the build context
+# (e.g. Dockerfile-be, Dockerfile-fe, CI pipelines). Keeps the context
+# under a few MB and — critically — keeps secrets out of image layers.
+
+# ---- Secrets (never bake these into an image) ----
+.env
+.env.*
+!.env.example
+secrets.md
+*.pem
+*.key
+credentials.json
+
+# ---- Version control + CI ----
+.git/
+.gitignore
+.github/
+
+# ---- Python / backend ----
+backend/venv/
+backend/venv_old/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.coverage
+**/htmlcov/
+**/*.egg-info/
+backend/logs/
+backend/uploads/
+
+# ---- Node / frontend ----
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/coverage/
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+
+# ---- Local data / volumes (do NOT ship 1,400 Postgres files) ----
+database/data/
+storage/
+docker-data/
+postgres-data/
+
+# ---- IDE / OS ----
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ---- Docs + scratch ----
+*.md
+.scrape/
+.playwright-mcp/
+
+# ---- Docker files themselves (no point shipping them into the image) ----
+docker-compose.yml
+docker-compose.*.yml
+Dockerfile
+Dockerfile-*
+.dockerignore
