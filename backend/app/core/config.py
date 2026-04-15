@@ -5,12 +5,21 @@ Loads from .env file
 
 from pydantic_settings import BaseSettings
 from typing import List
+from pathlib import Path
 import os
+
+
+# Resolve the project root's .env absolutely so the loader works no matter
+# which directory the app is launched from.
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+_ENV_FILE = str(_PROJECT_ROOT / ".env")
 
 
 class Settings(BaseSettings):
     # ==================== DATABASE ====================
-    DATABASE_URL: str = "postgresql://edpsych:edpsych_secure_password@localhost:5432/edpsych_db"
+    # No default — startup must fail loudly if DATABASE_URL is missing
+    # instead of silently falling back to localhost.
+    DATABASE_URL: str
     DATABASE_HOST: str = "localhost"
     DATABASE_PORT: int = 5432
     DATABASE_USER: str = "edpsych"
@@ -93,7 +102,7 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:3002"
 
     class Config:
-        env_file = "../.env"
+        env_file = _ENV_FILE
         case_sensitive = True
         extra = "ignore"  # Ignore extra fields from .env (like frontend vars)
 

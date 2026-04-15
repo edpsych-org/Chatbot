@@ -29,6 +29,19 @@ logger = logging.getLogger(__name__)
 http_logger = logging.getLogger("http")
 
 
+def _validate_runtime_config():
+    """Log loud warnings for insecure-but-common misconfigurations."""
+    if "change-this" in settings.SECRET_KEY or len(settings.SECRET_KEY) < 32:
+        logger.error(
+            "SECRET_KEY is using the default placeholder — JWT tokens are NOT secure. "
+            "Set a strong SECRET_KEY (32+ random chars) in .env before deploying."
+        )
+    if getattr(settings, "USE_OPENAI", False) and not settings.OPENAI_API_KEY:
+        logger.error("USE_OPENAI=true but OPENAI_API_KEY is empty in .env")
+    if getattr(settings, "USE_GROQ", False) and not settings.GROQ_API_KEY:
+        logger.error("USE_GROQ=true but GROQ_API_KEY is empty in .env")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events"""
@@ -41,6 +54,8 @@ async def lifespan(app: FastAPI):
         logger.info(f"🧠 LLM: Groq ({settings.GROQ_MODEL})")
     else:
         logger.info("🧠 LLM: disabled (no provider enabled — set USE_OPENAI or USE_GROQ)")
+
+    _validate_runtime_config()
 
     # Create database tables
     async with engine.begin() as conn:
