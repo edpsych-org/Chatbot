@@ -674,43 +674,51 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-[#f4f4f4]">
       {/* ── Header ── */}
-      <header className="bg-white backdrop-blur-xl border-b border-[#dedede] sticky top-0 z-40">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+      {/*
+        Admin header pinned at 130%-of-default size using explicit pixels
+        throughout. Text, icon boxes, and spacing use px so the header
+        does NOT scale with the Accessibility menu's html font-scale.
+        Appears identically across every admin tab (Overview / Students /
+        Assignments / Data Explorer) because it's rendered once at the
+        top of this page.
+      */}
+      <header className="site-header-pinned bg-white backdrop-blur-xl border-b border-[#dedede] sticky top-0 z-40">
+        <div className="max-w-[1400px] mx-auto" style={{ paddingLeft: "21px", paddingRight: "21px" }}>
+          <div className="flex items-center justify-between" style={{ height: "73px" }}>
+            <div className="flex items-center" style={{ gap: "16px" }}>
+              <div className="rounded-[8px] bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center" style={{ width: "42px", height: "42px" }}>
+                <svg style={{ width: "21px", height: "21px" }} className="text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
               </div>
               <div>
-                <h1 className="font-serif text-[1.125rem] font-bold text-[#0c888e] leading-none">The Ed Psych Practice</h1>
-                <p className="text-[0.5625rem] font-medium text-[#737373] tracking-widest uppercase">Admin Console</p>
+                <h1 className="font-serif font-bold text-[#0c888e] leading-none" style={{ fontSize: "23px" }}>The Ed Psych Practice</h1>
+                <p className="font-medium text-[#737373] tracking-widest uppercase" style={{ fontSize: "12px", marginTop: "2px" }}>Admin Console</p>
               </div>
             </div>
 
-            <nav className="hidden sm:flex items-center gap-1 bg-[#f4f4f4] rounded-lg p-0.5">
-              <button onClick={() => setActiveTab("users")} className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${activeTab === "users" ? "bg-[#00acb6] text-white" : "text-[#737373] hover:text-[#333]"}`}>
+            <nav className="hidden sm:flex items-center bg-[#f4f4f4] rounded-[8px]" style={{ gap: "5px", padding: "3px" }}>
+              <button onClick={() => setActiveTab("users")} className={`font-medium rounded-[6px] transition-all ${activeTab === "users" ? "bg-[#00acb6] text-white" : "text-[#737373] hover:text-[#333]"}`} style={{ padding: "8px 21px", fontSize: "16px" }}>
                 Overview
               </button>
-              <button onClick={() => setActiveTab("students")} className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${activeTab === "students" ? "bg-[#00acb6] text-white" : "text-[#737373] hover:text-[#333]"}`}>
+              <button onClick={() => setActiveTab("students")} className={`font-medium rounded-[6px] transition-all ${activeTab === "students" ? "bg-[#00acb6] text-white" : "text-[#737373] hover:text-[#333]"}`} style={{ padding: "8px 21px", fontSize: "16px" }}>
                 Students
               </button>
-              <button onClick={() => setActiveTab("assignments")} className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${activeTab === "assignments" ? "bg-[#00acb6] text-white" : "text-[#737373] hover:text-[#333]"}`}>
+              <button onClick={() => setActiveTab("assignments")} className={`font-medium rounded-[6px] transition-all ${activeTab === "assignments" ? "bg-[#00acb6] text-white" : "text-[#737373] hover:text-[#333]"}`} style={{ padding: "8px 21px", fontSize: "16px" }}>
                 Assignments
               </button>
-              <button onClick={() => setActiveTab("explorer")} className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${activeTab === "explorer" ? "bg-[#00acb6] text-white" : "text-[#737373] hover:text-[#333]"}`}>
+              <button onClick={() => setActiveTab("explorer")} className={`font-medium rounded-[6px] transition-all ${activeTab === "explorer" ? "bg-[#00acb6] text-white" : "text-[#737373] hover:text-[#333]"}`} style={{ padding: "8px 21px", fontSize: "16px" }}>
                 Data Explorer
               </button>
             </nav>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center" style={{ gap: "16px" }}>
               <div className="hidden md:block text-right">
-                <p className="text-sm font-medium text-[#333] leading-none">{user?.full_name}</p>
-                <p className="text-[0.6875rem] text-[#737373] mt-0.5">{user?.email}</p>
+                <p className="font-medium text-[#333] leading-none" style={{ fontSize: "18px" }}>{user?.full_name}</p>
+                <p className="text-[#737373]" style={{ fontSize: "14px", marginTop: "3px" }}>{user?.email}</p>
               </div>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center text-white text-[0.6875rem] font-bold">
+              <div className="rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center text-white font-bold" style={{ width: "42px", height: "42px", fontSize: "14px" }}>
                 {(user?.full_name || "A").charAt(0).toUpperCase()}
               </div>
-              <button onClick={handleLogout} className="text-xs font-medium text-[#737373] hover:text-[#e61844] transition-colors">
+              <button onClick={handleLogout} className="font-medium text-[#737373] hover:text-[#e61844] transition-colors" style={{ fontSize: "16px" }}>
                 Sign out
               </button>
             </div>
@@ -718,12 +726,12 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      {/* ── Mobile tab bar ── */}
+      {/* ── Mobile tab bar (pinned to 130% base like the header) ── */}
       <div className="sm:hidden flex border-b border-[#dedede] bg-white overflow-x-auto">
-        <button onClick={() => setActiveTab("users")} className={`flex-1 py-3 text-xs font-medium text-center border-b-2 transition-colors whitespace-nowrap px-3 ${activeTab === "users" ? "border-[#00acb6] text-[#00acb6]" : "border-transparent text-[#737373]"}`}>Overview</button>
-        <button onClick={() => setActiveTab("students")} className={`flex-1 py-3 text-xs font-medium text-center border-b-2 transition-colors whitespace-nowrap px-3 ${activeTab === "students" ? "border-[#00acb6] text-[#00acb6]" : "border-transparent text-[#737373]"}`}>Students</button>
-        <button onClick={() => setActiveTab("assignments")} className={`flex-1 py-3 text-xs font-medium text-center border-b-2 transition-colors whitespace-nowrap px-3 ${activeTab === "assignments" ? "border-[#00acb6] text-[#00acb6]" : "border-transparent text-[#737373]"}`}>Assignments</button>
-        <button onClick={() => setActiveTab("explorer")} className={`flex-1 py-3 text-xs font-medium text-center border-b-2 transition-colors whitespace-nowrap px-3 ${activeTab === "explorer" ? "border-[#00acb6] text-[#00acb6]" : "border-transparent text-[#737373]"}`}>Explorer</button>
+        <button onClick={() => setActiveTab("users")} className={`flex-1 font-medium text-center border-b-2 transition-colors whitespace-nowrap ${activeTab === "users" ? "border-[#00acb6] text-[#00acb6]" : "border-transparent text-[#737373]"}`} style={{ padding: "16px 12px", fontSize: "16px" }}>Overview</button>
+        <button onClick={() => setActiveTab("students")} className={`flex-1 font-medium text-center border-b-2 transition-colors whitespace-nowrap ${activeTab === "students" ? "border-[#00acb6] text-[#00acb6]" : "border-transparent text-[#737373]"}`} style={{ padding: "16px 12px", fontSize: "16px" }}>Students</button>
+        <button onClick={() => setActiveTab("assignments")} className={`flex-1 font-medium text-center border-b-2 transition-colors whitespace-nowrap ${activeTab === "assignments" ? "border-[#00acb6] text-[#00acb6]" : "border-transparent text-[#737373]"}`} style={{ padding: "16px 12px", fontSize: "16px" }}>Assignments</button>
+        <button onClick={() => setActiveTab("explorer")} className={`flex-1 font-medium text-center border-b-2 transition-colors whitespace-nowrap ${activeTab === "explorer" ? "border-[#00acb6] text-[#00acb6]" : "border-transparent text-[#737373]"}`} style={{ padding: "16px 12px", fontSize: "16px" }}>Explorer</button>
       </div>
 
       <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">

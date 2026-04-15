@@ -168,7 +168,7 @@ export default function ReportsWorkspacePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/30 to-emerald-50/30">
       {/* Sticky header */}
-      <header className="bg-white/90 backdrop-blur border-b border-slate-200 sticky top-0 z-40">
+      <header className="site-header-pinned bg-white/90 backdrop-blur border-b border-slate-200 sticky top-0 z-40">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">

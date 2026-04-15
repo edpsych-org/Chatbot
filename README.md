@@ -225,6 +225,40 @@ cd backend && python generate_local_setup_guide.py
 
 ---
 
+## Logs & Debugging
+
+When anything fails — a 500, a failed S3 upload, a crashed React component — start here.
+
+**Locally (files on disk, gitignored):**
+
+```
+backend/logs/app.log      # everything (INFO+), one line per request
+backend/logs/errors.log   # ERROR-only — grep this first
+```
+
+Format is `TIMESTAMP | LEVEL | LOGGER | MESSAGE`, so:
+
+```
+grep ERROR   backend/logs/errors.log
+grep "500 "  backend/logs/app.log           # every 500 response
+grep client-error backend/logs/errors.log   # browser-side crashes
+```
+
+Files rotate at 5 MB, keep 5 backups (`app.log.1` … `app.log.5`).
+
+Frontend unhandled errors hit the `app/error.tsx` / `app/global-error.tsx`
+boundaries and POST to `/api/v1/client-errors`, so they land in `errors.log`
+alongside backend tracebacks. No separate frontend log file needed.
+
+**Raise verbosity:** set `LOG_LEVEL=DEBUG` in `backend/.env`, restart.
+
+**On AWS (DevOps):** backend Docker container writes the same lines to
+stdout, so CloudWatch Logs captures everything with zero extra config.
+No file mount required. Optional: bind-mount `/app/logs` to EFS if you
+want rotated files on disk too.
+
+---
+
 ## Production deployment
 
 See `EdPsych_DevOps_Handoff.pdf` (Railway for backend, Vercel for frontend, Neon for database).

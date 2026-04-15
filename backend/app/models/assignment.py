@@ -61,7 +61,6 @@ class AssessmentAssignment(Base):
     assigned_to_user = relationship("User", foreign_keys=[assigned_to_user_id])
     student = relationship("Student", backref="assessment_assignments")
     assessment_session = relationship("AssessmentSession", backref="assignment")
-    verification_token = relationship("VerificationToken", back_populates="assignment", uselist=False)
 
     def __repr__(self):
         return f"<AssessmentAssignment {self.id} - Student {self.student_id} - Status {self.status}>"
