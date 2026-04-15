@@ -12,7 +12,8 @@ import logging
 
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.api import auth, students, chatbot, assignments, student_guardians, hybrid_chat, psychologist, psychologist_reports
+from app.core.logging_config import setup_logging
+from app.api import auth, students, chatbot, assignments, student_guardians, hybrid_chat, psychologist, psychologist_reports, client_errors
 from app.models import user, student, assessment, report, assignment, student_guardian, chat, magic_link, upload, psychologist_report  # Import all models
 
 # Optional imports - these may fail in chatbot-only deployment
@@ -22,12 +23,10 @@ try:
 except ImportError:
     HAS_FULL_PIPELINE = False
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+# Configure logging (file + stdout, rotating files in backend/logs/)
+setup_logging(getattr(settings, "LOG_LEVEL", "INFO"))
 logger = logging.getLogger(__name__)
+http_logger = logging.getLogger("http")
 
 
 @asynccontextmanager
@@ -74,13 +73,28 @@ app.add_middleware(
 )
 
 
-# Request timing middleware
+# Request timing + access-log middleware
+_SKIP_LOG_PATHS = {"/health", "/api/docs", "/api/redoc", "/openapi.json", "/api/openapi.json"}
+
+
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     start_time = time.time()
     response = await call_next(request)
-    process_time = time.time() - start_time
-    response.headers["X-Process-Time"] = str(process_time)
+    elapsed_ms = int((time.time() - start_time) * 1000)
+    response.headers["X-Process-Time"] = f"{elapsed_ms}ms"
+
+    path = request.url.path
+    if path not in _SKIP_LOG_PATHS:
+        client = request.client.host if request.client else "-"
+        status = response.status_code
+        line = f"{status} {request.method} {path} {elapsed_ms}ms client={client}"
+        if status >= 500:
+            http_logger.error(line)
+        elif status >= 400:
+            http_logger.warning(line)
+        else:
+            http_logger.info(line)
     return response
 
 
@@ -146,6 +160,7 @@ app.include_router(student_guardians.router, prefix="/api/v1", tags=["Student-Gu
 app.include_router(hybrid_chat.router, prefix="/api/v1", tags=["Hybrid Chat"])
 app.include_router(psychologist.router, prefix="/api/v1", tags=["Psychologist"])
 app.include_router(psychologist_reports.router, prefix="/api/v1", tags=["Psychologist Reports"])
+app.include_router(client_errors.router, prefix="/api/v1", tags=["Client Errors"])
 
 
 if __name__ == "__main__":

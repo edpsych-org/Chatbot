@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     BACKEND_PORT: int = 8000
     BACKEND_RELOAD: bool = False
     DEBUG_MODE: bool = False
+    LOG_LEVEL: str = "INFO"
 
     # ==================== JWT AUTHENTICATION ====================
     SECRET_KEY: str = "your-super-secret-key-change-this-in-production-min-32-chars"
