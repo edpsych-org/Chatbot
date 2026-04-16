@@ -1,96 +1,29 @@
-name: Frontend Deploy
+# syntax=docker/dockerfile:1.6
 
-on:
-  push:
-    branches:
-      - staging
+# --------------------- Stage 1: deps ---------------------
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY frontend/package.json frontend/package-lock.json* ./
+RUN npm ci --no-audit --no-fund
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+# --------------------- Stage 2: builder ------------------
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY frontend/ .
+RUN npm run build
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Create .env from GitHub Secrets
-        shell: bash
-        run: |
-          echo "BACKEND_HOST=0.0.0.0" > .env
-          echo "BACKEND_PORT=8000" >> .env
-          echo "BACKEND_RELOAD=false" >> .env
-          echo "DEBUG_MODE=false" >> .env
-          echo "LOG_LEVEL=INFO" >> .env
-          echo "ALGORITHM=HS256" >> .env
-          echo "ACCESS_TOKEN_EXPIRE_MINUTES=1440" >> .env
-          echo "MAGIC_LINK_EXPIRY_HOURS=48" >> .env
-          echo "TESSERACT_PATH=/usr/bin/tesseract" >> .env
-          echo "TESSERACT_LANG=eng" >> .env
-          echo "MAX_FILE_SIZE_MB=10" >> .env
-          echo "ALLOWED_FILE_TYPES=pdf,png,jpg,jpeg" >> .env
-          echo "AI_TEMPERATURE=0.3" >> .env
-          echo "AI_MAX_TOKENS=2000" >> .env
-          echo "AI_RETRY_ATTEMPTS=3" >> .env
-          echo "REPORT_LANGUAGE=en-GB" >> .env
-          echo "REPORT_FONT_SIZE=11" >> .env
-          echo "REPORT_PAGE_SIZE=A4" >> .env
-          echo "OPENAI_MODEL=gpt-4o-mini" >> .env
-          echo "OPENAI_BASE_URL=https://api.openai.com/v1" >> .env
-          echo "GROQ_MODEL=llama-3.1-8b-instant" >> .env
-          echo "GROQ_BASE_URL=https://api.groq.com/openai/v1" >> .env
-          echo "EMAIL_FROM_NAME=The EdPsych Practice" >> .env
-          echo "EMAIL_FROM_ADDRESS=noreply@edpsych.com" >> .env
-          echo "USE_OPENAI=true" >> .env
-          echo "USE_GROQ=true" >> .env
-          echo "AWS_REGION=eu-west-2" >> .env
-          echo "CORS_ORIGINS=http://chatbotbe.theedpsych.co.uk,http://chatbotbe.theedpsych.co.uk" >> .env
-          echo "FRONTEND_URL=http://chatbot.theedpsych.co.uk" >> .env
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
-          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
-          echo "GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}" >> .env
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
-          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
-          echo "S3_BUCKET_IQ_TESTS=${{ secrets.S3_BUCKET_IQ_TESTS }}" >> .env
-          echo "S3_BUCKET_REPORTS=${{ secrets.S3_BUCKET_REPORTS }}" >> .env
-          echo "S3_BUCKET_TEMP=${{ secrets.S3_BUCKET_TEMP }}" >> .env
-          echo "S3_ENDPOINT_URL=${{ secrets.S3_ENDPOINT_URL }}" >> .env
-          echo "BREVO_API_KEY=${{ secrets.BREVO_API_KEY }}" >> .env
-
-      - name: Allow .env in Docker build
-        run: sed -i '/.env/d' .dockerignore
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-2
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build, Tag & Push Docker Image
-        run: |
-          ECR_REGISTRY=476114133766.dkr.ecr.eu-west-2.amazonaws.com
-          ECR_REPO=prod-chatbot-fe
-          docker build -f frontend/Dockerfile \
-            -t $ECR_REGISTRY/$ECR_REPO:latest .
-          docker push $ECR_REGISTRY/$ECR_REPO:latest
-
-      - name: Download task definition
-        run: |
-          aws ecs describe-task-definition \
-            --task-definition prod-chatbot-fe \
-            --region eu-west-2 \
-            --query taskDefinition \
-            > task-definition.json
-
-      - name: Deploy to Amazon ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
-        with:
-          task-definition: task-definition.json
-          cluster: Prod_Cluster
-          service: prod-chatbot-be-service
-          force-new-deployment: true
+# --------------------- Stage 3: runner -------------------
+FROM node:20-alpine AS runner
+WORKDIR /app
+RUN apk add --no-cache wget \
+    && addgroup --system --gid 1001 nodejs \
+    && adduser --system --uid 1001 nextjs
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+USER nextjs
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD wget --quiet --spider http://127.0.0.1:3000/ || exit 1
+CMD ["node", "server.js"]
