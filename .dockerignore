@@ -3,8 +3,7 @@
 # under a few MB and — critically — keeps secrets out of image layers.
 
 # ---- Secrets (never bake these into an image) ----
-.env
-.env.*
+
 !.env.example
 secrets.md
 *.pem
