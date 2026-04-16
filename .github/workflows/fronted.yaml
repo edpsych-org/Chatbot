@@ -90,7 +90,7 @@ jobs:
       - name: Deploy to Amazon ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-          task-definition: task-definition.json
+          task-definition: prod-chatbot-fe-revision.json
           cluster: Prod_Cluster
-          service: prod-chatbot-be-service
+          service: prod-chatbot-fe-service
           force-new-deployment: true
