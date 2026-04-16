@@ -22,10 +22,8 @@ WORKDIR /app
 COPY backend/requirements-deploy.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# ✅ COPY .env FROM ROOT (THIS IS THE KEY FIX)
-COPY .env /app/.env
-
-# ✅ Copy backend code
+# ---- Copy backend code ----
+COPY .env /backend/.env
 COPY backend/ .
 
 # ---- Build-time check ----
