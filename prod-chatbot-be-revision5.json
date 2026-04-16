@@ -1,0 +1,165 @@
+{
+    "taskDefinitionArn": "arn:aws:ecs:eu-west-2:476114133766:task-definition/prod-chatbot-be:5",
+    "containerDefinitions": [
+        {
+            "name": "chatbot-be-cont",
+            "image": "476114133766.dkr.ecr.eu-west-2.amazonaws.com/prod-chatbot-be:latest",
+            "cpu": 0,
+            "portMappings": [
+                {
+                    "containerPort": 80,
+                    "hostPort": 80,
+                    "protocol": "tcp",
+                    "name": "chatbot-be-cont-80-tcp",
+                    "appProtocol": "http"
+                }
+            ],
+            "essential": true,
+            "environment": [
+                {
+                    "name": "USE_OPENAI",
+                    "value": "true"
+                },
+                {
+                    "name": "TESSERACT_PATH",
+                    "value": "/usr/bin/tesseract"
+                },
+                {
+                    "name": "AWS_REGION",
+                    "value": "eu-west-2"
+                },
+                {
+                    "name": "S3_BUCKET_TEMP",
+                    "value": "Cognitive-reports"
+                },
+                {
+                    "name": "USE_GROQ",
+                    "value": "true"
+                },
+                {
+                    "name": "AWS_SECRET_ACCESS_KEY",
+                    "value": "Ck1LQfTj675ae1n9CpquarhDX+xG+MflBheS+YBu"
+                },
+                {
+                    "name": "SECRET_KEY",
+                    "value": "7kr1vJKTo4UngOIDy5hASUXLBvwce-na_L4qPijSP4Q4lCrIlE-StM_NAgpQq0sS"
+                },
+                {
+                    "name": "CORS_ORIGINS",
+                    "value": ""
+                },
+                {
+                    "name": "FRONTEND_URL",
+                    "value": ""
+                },
+                {
+                    "name": "DATABASE_URL",
+                    "value": "postgresql+asyncpg://postgres:Edpsych123@prod-database.c9y0w6qgumgw.eu-west-2.rds.amazonaws.com:5432/postgres"
+                },
+                {
+                    "name": "S3_ENDPOINT_URL",
+                    "value": "https://prod-edpsych.s3.eu-west-2.amazonaws.com"
+                },
+                {
+                    "name": "AWS_ACCESS_KEY_ID",
+                    "value": "AKIAW5WU5EMDAPEPOWBY"
+                },
+                {
+                    "name": "DEBUG_MODE",
+                    "value": "false"
+                },
+                {
+                    "name": "BACKEND_RELOAD",
+                    "value": "false"
+                },
+                {
+                    "name": "GROQ_API_KEY",
+                    "value": "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"
+                },
+                {
+                    "name": "OPENAI_API_KEY",
+                    "value": "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"
+                },
+                {
+                    "name": "S3_BUCKET_REPORTS",
+                    "value": "Cognitive-reports"
+                },
+                {
+                    "name": "LOG_LEVEL",
+                    "value": "INFO"
+                },
+                {
+                    "name": "S3_BUCKET_IQ_TESTS",
+                    "value": "Cognitive-reports"
+                }
+            ],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/prod-chatbot-be",
+                    "awslogs-create-group": "true",
+                    "awslogs-region": "eu-west-2",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            },
+            "systemControls": []
+        }
+    ],
+    "family": "prod-chatbot-be",
+    "taskRoleArn": "arn:aws:iam::476114133766:role/ecsTaskExecutionRole",
+    "executionRoleArn": "arn:aws:iam::476114133766:role/ecsTaskExecutionRole",
+    "networkMode": "awsvpc",
+    "revision": 5,
+    "volumes": [],
+    "status": "ACTIVE",
+    "requiresAttributes": [
+        {
+            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+        },
+        {
+            "name": "ecs.capability.execution-role-awslogs"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.ecr-auth"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.task-iam-role"
+        },
+        {
+            "name": "ecs.capability.execution-role-ecr-pull"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+        },
+        {
+            "name": "ecs.capability.task-eni"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+        }
+    ],
+    "placementConstraints": [],
+    "compatibilities": [
+        "EC2",
+        "MANAGED_INSTANCES",
+        "FARGATE"
+    ],
+    "runtimePlatform": {
+        "cpuArchitecture": "X86_64",
+        "operatingSystemFamily": "LINUX"
+    },
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "1024",
+    "memory": "2048",
+    "registeredAt": "2026-04-16T06:57:01.151Z",
+    "registeredBy": "arn:aws:iam::476114133766:user/Github",
+    "enableFaultInjection": false,
+    "tags": []
+}
