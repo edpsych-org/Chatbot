@@ -1,4 +1,4 @@
-name: Backend Deploy-
+name: Backend Deploy
 on:
   push:
     branches:
@@ -41,7 +41,7 @@ jobs:
           echo "USE_OPENAI=true" >> .env
           echo "USE_GROQ=true" >> .env
           echo "AWS_REGION=eu-west-2" >> .env
-          echo "CORS_ORIGINS=http://chatbotbe.theedpsych.co.uk,http://chatbotbe.theedpsych.co.uk/" >> .env
+          echo "CORS_ORIGINS=http://chatbot-be:8000,http://chatbot-be:8000" >> .env
           echo "FRONTEND_URL=http://chatbot.theedpsych.co.uk" >> .env
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
           echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
