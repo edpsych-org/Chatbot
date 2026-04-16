@@ -43,10 +43,10 @@ jobs:
           echo "USE_OPENAI=true" >> .env
           echo "USE_GROQ=true" >> .env
           echo "AWS_REGION=eu-west-2" >> .env
+          echo "CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000" >> .env
+          echo "FRONTEND_URL=http://localhost:3000" >> .env
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
           echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
-          echo "CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}" >> .env
-          echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> .env
           echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
           echo "GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}" >> .env
           echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
@@ -73,11 +73,11 @@ jobs:
 
       - name: Build, Tag & Push Docker Image
         run: |
-           ECR_REGISTRY=476114133766.dkr.ecr.eu-west-2.amazonaws.com
-           ECR_REPO=prod-chatbot-be
-           docker build -f Dockerfile-be \
-             -t $ECR_REGISTRY/$ECR_REPO:latest .
-           docker push $ECR_REGISTRY/$ECR_REPO:latest
+          ECR_REGISTRY=476114133766.dkr.ecr.eu-west-2.amazonaws.com
+          ECR_REPO=prod-chatbot-be
+          docker build -f Dockerfile-be \
+            -t $ECR_REGISTRY/$ECR_REPO:latest .
+          docker push $ECR_REGISTRY/$ECR_REPO:latest
 
       - name: Download task definition
         run: |
