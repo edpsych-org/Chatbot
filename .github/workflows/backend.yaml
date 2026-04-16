@@ -1,0 +1,100 @@
+name: Deploy to AWS ECS
+
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  deploy-backend:
+    name: Build & Deploy Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push Docker image
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -f Dockerfile-be \
+            -t $ECR_REGISTRY/prod-chatbot-be:$IMAGE_TAG \
+            -t $ECR_REGISTRY/prod-chatbot-be:latest .
+          docker push $ECR_REGISTRY/prod-chatbot-be:$IMAGE_TAG
+          docker push $ECR_REGISTRY/prod-chatbot-be:latest
+          echo "image=$ECR_REGISTRY/prod-chatbot-be:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition prod-chatbot-be \
+            --region eu-west-2 \
+            --query taskDefinition \
+            > task-definition.json
+
+      - name: Inject env vars into task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: chatbot-be-cont
+          image: ${{ steps.build-image.outputs.image }}
+          environment-variables: |
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
+            CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
+            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+            USE_OPENAI=${{ secrets.USE_OPENAI }}
+            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+            OPENAI_MODEL=gpt-4o-mini
+            OPENAI_BASE_URL=https://api.openai.com/v1
+            USE_GROQ=${{ secrets.USE_GROQ }}
+            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+            GROQ_MODEL=llama-3.1-8b-instant
+            GROQ_BASE_URL=https://api.groq.com/openai/v1
+            AWS_REGION=eu-west-2
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            S3_BUCKET_IQ_TESTS=${{ secrets.S3_BUCKET_IQ_TESTS }}
+            S3_BUCKET_REPORTS=${{ secrets.S3_BUCKET_REPORTS }}
+            S3_BUCKET_TEMP=${{ secrets.S3_BUCKET_TEMP }}
+            BACKEND_RELOAD=false
+            DEBUG_MODE=false
+            LOG_LEVEL=INFO
+            BACKEND_HOST=0.0.0.0
+            BACKEND_PORT=8000
+            TESSERACT_PATH=/usr/bin/tesseract
+            TESSERACT_LANG=eng
+            MAX_FILE_SIZE_MB=10
+            ALLOWED_FILE_TYPES=pdf,png,jpg,jpeg
+            AI_TEMPERATURE=0.3
+            AI_MAX_TOKENS=2000
+            AI_RETRY_ATTEMPTS=3
+            REPORT_LANGUAGE=en-GB
+            REPORT_FONT_SIZE=11
+            REPORT_PAGE_SIZE=A4
+            ALGORITHM=HS256
+            ACCESS_TOKEN_EXPIRE_MINUTES=1440
+            MAGIC_LINK_EXPIRY_HOURS=48
+
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: prod-chatbot-be-service
+          cluster: Prod_Cluster
+          wait-for-service-stability: true
