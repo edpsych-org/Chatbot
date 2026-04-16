@@ -1,5 +1,4 @@
 name: Backend Deploy
-
 on:
   push:
     branches:
@@ -8,7 +7,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -72,12 +70,16 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build, Tag & Push Docker Image
+        env:
+          ECR_REGISTRY: 476114133766.dkr.ecr.eu-west-2.amazonaws.com
+          ECR_REPO: prod-chatbot-be
         run: |
-          ECR_REGISTRY=476114133766.dkr.ecr.eu-west-2.amazonaws.com
-          ECR_REPO=prod-chatbot-be
           docker build -f Dockerfile-be \
-            -t $ECR_REGISTRY/$ECR_REPO:latest .
+            -t $ECR_REGISTRY/$ECR_REPO:latest \
+            -t $ECR_REGISTRY/$ECR_REPO:${{ github.sha }} \
+            .
           docker push $ECR_REGISTRY/$ECR_REPO:latest
+          docker push $ECR_REGISTRY/$ECR_REPO:${{ github.sha }}
 
       - name: Download task definition
         run: |
