@@ -14,49 +14,15 @@ jobs:
       - name: Create .env from GitHub Secrets
         shell: bash
         run: |
-          echo "BACKEND_HOST=0.0.0.0" > .env
-          echo "BACKEND_PORT=8000" >> .env
-          echo "BACKEND_RELOAD=false" >> .env
-          echo "DEBUG_MODE=false" >> .env
-          echo "LOG_LEVEL=INFO" >> .env
-          echo "ALGORITHM=HS256" >> .env
-          echo "ACCESS_TOKEN_EXPIRE_MINUTES=1440" >> .env
-          echo "MAGIC_LINK_EXPIRY_HOURS=48" >> .env
-          echo "TESSERACT_PATH=/usr/bin/tesseract" >> .env
-          echo "TESSERACT_LANG=eng" >> .env
-          echo "MAX_FILE_SIZE_MB=10" >> .env
-          echo "ALLOWED_FILE_TYPES=pdf,png,jpg,jpeg" >> .env
-          echo "AI_TEMPERATURE=0.3" >> .env
-          echo "AI_MAX_TOKENS=2000" >> .env
-          echo "AI_RETRY_ATTEMPTS=3" >> .env
-          echo "REPORT_LANGUAGE=en-GB" >> .env
-          echo "REPORT_FONT_SIZE=11" >> .env
-          echo "REPORT_PAGE_SIZE=A4" >> .env
-          echo "OPENAI_MODEL=gpt-4o-mini" >> .env
-          echo "OPENAI_BASE_URL=https://api.openai.com/v1" >> .env
-          echo "GROQ_MODEL=llama-3.1-8b-instant" >> .env
-          echo "GROQ_BASE_URL=https://api.groq.com/openai/v1" >> .env
-          echo "EMAIL_FROM_NAME=The EdPsych Practice" >> .env
-          echo "EMAIL_FROM_ADDRESS=noreply@edpsych.com" >> .env
-          echo "USE_OPENAI=true" >> .env
-          echo "USE_GROQ=true" >> .env
-          echo "AWS_REGION=eu-west-2" >> .env
-          echo "CORS_ORIGINS=http://chatbot-be:8000,http://chatbot-be:8000" >> .env
-          echo "FRONTEND_URL=http://chatbot.theedpsych.co.uk" >> .env
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
-          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
-          echo "GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}" >> .env
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
-          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
-          echo "S3_BUCKET_IQ_TESTS=${{ secrets.S3_BUCKET_IQ_TESTS }}" >> .env
-          echo "S3_BUCKET_REPORTS=${{ secrets.S3_BUCKET_REPORTS }}" >> .env
-          echo "S3_BUCKET_TEMP=${{ secrets.S3_BUCKET_TEMP }}" >> .env
-          echo "S3_ENDPOINT_URL=${{ secrets.S3_ENDPOINT_URL }}" >> .env
-          echo "BREVO_API_KEY=${{ secrets.BREVO_API_KEY }}" >> .env
+          cat > .env <<EOF
+          NEXT_PUBLIC_BACKEND_URL=http://chatbot-be:8000
+          BACKEND_URL=http://chatbot-be:8000
+          FRONTEND_URL=https://chatbot.theedpsych.co.uk
+          NODE_ENV=production
+          EOF
 
       - name: Allow .env in Docker build
-        run: sed -i '/.env/d' .dockerignore
+        run: sed -i '/.env/d' .dockerignore || true
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -70,29 +36,41 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build, Tag & Push Docker Image
+        id: build-image
         env:
           ECR_REGISTRY: 476114133766.dkr.ecr.eu-west-2.amazonaws.com
-          ECR_REPO: prod-chatbot-be
+          ECR_REPO: prod-chatbot-fe
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -f Dockerfile-fe \
             -t $ECR_REGISTRY/$ECR_REPO:latest \
-            -t $ECR_REGISTRY/$ECR_REPO:${{ github.sha }} \
+            -t $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG \
             .
           docker push $ECR_REGISTRY/$ECR_REPO:latest
-          docker push $ECR_REGISTRY/$ECR_REPO:${{ github.sha }}
+          docker push $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Download task definition
         run: |
           aws ecs describe-task-definition \
-            --task-definition prod-chatbot-be \
+            --task-definition prod-chatbot-fe \
             --region eu-west-2 \
             --query taskDefinition \
             > task-definition.json
 
+      - name: Update image in task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: chatbot-fe-cont
+          image: ${{ steps.build-image.outputs.image }}
+
       - name: Deploy to Amazon ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-          task-definition: task-definition.json
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
           cluster: Prod_Cluster
           service: prod-chatbot-fe-service
           force-new-deployment: true
+          wait-for-service-stability: true
