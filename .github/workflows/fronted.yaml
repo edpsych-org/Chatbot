@@ -75,7 +75,7 @@ jobs:
         run: |
           ECR_REGISTRY=476114133766.dkr.ecr.eu-west-2.amazonaws.com
           ECR_REPO=prod-chatbot-fe
-          docker build -f frontend/Dockerfile \
+          docker build -f Dockerfile-fe \
             -t $ECR_REGISTRY/$ECR_REPO:latest .
           docker push $ECR_REGISTRY/$ECR_REPO:latest
 
