@@ -87,6 +87,22 @@ jobs:
             --query taskDefinition \
             > task-definition.json
 
+      - name: Fix CORS_ORIGINS in task definition
+        run: |
+          cat task-definition.json | \
+          python3 -c "
+          import json, sys
+          td = json.load(sys.stdin)
+          envs = td['containerDefinitions'][0]['environment']
+          for e in envs:
+              if e['name'] == 'CORS_ORIGINS':
+                  e['value'] = 'http://localhost:3000,http://127.0.0.1:3000'
+              if e['name'] == 'FRONTEND_URL':
+                  e['value'] = 'http://localhost:3000'
+          print(json.dumps(td))
+          " > task-definition-fixed.json
+          mv task-definition-fixed.json task-definition.json
+
       - name: Deploy to Amazon ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
