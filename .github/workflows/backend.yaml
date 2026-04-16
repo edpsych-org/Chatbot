@@ -41,7 +41,8 @@ jobs:
           echo "GROQ_BASE_URL=https://api.groq.com/openai/v1" >> .env
           echo "EMAIL_FROM_NAME=The EdPsych Practice" >> .env
           echo "EMAIL_FROM_ADDRESS=noreply@edpsych.com" >> .env
-
+          echo "CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000" >> .env
+          
           # Secrets
           DATABASE_URL="${{ secrets.DATABASE_URL }}"
           echo "DATABASE_URL=$DATABASE_URL" >> .env
