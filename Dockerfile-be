@@ -23,7 +23,7 @@ COPY backend/requirements-deploy.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # ---- Copy backend code ----
-COPY .env /backend/.env
+COPY .env /backend
 COPY backend/ .
 
 # ---- Build-time check ----
