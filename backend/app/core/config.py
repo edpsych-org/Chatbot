@@ -7,7 +7,6 @@ from pydantic_settings import BaseSettings
 from pydantic import field_validator
 from typing import List, Dict, Any
 from urllib.parse import urlparse
-import os
 
 
 # Fields whose values must never appear in logs or the /health banner.
@@ -31,6 +30,29 @@ def _mask(v: Any) -> str:
     if len(s) <= 8:
         return "****"
     return f"{s[:4]}…{s[-4:]} (len={len(s)})"
+
+
+def _normalize_origin(value: str) -> str:
+    """Return a clean origin string for stable CORS matching."""
+    origin = value.strip().strip("\"'")
+    if origin.startswith("CORS_ORIGINS="):
+        origin = origin.split("=", 1)[1].strip()
+    if origin.endswith("/"):
+        origin = origin.rstrip("/")
+    return origin
+
+
+def _parse_cors_origins(value: str) -> List[str]:
+    """Parse comma/newline separated origins and normalize common mistakes."""
+    origins: List[str] = []
+    seen: set[str] = set()
+    for chunk in value.replace("\n", ",").split(","):
+        origin = _normalize_origin(chunk)
+        if not origin or origin in seen:
+            continue
+        seen.add(origin)
+        origins.append(origin)
+    return origins
 
 
 class Settings(BaseSettings):
@@ -134,12 +156,13 @@ class Settings(BaseSettings):
     @field_validator("CORS_ORIGINS")
     @classmethod
     def _validate_cors(cls, v: str) -> str:
-        if not v.strip():
+        origins = _parse_cors_origins(v)
+        if not origins:
             raise ValueError(
                 "CORS_ORIGINS is required (comma-separated origins, e.g. "
                 "'http://localhost:3000,https://app.theedpsych.com')."
             )
-        return v
+        return ",".join(origins)
 
     # ==================== FILE UPLOAD ====================
     MAX_FILE_SIZE_MB: int = 10
@@ -148,7 +171,7 @@ class Settings(BaseSettings):
     @property
     def cors_origins_list(self) -> List[str]:
         """Convert CORS_ORIGINS string to list"""
-        return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
+        return _parse_cors_origins(self.CORS_ORIGINS)
 
     @property
     def allowed_file_types_list(self) -> List[str]:
