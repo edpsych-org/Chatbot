@@ -1,0 +1,87 @@
+{
+    "taskDefinitionArn": "arn:aws:ecs:eu-west-2:476114133766:task-definition/prod-chatbot-fe:36",
+    "containerDefinitions": [
+        {
+            "name": "chatbot-fe-cont",
+            "image": "476114133766.dkr.ecr.eu-west-2.amazonaws.com/prod-chatbot-fe:099de39fe7e66056299d57304c95d3599755a019",
+            "cpu": 0,
+            "portMappings": [
+                {
+                    "containerPort": 3000,
+                    "hostPort": 3000,
+                    "protocol": "tcp",
+                    "name": "chatbot-fe-cont-3000-tcp"
+                }
+            ],
+            "essential": true,
+            "environment": [],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/prod-chatbot-fe",
+                    "awslogs-create-group": "true",
+                    "awslogs-region": "eu-west-2",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            },
+            "systemControls": []
+        }
+    ],
+    "family": "prod-chatbot-fe",
+    "taskRoleArn": "arn:aws:iam::476114133766:role/ecsTaskExecutionRole",
+    "executionRoleArn": "arn:aws:iam::476114133766:role/ecsTaskExecutionRole",
+    "networkMode": "awsvpc",
+    "revision": 36,
+    "volumes": [],
+    "status": "ACTIVE",
+    "requiresAttributes": [
+        {
+            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+        },
+        {
+            "name": "ecs.capability.execution-role-awslogs"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.ecr-auth"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.task-iam-role"
+        },
+        {
+            "name": "ecs.capability.execution-role-ecr-pull"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+        },
+        {
+            "name": "ecs.capability.task-eni"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+        }
+    ],
+    "placementConstraints": [],
+    "compatibilities": [
+        "EC2",
+        "FARGATE",
+        "MANAGED_INSTANCES"
+    ],
+    "runtimePlatform": {
+        "cpuArchitecture": "X86_64",
+        "operatingSystemFamily": "LINUX"
+    },
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "512",
+    "memory": "1024",
+    "registeredAt": "2026-04-17T13:50:38.415Z",
+    "registeredBy": "arn:aws:iam::476114133766:user/s3",
+    "enableFaultInjection": false,
+    "tags": []
+}
