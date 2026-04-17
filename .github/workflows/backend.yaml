@@ -84,7 +84,7 @@ jobs:
       - name: Download task definition
         run: |
           aws ecs describe-task-definition \
-            --task-definition prod-chatbot-be \
+            --task-definition prod_chatbot_be \
             --region eu-west-2 \
             --query taskDefinition \
             > task-definition.json
