@@ -37,7 +37,7 @@ jobs:
           REPOSITORY: prod-chatbot-fe
         run: |
           docker build --no-cache \
-            -f Dockerfile-be \
+            -f Dockerfile-fe \
             -t $REGISTRY/$REPOSITORY:latest .
           docker push $REGISTRY/$REPOSITORY:latest
 
