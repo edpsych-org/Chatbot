@@ -52,4 +52,4 @@ jobs:
           cluster: Prod_Cluster
           service: prod-chatbot-fe-service
           force-new-deployment: true
-          wait-for-service-stability: true
+          wait-for-service-stability: false
