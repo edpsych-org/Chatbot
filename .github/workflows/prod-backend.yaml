@@ -89,9 +89,7 @@ jobs:
           REGISTRY: ${{ secrets.ECR_REGISTRY }}
           REPOSITORY: prod-chatbot-be
         run: |
-          docker pull $REGISTRY/$REPOSITORY:latest || true
-          docker build \
-            --cache-from=$REGISTRY/$REPOSITORY:latest \
+          docker build --no-cache \
             -f Dockerfile-be \
             -t $REGISTRY/$REPOSITORY:latest .
           docker push $REGISTRY/$REPOSITORY:latest
