@@ -102,4 +102,4 @@ jobs:
           cluster: Prod_Cluster
           service: chatbot-be-svc
           force-new-deployment: true
-          wait-for-service-stability: true
+          wait-for-service-stability: false
