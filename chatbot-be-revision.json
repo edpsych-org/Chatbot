@@ -1,9 +1,9 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:eu-west-2:476114133766:task-definition/chatbot-be:3",
+    "taskDefinitionArn": "arn:aws:ecs:eu-west-2:476114133766:task-definition/chatbot-be:38",
     "containerDefinitions": [
         {
             "name": "chatbot-be-cont",
-            "image": "476114133766.dkr.ecr.eu-west-2.amazonaws.com/prod-chatbot-be:2446c6fba6c15f1a6b5b91d07b931d7f1f7fa3e2",
+            "image": "476114133766.dkr.ecr.eu-west-2.amazonaws.com/prod-chatbot-be:latest",
             "cpu": 0,
             "portMappings": [
                 {
@@ -24,7 +24,8 @@
                     "awslogs-create-group": "true",
                     "awslogs-region": "eu-west-2",
                     "awslogs-stream-prefix": "ecs"
-                }
+                },
+                "secretOptions": []
             },
             "systemControls": []
         }
@@ -33,7 +34,7 @@
     "taskRoleArn": "arn:aws:iam::476114133766:role/ecsTaskExecutionRole",
     "executionRoleArn": "arn:aws:iam::476114133766:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 3,
+    "revision": 38,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -68,8 +69,8 @@
     "placementConstraints": [],
     "compatibilities": [
         "EC2",
-        "FARGATE",
-        "MANAGED_INSTANCES"
+        "MANAGED_INSTANCES",
+        "FARGATE"
     ],
     "runtimePlatform": {
         "cpuArchitecture": "X86_64",
@@ -80,8 +81,8 @@
     ],
     "cpu": "1024",
     "memory": "3072",
-    "registeredAt": "2026-04-17T10:48:55.573Z",
-    "registeredBy": "arn:aws:iam::476114133766:user/Github",
+    "registeredAt": "2026-04-18T03:04:05.703Z",
+    "registeredBy": "arn:aws:iam::476114133766:user/Dinesh",
     "enableFaultInjection": false,
     "tags": []
 }
