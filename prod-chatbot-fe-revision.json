@@ -1,9 +1,9 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:eu-west-2:476114133766:task-definition/prod-chatbot-fe:36",
+    "taskDefinitionArn": "arn:aws:ecs:eu-west-2:476114133766:task-definition/prod-chatbot-fe:55",
     "containerDefinitions": [
         {
             "name": "chatbot-fe-cont",
-            "image": "476114133766.dkr.ecr.eu-west-2.amazonaws.com/prod-chatbot-fe:099de39fe7e66056299d57304c95d3599755a019",
+            "image": "476114133766.dkr.ecr.eu-west-2.amazonaws.com/prod-chatbot-fe:latest",
             "cpu": 0,
             "portMappings": [
                 {
@@ -24,7 +24,8 @@
                     "awslogs-create-group": "true",
                     "awslogs-region": "eu-west-2",
                     "awslogs-stream-prefix": "ecs"
-                }
+                },
+                "secretOptions": []
             },
             "systemControls": []
         }
@@ -33,7 +34,7 @@
     "taskRoleArn": "arn:aws:iam::476114133766:role/ecsTaskExecutionRole",
     "executionRoleArn": "arn:aws:iam::476114133766:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 36,
+    "revision": 55,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -80,8 +81,8 @@
     ],
     "cpu": "512",
     "memory": "1024",
-    "registeredAt": "2026-04-17T13:50:38.415Z",
-    "registeredBy": "arn:aws:iam::476114133766:user/s3",
+    "registeredAt": "2026-04-18T02:01:21.302Z",
+    "registeredBy": "arn:aws:iam::476114133766:user/Dinesh",
     "enableFaultInjection": false,
     "tags": []
 }
