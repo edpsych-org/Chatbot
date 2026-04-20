@@ -15,8 +15,8 @@ jobs:
 
       - name: Create .env for Next.js build
         run: |
-          echo "NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}" > .env
-          echo "NODE_ENV=production" >> .env
+          echo "NEXT_PUBLIC_API_URL=${{ vars.STAGE_NEXT_PUBLIC_API_URL }}" > .env
+          echo "NODE_ENV=staging" >> .env
 
       - name: Allow .env in Docker build
         run: sed -i '/.env/d' .dockerignore || true
