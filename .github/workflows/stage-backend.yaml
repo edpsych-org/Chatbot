@@ -54,8 +54,8 @@ jobs:
 
           AWS_REGION=${{ vars.AWS_REGION }}
 
-          FRONTEND_URL=${{ vars.FRONTEND_URL }}
-          CORS_ORIGINS=${{ vars.CORS_ORIGINS }}
+          FRONTEND_URL=${{ vars.STAGE_FRONTEND_URL }}
+          CORS_ORIGINS=${{ vars.STAGE_CORS_ORIGINS }}
 
           S3_BUCKET_IQ_TESTS=${{ vars.S3_BUCKET_IQ_TESTS }}
           S3_BUCKET_REPORTS=${{ vars.S3_BUCKET_REPORTS }}
