@@ -1,4 +1,4 @@
-# EdPsych AI Prototype — Running Locally test
+# EdPsych AI Prototype — Running Locally 
 
 An educational-psychology assessment and report-generation platform.
 FastAPI backend + Next.js 14 frontend + PostgreSQL.
