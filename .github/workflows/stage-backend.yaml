@@ -1,4 +1,4 @@
-name: Production Backend Deploy
+name: Staging Backend Deploy
 
 on:
   push:
@@ -87,7 +87,7 @@ jobs:
       - name: Build & Push Docker Image
         env:
           REGISTRY: ${{ secrets.ECR_REGISTRY }}
-          REPOSITORY: prod-chatbot-api
+          REPOSITORY: stage-chatbot-api
         run: |
           docker build --no-cache \
             -f Dockerfile-be \
