@@ -81,7 +81,7 @@
     "requiresCompatibilities": [
         "FARGATE"
     ],
-    "cpu": "512",
+    "cpu": "1024",
     "memory": "1024",
     "registeredAt": "2026-04-20T09:35:16.944Z",
     "registeredBy": "arn:aws:iam::476114133766:user/Dinesh",
