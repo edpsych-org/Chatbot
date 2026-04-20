@@ -34,7 +34,7 @@ jobs:
       - name: Build & Push Docker Image
         env:
           REGISTRY: ${{ secrets.ECR_REGISTRY }}
-          REPOSITORY: prod-chatbot-fe
+          REPOSITORY: prod-chatbot-web
         run: |
           docker build --no-cache \
             -f Dockerfile-fe \
