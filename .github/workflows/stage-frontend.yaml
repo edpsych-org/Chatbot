@@ -1,4 +1,4 @@
-name: Stage Frontend Deploy
+name: Staging Frontend Deploy
 
 on:
   push:
@@ -44,8 +44,8 @@ jobs:
       - name: Deploy to Amazon ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-          task-definition: prod-chatbot-fe-revision.json
-          cluster: Prod_Cluster
-          service: prod-chatbot-fe-service
+          task-definition: stage-chatbot-web.json
+          cluster: stage-cluster
+          service: stage-chatbot-web-service
           force-new-deployment: true
           wait-for-service-stability: false
