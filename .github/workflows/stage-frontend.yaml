@@ -1,4 +1,4 @@
-name: Frontend Deploy
+name: Stage Frontend Deploy
 
 on:
   push:
