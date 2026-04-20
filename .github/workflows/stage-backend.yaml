@@ -62,7 +62,7 @@ jobs:
           S3_BUCKET_TEMP=${{ vars.S3_BUCKET_TEMP }}
           S3_ENDPOINT_URL=${{ vars.S3_ENDPOINT_URL }}
 
-          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          DATABASE_URL=${{ secrets.STAGE_DATABASE_URL }}
           SECRET_KEY=${{ secrets.SECRET_KEY }}
           OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
           GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
