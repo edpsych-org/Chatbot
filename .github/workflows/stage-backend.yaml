@@ -97,8 +97,8 @@ jobs:
       - name: Deploy to Amazon ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-          task-definition: chatbot-be-revision.json
-          cluster: Prod_Cluster
-          service: chatbot-be-svc
+          task-definition: stage-chatbot-api.json
+          cluster: stage-cluster
+          service: stage-chatbot-api-service
           force-new-deployment: true
           wait-for-service-stability: false
