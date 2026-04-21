@@ -107,6 +107,19 @@ export default function ReportsWorkspacePage() {
 
   const hasAnyReport = Boolean(backgroundReport || cognitiveReport || unifiedReport);
 
+  const goHome = () => {
+    try {
+      const raw = localStorage.getItem("user");
+      const role = (raw ? JSON.parse(raw)?.role : "") || "";
+      const upper = String(role).toUpperCase();
+      if (upper === "ADMIN") router.push("/admin/dashboard");
+      else if (upper === "PSYCHOLOGIST") router.push("/psychologist/dashboard");
+      else router.push("/dashboard");
+    } catch {
+      router.push("/dashboard");
+    }
+  };
+
   const downloadDocx = async () => {
     setDownloading(true);
     try {
@@ -235,18 +248,30 @@ export default function ReportsWorkspacePage() {
                 </h1>
               </div>
             </div>
-            <button
-              onClick={downloadDocx}
-              disabled={!hasAnyReport || downloading}
-              title={hasAnyReport ? "Download combined Word document" : "Generate at least one report first"}
-              className="flex-shrink-0 inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-primary text-white text-xs sm:text-sm font-semibold hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
-              </svg>
-              <span className="hidden sm:inline">{downloading ? "Preparing…" : "Download .docx"}</span>
-              <span className="sm:hidden">{downloading ? "…" : "Download"}</span>
-            </button>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={goHome}
+                title="Go to dashboard"
+                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs sm:text-sm font-semibold hover:bg-slate-200 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3v-6h6v6h3a1 1 0 001-1V10" />
+                </svg>
+                <span className="hidden sm:inline">Dashboard</span>
+              </button>
+              <button
+                onClick={downloadDocx}
+                disabled={!hasAnyReport || downloading}
+                title={hasAnyReport ? "Download combined Word document" : "Generate at least one report first"}
+                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-primary text-white text-xs sm:text-sm font-semibold hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+                </svg>
+                <span className="hidden sm:inline">{downloading ? "Preparing…" : "Download .docx"}</span>
+                <span className="sm:hidden">{downloading ? "…" : "Download"}</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
