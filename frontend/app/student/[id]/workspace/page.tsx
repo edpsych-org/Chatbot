@@ -21,6 +21,7 @@ export default function ReportsWorkspacePage() {
   const [workspace, setWorkspace] = useState<WorkspaceResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
 
   const loadWorkspace = useCallback(async () => {
     const token = localStorage.getItem("access_token");
@@ -102,6 +103,45 @@ export default function ReportsWorkspacePage() {
         },
       };
     });
+  };
+
+  const hasAnyReport = Boolean(backgroundReport || cognitiveReport || unifiedReport);
+
+  const downloadDocx = async () => {
+    setDownloading(true);
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) { router.push("/login"); return; }
+      const res = await fetch(
+        `${API_BASE}/psychologist-reports/students/${studentId}/report.docx`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (!res.ok) {
+        let msg = `Download failed (${res.status})`;
+        try {
+          const b = await res.json();
+          if (b?.detail) msg = b.detail;
+        } catch { /* ignore */ }
+        throw new Error(msg);
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const safe = (workspace?.student
+        ? `${workspace.student.first_name}${workspace.student.last_name}`
+        : "Student"
+      ).replace(/[^A-Za-z0-9]/g, "") || "Student";
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${safe}_report.docx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Download failed");
+    } finally {
+      setDownloading(false);
+    }
   };
 
   const upsertProfile = (incoming: CognitiveProfile) => {
@@ -195,6 +235,18 @@ export default function ReportsWorkspacePage() {
                 </h1>
               </div>
             </div>
+            <button
+              onClick={downloadDocx}
+              disabled={!hasAnyReport || downloading}
+              title={hasAnyReport ? "Download combined Word document" : "Generate at least one report first"}
+              className="flex-shrink-0 inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-primary text-white text-xs sm:text-sm font-semibold hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+              </svg>
+              <span className="hidden sm:inline">{downloading ? "Preparing…" : "Download .docx"}</span>
+              <span className="sm:hidden">{downloading ? "…" : "Download"}</span>
+            </button>
           </div>
         </div>
       </header>
