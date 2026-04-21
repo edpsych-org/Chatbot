@@ -170,24 +170,51 @@ class InputValidatorAgent(BaseAgent):
                 "confidence": 1.0,
             }
 
-        # Check against insufficient patterns
-        for pattern in INSUFFICIENT_COMPILED:
-            if pattern.match(text):
+        # Whitespace / punctuation only — never acceptable
+        if re.match(r"^[\s\W]*$", text):
+            return {
+                "is_sufficient": False,
+                "feedback": "Could you share a word or two so we can continue?",
+                "confidence": 1.0,
+            }
+
+        word_count = len(text.split())
+
+        # ── Short-answer branch (1-3 words) ───────────────────────────────────
+        # Accept if the answer is clearly relevant to the question. "Yes",
+        # "No", "Reading", "Mother" are all legitimate short answers.
+        # Still reject generic non-answers ("idk", "dunno", "nothing") so we
+        # don't capture useless fillers.
+        VAGUE_FILLERS = {
+            "idk", "dunno", "nothing", "none", "na", "n/a",
+            "i dont know", "i don't know", "not sure",
+        }
+        if word_count < 4:
+            normalized = text.lower().strip(".!? ")
+            if normalized in VAGUE_FILLERS:
                 prompt = FOLLOW_UP_PROMPTS.get(category, FOLLOW_UP_PROMPTS["general"])
                 return {
                     "is_sufficient": False,
                     "feedback": prompt.replace("{student_name}", student_name),
-                    "confidence": 0.95,
+                    "confidence": 0.9,
                 }
-
-        # Very short input (< 4 words) - likely insufficient
-        word_count = len(text.split())
-        if word_count < 4:
-            prompt = FOLLOW_UP_PROMPTS.get(category, FOLLOW_UP_PROMPTS["general"])
+            if question_context:
+                relevant = await self._llm_relevance_check(
+                    text, question_context, student_name
+                )
+                if relevant is False:
+                    prompt = RELEVANCE_PROMPTS.get(
+                        category, RELEVANCE_PROMPTS["general"]
+                    )
+                    return {
+                        "is_sufficient": False,
+                        "feedback": prompt.replace("{student_name}", student_name),
+                        "confidence": 0.8,
+                    }
             return {
-                "is_sufficient": False,
-                "feedback": f"Thanks for that! {prompt.replace('{student_name}', student_name)}",
-                "confidence": 0.8,
+                "is_sufficient": True,
+                "feedback": None,
+                "confidence": 0.75,
             }
 
         # Gibberish / nonsense detection

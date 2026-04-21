@@ -15,7 +15,11 @@ import time
 import uuid as uuid_lib
 from typing import List, Optional
 
+import re
+from io import BytesIO
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, Response
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import and_, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -818,3 +822,71 @@ async def finalize_report(
     await db.commit()
     await db.refresh(report)
     return _serialize_report(report)
+
+
+@router.get("/students/{student_id}/report.docx")
+async def download_student_reports_docx(
+    student_id: uuid_lib.UUID,
+    current_user: User = Depends(require_psychologist_or_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Download a single .docx combining the student's Background, Cognitive and
+    Unified Insights psychologist reports (in that order). Returns 404 if no
+    reports exist.
+    """
+    from docx import Document
+    from app.api.admin import _render_markdown_to_docx
+
+    student_res = await db.execute(select(Student).where(Student.id == student_id))
+    student = student_res.scalar_one_or_none()
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student not found",
+        )
+
+    stmt = select(PsychologistReport).where(
+        PsychologistReport.student_id == student_id,
+        PsychologistReport.report_type.in_(
+            ("background_summary", "cognitive_report", "unified_insights")
+        ),
+    )
+    rows = (await db.execute(stmt)).scalars().all()
+    if not rows:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No reports found for this student",
+        )
+
+    by_type = {r.report_type: r for r in rows}
+    section_order = [
+        ("background_summary", "Background"),
+        ("cognitive_report", "Cognitive Report"),
+        ("unified_insights", "Unified Insights"),
+    ]
+
+    doc = Document()
+    full_name = f"{student.first_name} {student.last_name}".strip()
+    doc.add_heading(full_name or "Student Report", level=1)
+    for rtype, heading in section_order:
+        report = by_type.get(rtype)
+        if not report:
+            continue
+        doc.add_heading(heading, level=2)
+        _render_markdown_to_docx(doc, report.content_markdown or "")
+
+    buf = BytesIO()
+    doc.save(buf)
+    buf.seek(0)
+
+    safe_name = re.sub(r"[^A-Za-z0-9]+", "", f"{student.first_name}{student.last_name}") or "Student"
+    filename = f"{safe_name}_report.docx"
+
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type=(
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        ),
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

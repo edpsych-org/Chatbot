@@ -190,7 +190,7 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
       try {
         const token = getAuthToken();
         if (!token) {
-          addSystemMessage('Please log in to start the assessment.');
+          addSystemMessage('Please log in to continue.');
           return;
         }
 
@@ -252,7 +252,7 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
         // Check if the assessment is already completed
         if (axios.isAxiosError(err) && err.response?.status === 400 && err.response?.data?.detail?.includes('already been completed')) {
           setIsCompleted(true);
-          addSystemMessage('This assessment has already been completed.');
+          addSystemMessage('This has already been completed.');
           return;
         }
         addSystemMessage('Something went wrong. Please refresh the page to try again.');
@@ -385,7 +385,7 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
         // Check if assessment was already completed
         if (axios.isAxiosError(err) && err.response?.status === 400 && err.response?.data?.detail?.includes('already been completed')) {
           setIsCompleted(true);
-          addSystemMessage('This assessment has already been completed.');
+          addSystemMessage('This has already been completed.');
           return;
         }
 
@@ -510,7 +510,7 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
           {/* Title */}
           <div className="flex-1 min-w-0">
             <h1 className="text-sm sm:text-base font-semibold text-gray-900 tracking-tight truncate">
-              The EdPsych Practice Assessment
+              The EdPsych Practice
             </h1>
             <p className="text-[0.625rem] sm:text-xs text-gray-400 font-medium hidden sm:block">
               Educational Psychology - Confidential
@@ -597,12 +597,9 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
             <div className="relative">
               {showTextNudge && (() => {
                 const palette = [
-                  { bg: "#ec4899", arrow: "border-t-[#ec4899]" }, // pink
-                  { bg: "#eab308", arrow: "border-t-[#eab308]" }, // yellow
                   { bg: "#a855f7", arrow: "border-t-[#a855f7]" }, // purple
-                  { bg: "#f97316", arrow: "border-t-[#f97316]" }, // orange
-                  { bg: "#0ea5e9", arrow: "border-t-[#0ea5e9]" }, // sky
-                  { bg: "#10b981", arrow: "border-t-[#10b981]" }, // emerald
+                  { bg: "#ec4899", arrow: "border-t-[#ec4899]" }, // pink
+                  { bg: "#3b82f6", arrow: "border-t-[#3b82f6]" }, // blue
                 ];
                 const c = palette[nudgeColor % palette.length];
                 return (
