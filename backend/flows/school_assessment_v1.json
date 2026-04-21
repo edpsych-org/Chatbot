@@ -1,0 +1,317 @@
+{
+  "flow_id": "school_assessment_v1",
+  "flow_name": "School Assessment - Educational Psychology",
+  "flow_type": "school",
+  "version": "1.0",
+  "start_node": "welcome",
+  "nodes": {
+    "welcome": {
+      "type": "message",
+      "content": "👋 Hello! You've been invited to share the school's view of {student_name}.\n\nThis will take about 10-15 minutes. You can answer with the quick-reply buttons, type your own reply, or both.\n\nLet's begin.",
+      "next": "role_in_school",
+      "metadata": {"category": "intro", "skip_allowed": false}
+    },
+
+    "role_in_school": {
+      "type": "mcq",
+      "question": "What's your role with {student_name} at school?",
+      "category": "background",
+      "options": [
+        {"value": "class_teacher", "label": "Class teacher", "next": "year_group"},
+        {"value": "subject_teacher", "label": "Subject teacher", "next": "year_group"},
+        {"value": "senco", "label": "SENCo / learning support", "next": "year_group"},
+        {"value": "pastoral", "label": "Pastoral / head of year", "next": "year_group"},
+        {"value": "other", "label": "Other", "next": "year_group"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Tell us more if useful:",
+      "metadata": {"required": true}
+    },
+
+    "year_group": {
+      "type": "mcq",
+      "question": "Which year group is {student_name} in?",
+      "category": "background",
+      "options": [
+        {"value": "reception_y2", "label": "Reception – Y2", "next": "how_long_known"},
+        {"value": "y3_y6", "label": "Y3 – Y6", "next": "how_long_known"},
+        {"value": "y7_y9", "label": "Y7 – Y9", "next": "how_long_known"},
+        {"value": "y10_y11", "label": "Y10 – Y11", "next": "how_long_known"},
+        {"value": "y12_y13", "label": "Y12 – Y13", "next": "how_long_known"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Or type exact year:"
+    },
+
+    "how_long_known": {
+      "type": "mcq",
+      "question": "How long have you known {student_name}?",
+      "category": "background",
+      "options": [
+        {"value": "weeks", "label": "A few weeks", "next": "classroom_intro"},
+        {"value": "one_term", "label": "One term", "next": "classroom_intro"},
+        {"value": "one_year", "label": "Around a year", "next": "classroom_intro"},
+        {"value": "multi_year", "label": "More than a year", "next": "classroom_intro"}
+      ],
+      "allow_text": true
+    },
+
+    "classroom_intro": {
+      "type": "message",
+      "content": "📚 Let's start with classroom learning. These questions help us understand how {student_name} engages with lessons.",
+      "next": "attention_class",
+      "metadata": {"category": "classroom"}
+    },
+    "attention_class": {
+      "type": "mcq",
+      "question": "How does {student_name} sustain attention during lessons?",
+      "category": "attention",
+      "options": [
+        {"value": "focused", "label": "Focused, on-task", "next": "task_completion", "metadata": {"severity": "none"}},
+        {"value": "drifts", "label": "Drifts after a few minutes", "next": "task_completion", "metadata": {"severity": "medium"}},
+        {"value": "needs_prompts", "label": "Needs frequent prompts", "next": "task_completion", "metadata": {"severity": "high"}},
+        {"value": "very_distracted", "label": "Very easily distracted", "next": "task_completion", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Specific examples from class:"
+    },
+    "task_completion": {
+      "type": "mcq",
+      "question": "Does {student_name} finish set classwork in the expected time?",
+      "category": "attention",
+      "options": [
+        {"value": "always", "label": "Almost always", "next": "instructions", "metadata": {"severity": "none"}},
+        {"value": "mostly", "label": "Usually", "next": "instructions", "metadata": {"severity": "low"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "instructions", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "instructions", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true
+    },
+    "instructions": {
+      "type": "mcq",
+      "question": "How well does {student_name} follow multi-step classroom instructions?",
+      "category": "attention",
+      "options": [
+        {"value": "strong", "label": "Strong — remembers 3+ steps", "next": "academic_intro"},
+        {"value": "okay", "label": "OK for 2 steps", "next": "academic_intro"},
+        {"value": "needs_repeat", "label": "Needs repetition", "next": "academic_intro"},
+        {"value": "one_at_time", "label": "One step at a time only", "next": "academic_intro"}
+      ],
+      "allow_text": true
+    },
+
+    "academic_intro": {
+      "type": "message",
+      "content": "✏️ Next, a few questions on academic attainment compared with age-expected levels.",
+      "next": "reading_level",
+      "metadata": {"category": "academic"}
+    },
+    "reading_level": {
+      "type": "mcq",
+      "question": "Where is {student_name}'s reading compared to age-expected?",
+      "category": "academic",
+      "options": [
+        {"value": "above", "label": "Above age-expected", "next": "writing_level"},
+        {"value": "at", "label": "At age-expected", "next": "writing_level"},
+        {"value": "slightly_below", "label": "Slightly below", "next": "writing_level"},
+        {"value": "significantly_below", "label": "Significantly below", "next": "writing_level"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Reading age / scheme level if known:"
+    },
+    "writing_level": {
+      "type": "mcq",
+      "question": "Written expression compared with peers?",
+      "category": "academic",
+      "options": [
+        {"value": "above", "label": "Above peers", "next": "maths_level"},
+        {"value": "at", "label": "At peers", "next": "maths_level"},
+        {"value": "slightly_below", "label": "Slightly below", "next": "maths_level"},
+        {"value": "significantly_below", "label": "Significantly below", "next": "maths_level"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Spelling, handwriting, organisation — notes welcome:"
+    },
+    "maths_level": {
+      "type": "mcq",
+      "question": "Maths attainment?",
+      "category": "academic",
+      "options": [
+        {"value": "above", "label": "Above age-expected", "next": "subject_strength"},
+        {"value": "at", "label": "At age-expected", "next": "subject_strength"},
+        {"value": "slightly_below", "label": "Slightly below", "next": "subject_strength"},
+        {"value": "significantly_below", "label": "Significantly below", "next": "subject_strength"}
+      ],
+      "allow_text": true
+    },
+    "subject_strength": {
+      "type": "text",
+      "question": "Which subjects or activities does {student_name} shine in?",
+      "category": "academic",
+      "next": "social_intro",
+      "text_prompt": "Sports, art, music, science — anything.",
+      "metadata": {"required": false}
+    },
+
+    "social_intro": {
+      "type": "message",
+      "content": "🤝 Now social and emotional life at school — peer relationships, playground, classroom behaviour.",
+      "next": "peer_friendships",
+      "metadata": {"category": "social"}
+    },
+    "peer_friendships": {
+      "type": "mcq",
+      "question": "Peer friendships — how would you describe them?",
+      "category": "social",
+      "options": [
+        {"value": "many", "label": "Many friends, popular", "next": "playground"},
+        {"value": "small_group", "label": "Small stable group", "next": "playground"},
+        {"value": "one_or_two", "label": "One or two close friends", "next": "playground"},
+        {"value": "isolated", "label": "Often alone / isolated", "next": "playground", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true
+    },
+    "playground": {
+      "type": "mcq",
+      "question": "On the playground / during free time, {student_name} usually…",
+      "category": "social",
+      "options": [
+        {"value": "joins_games", "label": "Joins group games happily", "next": "group_work"},
+        {"value": "prefers_small", "label": "Prefers small-group play", "next": "group_work"},
+        {"value": "parallel", "label": "Plays alongside others, not with", "next": "group_work"},
+        {"value": "withdraws", "label": "Withdraws / wanders alone", "next": "group_work", "metadata": {"severity": "high"}},
+        {"value": "conflicts", "label": "Gets into conflicts", "next": "group_work", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Anything specific you've observed outside class:"
+    },
+    "group_work": {
+      "type": "mcq",
+      "question": "In group work during lessons?",
+      "category": "social",
+      "options": [
+        {"value": "collaborates", "label": "Collaborates well", "next": "emotional_reg"},
+        {"value": "leads", "label": "Tends to lead", "next": "emotional_reg"},
+        {"value": "passive", "label": "Passive / watches others", "next": "emotional_reg"},
+        {"value": "struggles", "label": "Struggles to contribute", "next": "emotional_reg"}
+      ],
+      "allow_text": true
+    },
+    "emotional_reg": {
+      "type": "mcq",
+      "question": "How does {student_name} handle frustration or setbacks in class?",
+      "category": "emotional",
+      "options": [
+        {"value": "resilient", "label": "Resilient, keeps trying", "next": "classroom_behaviour"},
+        {"value": "shuts_down", "label": "Shuts down / gives up", "next": "classroom_behaviour", "metadata": {"severity": "medium"}},
+        {"value": "upset", "label": "Gets visibly upset", "next": "classroom_behaviour", "metadata": {"severity": "high"}},
+        {"value": "outburst", "label": "Outbursts / disruption", "next": "classroom_behaviour", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true
+    },
+    "classroom_behaviour": {
+      "type": "mcq",
+      "question": "Classroom behaviour overall?",
+      "category": "behaviour",
+      "options": [
+        {"value": "exemplary", "label": "Exemplary", "next": "attendance"},
+        {"value": "generally_good", "label": "Generally good", "next": "attendance"},
+        {"value": "some_concerns", "label": "Some concerns", "next": "attendance", "metadata": {"severity": "medium"}},
+        {"value": "significant", "label": "Significant concerns", "next": "attendance", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Sanctions / incidents this term:"
+    },
+
+    "attendance": {
+      "type": "mcq",
+      "question": "Attendance this academic year?",
+      "category": "context",
+      "options": [
+        {"value": "above_95", "label": "Above 95%", "next": "support_existing"},
+        {"value": "90_95", "label": "90 – 95%", "next": "support_existing"},
+        {"value": "below_90", "label": "Below 90%", "next": "support_existing", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Any patterns (Mondays, anxiety-related absences, etc.):"
+    },
+
+    "support_existing": {
+      "type": "mcq",
+      "question": "Is {student_name} receiving any additional support?",
+      "category": "provision",
+      "options": [
+        {"value": "ehcp", "label": "EHCP in place", "next": "intervention_effect"},
+        {"value": "sen_support", "label": "SEN support plan", "next": "intervention_effect"},
+        {"value": "monitoring", "label": "On monitoring list", "next": "intervention_effect"},
+        {"value": "none", "label": "No additional support", "next": "intervention_effect"}
+      ],
+      "allow_text": true,
+      "text_prompt": "Describe interventions (phonics, literacy catch-up, TA support, etc.):"
+    },
+    "intervention_effect": {
+      "type": "mcq",
+      "question": "If interventions are in place — how are they working?",
+      "category": "provision",
+      "options": [
+        {"value": "good_progress", "label": "Good progress", "next": "school_concerns"},
+        {"value": "some", "label": "Some progress", "next": "school_concerns"},
+        {"value": "little", "label": "Little progress", "next": "school_concerns", "metadata": {"severity": "medium"}},
+        {"value": "na", "label": "N/A", "next": "school_concerns"}
+      ],
+      "allow_text": true
+    },
+
+    "school_concerns": {
+      "type": "text",
+      "question": "From the school's perspective, what are the main concerns right now?",
+      "category": "concerns",
+      "next": "parent_contact",
+      "text_prompt": "Be as specific as you can — attention, literacy, peer, emotional, sensory, etc.",
+      "metadata": {"required": true, "key_indicator": "primary_concerns"}
+    },
+    "parent_contact": {
+      "type": "mcq",
+      "question": "Are parents aware and engaged with these concerns?",
+      "category": "context",
+      "options": [
+        {"value": "fully", "label": "Fully engaged", "next": "what_helps"},
+        {"value": "partially", "label": "Partially", "next": "what_helps"},
+        {"value": "minimal", "label": "Minimal contact", "next": "what_helps"},
+        {"value": "unknown", "label": "Unsure", "next": "what_helps"}
+      ],
+      "allow_text": true
+    },
+    "what_helps": {
+      "type": "text",
+      "question": "What strategies already help {student_name} in school?",
+      "category": "strengths",
+      "next": "hopes",
+      "text_prompt": "Seating, visuals, movement breaks, scaffolded tasks, 1:1 support…",
+      "metadata": {"required": false}
+    },
+    "hopes": {
+      "type": "text",
+      "question": "What would you most like the psychologist's assessment to clarify?",
+      "category": "goals",
+      "next": "anything_else",
+      "text_prompt": "Diagnosis, learning profile, specific strategies, exam arrangements…",
+      "metadata": {"required": false}
+    },
+    "anything_else": {
+      "type": "text",
+      "question": "Anything else the psychologist should know?",
+      "category": "other",
+      "next": "thanks",
+      "text_prompt": "Safeguarding, home context you're aware of, prior assessments.",
+      "metadata": {"required": false}
+    },
+
+    "thanks": {
+      "type": "message",
+      "content": "✅ Thank you. The school's input has been recorded and will feed directly into {student_name}'s report.\n\nYou can close this window now.",
+      "next": null,
+      "metadata": {"category": "close", "is_terminal": true}
+    }
+  }
+}

@@ -416,11 +416,13 @@ async def start_chat_session(
     result = await db.execute(select(Student).where(Student.id == assignment.student_id))
     student = result.scalar_one_or_none()
 
-    # ADMIN demoing → fall back to parent flow (only one defined so far)
-    if current_user.role == UserRole.PARENT or current_user.role == UserRole.ADMIN:
-        flow_type = "parent_assessment_v1"
+    # Flow selection by recipient role.
+    # SCHOOL → school flow (classroom/playground/teacher-observable questions).
+    # PARENT → parent flow. ADMIN demo → parent flow by default.
+    if current_user.role == UserRole.SCHOOL:
+        flow_type = "school_assessment_v1"
     else:
-        flow_type = "teacher_assessment_v1"
+        flow_type = "parent_assessment_v1"
 
     # Create new session
     session = ChatSession(

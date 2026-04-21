@@ -24,6 +24,21 @@ const nunito = Nunito({
 export const metadata: Metadata = {
   title: "The EdPsych Practice | Educational Psychology Platform",
   description: "Educational psychology assessment and report generation",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-icon-180x180.png", sizes: "180x180" },
+      { url: "/apple-icon-152x152.png", sizes: "152x152" },
+    ],
+    other: [
+      { url: "/android-icon-192x192.png", rel: "icon", sizes: "192x192" },
+    ],
+  },
 };
 
 export default function RootLayout({
