@@ -181,6 +181,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [filterRole, setFilterRole] = useState<string>("all");
+  const [userSearch, setUserSearch] = useState<string>("");
   const [showAddUser, setShowAddUser] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [createForm, setCreateForm] = useState({ full_name: "", email: "", password: "", role: "PSYCHOLOGIST", phone: "", organization: "" });
@@ -197,10 +198,17 @@ export default function AdminDashboard() {
   /* ─── Students tab state ─── */
   const [adminStudents, setAdminStudents] = useState<any[]>([]);
   const [studentsLoading, setStudentsLoading] = useState(false);
+  const [studentSearch, setStudentSearch] = useState<string>("");
   const [showCreateStudent, setShowCreateStudent] = useState(false);
   const [studentForm, setStudentForm] = useState({
-    student_first_name: "", student_last_name: "", date_of_birth: "", gender: "", grade: "", school_name: "",
-    parents: [{ type: "parent", full_name: "", email: "", phone: "", relationship: "Mother", is_primary: true }],
+    // Student
+    student_first_name: "", student_last_name: "", date_of_birth: "",
+    gender: "", grade: "", school_name: "",
+    // Parent (flat — rebuilt into parents[] at submit)
+    parent_full_name: "", parent_email: "", parent_phone: "",
+    parent_relationship: "Mother",
+    // School
+    school_email: "", school_phone: "",
   });
   const [studentFormError, setStudentFormError] = useState("");
   const [creatingStudent, setCreatingStudent] = useState(false);
@@ -208,6 +216,7 @@ export default function AdminDashboard() {
   /* ─── Assignments tab state ─── */
   const [adminAssignments, setAdminAssignments] = useState<any[]>([]);
   const [assignmentsLoading, setAssignmentsLoading] = useState(false);
+  const [assignmentSearch, setAssignmentSearch] = useState<string>("");
   const [showAssignForm, setShowAssignForm] = useState(false);
   const [assignStudents, setAssignStudents] = useState<any[]>([]);
   const [assignForm, setAssignForm] = useState<{ student_id: string; guardian_ids: string[]; notes: string }>({ student_id: "", guardian_ids: [], notes: "" });
@@ -292,13 +301,45 @@ export default function AdminDashboard() {
     setCreatingStudent(true);
     try {
       const token = localStorage.getItem("access_token");
+      // Rebuild the parents[] array the backend expects from the flat form state.
+      const payload = {
+        student_first_name: studentForm.student_first_name,
+        student_last_name: studentForm.student_last_name,
+        date_of_birth: studentForm.date_of_birth,
+        gender: studentForm.gender,
+        grade: studentForm.grade,
+        school_name: studentForm.school_name,
+        parents: [
+          {
+            type: "parent",
+            full_name: studentForm.parent_full_name,
+            email: studentForm.parent_email,
+            phone: studentForm.parent_phone,
+            relationship: studentForm.parent_relationship,
+            is_primary: true,
+          },
+          {
+            type: "school",
+            full_name: studentForm.school_name,
+            email: studentForm.school_email,
+            phone: studentForm.school_phone,
+            relationship: "School",
+            is_primary: true,
+          },
+        ],
+      };
       const res = await fetch(`${API_BASE}/admin/students/create-with-parents`, {
         method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(studentForm),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
         setShowCreateStudent(false);
-        setStudentForm({ student_first_name: "", student_last_name: "", date_of_birth: "", gender: "", grade: "", school_name: "", parents: [{ type: "parent", full_name: "", email: "", phone: "", relationship: "Mother", is_primary: true }] });
+        setStudentForm({
+          student_first_name: "", student_last_name: "", date_of_birth: "",
+          gender: "", grade: "", school_name: "",
+          parent_full_name: "", parent_email: "", parent_phone: "", parent_relationship: "Mother",
+          school_email: "", school_phone: "",
+        });
         fetchAdminStudents();
         showAlert("Success", "Student created successfully!", "success");
       } else { const d = await res.json().catch(() => null); setStudentFormError(d?.detail || "Failed to create student"); }
@@ -377,8 +418,10 @@ export default function AdminDashboard() {
       if (res.ok) {
         const data = await res.json();
         const link = data.magic_link || "";
+        // Copy to clipboard silently so the admin can paste if needed, but don't
+        // leak the raw URL into the success popup — Brevo has already emailed it.
         try { await navigator.clipboard.writeText(link); } catch {}
-        showAlert("Magic Link Ready", `Copied to clipboard and emailed to ${data.sent_to}.\n\n${link}`, "success");
+        showAlert("Magic Link Sent", `Emailed to ${data.sent_to} via Brevo. The link has also been copied to your clipboard.`, "success");
       } else showAlert("Error", "Failed to resend invite", "danger");
     } catch { showAlert("Error", "Network error", "danger"); }
   };
@@ -651,7 +694,16 @@ export default function AdminDashboard() {
 
   const handleLogout = () => { localStorage.removeItem("access_token"); localStorage.removeItem("user"); router.push("/login"); };
 
-  const filteredUsers = filterRole === "all" ? users : users.filter((u) => u.role === filterRole);
+  const filteredUsers = (filterRole === "all" ? users : users.filter((u) => u.role === filterRole))
+    .filter((u) => {
+      const q = userSearch.trim().toLowerCase();
+      if (!q) return true;
+      return (
+        (u.full_name || "").toLowerCase().includes(q) ||
+        (u.email || "").toLowerCase().includes(q) ||
+        (u.organization || "").toLowerCase().includes(q)
+      );
+    });
 
   /* ─── Loading state ─── */
   if (loading) {
@@ -683,19 +735,19 @@ export default function AdminDashboard() {
         top of this page.
       */}
       <header className="site-header-pinned bg-white backdrop-blur-xl border-b border-[#dedede] sticky top-0 z-40">
-        <div className="max-w-[1400px] mx-auto" style={{ paddingLeft: "21px", paddingRight: "21px" }}>
-          <div className="flex items-center justify-between" style={{ height: "73px" }}>
-            <div className="flex items-center" style={{ gap: "16px" }}>
-              <div className="rounded-[8px] bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center" style={{ width: "42px", height: "42px" }}>
+        <div className="max-w-[1400px] mx-auto px-3 sm:px-5">
+          <div className="flex items-center justify-between gap-2" style={{ height: "73px" }}>
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+              <div className="rounded-[8px] bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shrink-0" style={{ width: "42px", height: "42px" }}>
                 <svg style={{ width: "21px", height: "21px" }} className="text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
               </div>
-              <div>
-                <h1 className="font-serif font-bold text-[#0c888e] leading-none" style={{ fontSize: "23px" }}>The Ed Psych Practice</h1>
-                <p className="font-medium text-[#737373] tracking-widest uppercase" style={{ fontSize: "12px", marginTop: "2px" }}>Admin Console</p>
+              <div className="min-w-0">
+                <h1 className="font-serif font-bold text-[#0c888e] leading-tight truncate text-[17px] sm:text-[23px]">The Ed Psych Practice</h1>
+                <p className="hidden sm:block font-medium text-[#737373] tracking-widest uppercase" style={{ fontSize: "12px", marginTop: "2px" }}>Admin Console</p>
               </div>
             </div>
 
-            <nav className="hidden sm:flex items-center bg-[#f4f4f4] rounded-[8px]" style={{ gap: "5px", padding: "3px" }}>
+            <nav className="hidden lg:flex items-center bg-[#f4f4f4] rounded-[8px]" style={{ gap: "5px", padding: "3px" }}>
               <button onClick={() => setActiveTab("users")} className={`font-medium rounded-[6px] transition-all ${activeTab === "users" ? "bg-[#00acb6] text-white" : "text-[#737373] hover:text-[#333]"}`} style={{ padding: "8px 21px", fontSize: "16px" }}>
                 Overview
               </button>
@@ -710,16 +762,24 @@ export default function AdminDashboard() {
               </button>
             </nav>
 
-            <div className="flex items-center" style={{ gap: "16px" }}>
-              <div className="hidden md:block text-right">
+            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+              <div className="hidden lg:block text-right">
                 <p className="font-medium text-[#333] leading-none" style={{ fontSize: "18px" }}>{user?.full_name}</p>
                 <p className="text-[#737373]" style={{ fontSize: "14px", marginTop: "3px" }}>{user?.email}</p>
               </div>
-              <div className="rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center text-white font-bold" style={{ width: "42px", height: "42px", fontSize: "14px" }}>
+              <div className="rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center text-white font-bold shrink-0" style={{ width: "42px", height: "42px", fontSize: "14px" }}>
                 {(user?.full_name || "A").charAt(0).toUpperCase()}
               </div>
-              <button onClick={handleLogout} className="font-medium text-[#737373] hover:text-[#e61844] transition-colors" style={{ fontSize: "16px" }}>
-                Sign out
+              <button
+                onClick={handleLogout}
+                className="font-medium text-[#737373] hover:text-[#e61844] transition-colors shrink-0"
+                title="Sign out"
+                aria-label="Sign out"
+              >
+                <span className="hidden lg:inline" style={{ fontSize: "16px" }}>Sign out</span>
+                <svg className="lg:hidden w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
               </button>
             </div>
           </div>
@@ -727,7 +787,7 @@ export default function AdminDashboard() {
       </header>
 
       {/* ── Mobile tab bar (pinned to 130% base like the header) ── */}
-      <div className="sm:hidden flex border-b border-[#dedede] bg-white overflow-x-auto">
+      <div className="lg:hidden flex border-b border-[#dedede] bg-white overflow-x-auto">
         <button onClick={() => setActiveTab("users")} className={`flex-1 font-medium text-center border-b-2 transition-colors whitespace-nowrap ${activeTab === "users" ? "border-[#00acb6] text-[#00acb6]" : "border-transparent text-[#737373]"}`} style={{ padding: "16px 12px", fontSize: "16px" }}>Overview</button>
         <button onClick={() => setActiveTab("students")} className={`flex-1 font-medium text-center border-b-2 transition-colors whitespace-nowrap ${activeTab === "students" ? "border-[#00acb6] text-[#00acb6]" : "border-transparent text-[#737373]"}`} style={{ padding: "16px 12px", fontSize: "16px" }}>Students</button>
         <button onClick={() => setActiveTab("assignments")} className={`flex-1 font-medium text-center border-b-2 transition-colors whitespace-nowrap ${activeTab === "assignments" ? "border-[#00acb6] text-[#00acb6]" : "border-transparent text-[#737373]"}`} style={{ padding: "16px 12px", fontSize: "16px" }}>Assignments</button>
@@ -782,7 +842,19 @@ export default function AdminDashboard() {
                   <h3 className="font-serif text-base font-semibold text-[#333]">User Management</h3>
                   <p className="text-xs text-[#737373] mt-0.5">{filteredUsers.length} {filteredUsers.length === 1 ? "user" : "users"}</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <div className="relative flex-1 sm:flex-none sm:w-56">
+                    <svg className="w-4 h-4 text-[#737373] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10a7.5 7.5 0 0013.15 6.65z" />
+                    </svg>
+                    <input
+                      type="search"
+                      value={userSearch}
+                      onChange={(e) => setUserSearch(e.target.value)}
+                      placeholder="Search by name, email, organisation…"
+                      className="w-full h-9 pl-9 pr-3 bg-white border border-[#dedede] rounded-lg text-xs text-[#333] placeholder:text-[#a3a3a3] outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500/50 transition-all"
+                    />
+                  </div>
                   <select
                     value={filterRole}
                     onChange={(e) => setFilterRole(e.target.value)}
@@ -890,22 +962,51 @@ export default function AdminDashboard() {
           </>
         ) : activeTab === "students" ? (
           /* ── Students Tab ── */
+          (() => {
+            const q = studentSearch.trim().toLowerCase();
+            const filteredStudents = !q ? adminStudents : adminStudents.filter((s: any) => {
+              const g = (s.guardians && s.guardians[0]) || {};
+              return (
+                `${s.first_name || ""} ${s.last_name || ""}`.toLowerCase().includes(q) ||
+                (s.school_name || "").toLowerCase().includes(q) ||
+                (s.grade || "").toString().toLowerCase().includes(q) ||
+                (g.name || "").toLowerCase().includes(q) ||
+                (g.email || "").toLowerCase().includes(q)
+              );
+            });
+          return (
           <div>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
               <div>
                 <h2 className="font-serif text-2xl font-bold text-[#333]">Student Management</h2>
                 <p className="text-sm text-[#737373] mt-1">Create students and link parents/schools</p>
               </div>
-              <button onClick={() => { setShowCreateStudent(true); }} className="h-9 px-4 bg-[#e61844] text-white text-xs font-medium rounded-lg hover:bg-[#cf0627] transition-colors flex items-center gap-1.5">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                Add Student
-              </button>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-none sm:w-72">
+                  <svg className="w-4 h-4 text-[#737373] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10a7.5 7.5 0 0013.15 6.65z" />
+                  </svg>
+                  <input
+                    type="search"
+                    value={studentSearch}
+                    onChange={(e) => setStudentSearch(e.target.value)}
+                    placeholder="Search name, school, guardian…"
+                    className="w-full h-9 pl-9 pr-3 bg-white border border-[#dedede] rounded-lg text-xs text-[#333] placeholder:text-[#a3a3a3] outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500/50 transition-all"
+                  />
+                </div>
+                <button onClick={() => { setShowCreateStudent(true); }} className="h-9 px-4 bg-[#e61844] text-white text-xs font-medium rounded-lg hover:bg-[#cf0627] transition-colors flex items-center gap-1.5 whitespace-nowrap">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                  Add Student
+                </button>
+              </div>
             </div>
 
             {studentsLoading ? (
               <div className="flex justify-center py-16"><div className="w-6 h-6 border-[3px] border-slate-200 border-t-primary rounded-full animate-spin" /></div>
             ) : adminStudents.length === 0 ? (
               <div className="text-center py-16 text-[#737373]">No students yet. Click &quot;Add Student&quot; to create one.</div>
+            ) : filteredStudents.length === 0 ? (
+              <div className="text-center py-16 text-[#737373]">No students match &quot;{studentSearch}&quot;.</div>
             ) : (
               <div className="bg-white backdrop-blur-sm rounded-2xl border border-[#dedede] overflow-hidden">
                 <div className="overflow-x-auto">
@@ -919,7 +1020,7 @@ export default function AdminDashboard() {
                       <th className="px-5 py-3 text-right text-[0.6875rem] font-semibold text-[#737373] uppercase tracking-wider">Actions</th>
                     </tr></thead>
                     <tbody className="divide-y divide-[#dedede]">
-                      {adminStudents.map((s: any) => (
+                      {filteredStudents.map((s: any) => (
                         <tr key={s.id} className="hover:bg-white transition-colors group">
                           <td className="px-5 py-3.5">
                             <p className="text-sm font-medium text-[#333]">{s.first_name} {s.last_name}</p>
@@ -994,24 +1095,54 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
+          );
+          })()
         ) : activeTab === "assignments" ? (
           /* ── Assignments Tab ── */
+          (() => {
+            const q = assignmentSearch.trim().toLowerCase();
+            const filteredAssignments = !q ? adminAssignments : adminAssignments.filter((a: any) => {
+              const studentName = a.student ? `${a.student.first_name || ""} ${a.student.last_name || ""}` : "";
+              return (
+                studentName.toLowerCase().includes(q) ||
+                (a.assigned_to?.name || "").toLowerCase().includes(q) ||
+                (a.assigned_to?.email || "").toLowerCase().includes(q) ||
+                (a.status || "").toLowerCase().includes(q)
+              );
+            });
+          return (
           <div>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
               <div>
                 <h2 className="font-serif text-2xl font-bold text-[#333]">Assessment Assignments</h2>
                 <p className="text-sm text-[#737373] mt-1">Assign assessments and manage magic links</p>
               </div>
-              <button onClick={() => { setShowAssignForm(true); fetchStudentsForAssign(); }} className="h-9 px-4 bg-[#e61844] text-white text-xs font-medium rounded-lg hover:bg-[#cf0627] transition-colors flex items-center gap-1.5">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                New Assignment
-              </button>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-none sm:w-72">
+                  <svg className="w-4 h-4 text-[#737373] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10a7.5 7.5 0 0013.15 6.65z" />
+                  </svg>
+                  <input
+                    type="search"
+                    value={assignmentSearch}
+                    onChange={(e) => setAssignmentSearch(e.target.value)}
+                    placeholder="Search student, assignee, status…"
+                    className="w-full h-9 pl-9 pr-3 bg-white border border-[#dedede] rounded-lg text-xs text-[#333] placeholder:text-[#a3a3a3] outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500/50 transition-all"
+                  />
+                </div>
+                <button onClick={() => { setShowAssignForm(true); fetchStudentsForAssign(); }} className="h-9 px-4 bg-[#e61844] text-white text-xs font-medium rounded-lg hover:bg-[#cf0627] transition-colors flex items-center gap-1.5 whitespace-nowrap">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                  New Assignment
+                </button>
+              </div>
             </div>
 
             {assignmentsLoading ? (
               <div className="flex justify-center py-16"><div className="w-6 h-6 border-[3px] border-slate-200 border-t-primary rounded-full animate-spin" /></div>
             ) : adminAssignments.length === 0 ? (
               <div className="text-center py-16 text-[#737373]">No assignments yet. Click &quot;New Assignment&quot; to create one.</div>
+            ) : filteredAssignments.length === 0 ? (
+              <div className="text-center py-16 text-[#737373]">No assignments match &quot;{assignmentSearch}&quot;.</div>
             ) : (
               <div className="bg-white backdrop-blur-sm rounded-2xl border border-[#dedede] overflow-hidden">
                 <div className="overflow-x-auto">
@@ -1025,7 +1156,7 @@ export default function AdminDashboard() {
                       <th className="px-5 py-3 text-right text-[0.6875rem] font-semibold text-[#737373] uppercase tracking-wider">Actions</th>
                     </tr></thead>
                     <tbody className="divide-y divide-[#dedede]">
-                      {adminAssignments.map((a: any) => (
+                      {filteredAssignments.map((a: any) => (
                         <tr key={a.id} className="hover:bg-white transition-colors group">
                           <td className="px-5 py-3.5">
                             <p className="text-sm font-medium text-[#333]">{a.student ? `${a.student.first_name || ""} ${a.student.last_name || ""}`.trim() || "Unknown" : "Unknown"}</p>
@@ -1063,6 +1194,8 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
+          );
+          })()
         ) : (
           /* ── Data Explorer Tab ── */
           <div>
@@ -1086,8 +1219,6 @@ export default function AdminDashboard() {
               <label className="block text-[0.6875rem] font-medium text-[#737373] mb-1">Role</label>
               <select value={createForm.role} onChange={(e) => setCreateForm({ ...createForm, role: e.target.value })} className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
                 <option value="PSYCHOLOGIST">Psychologist</option>
-                <option value="SCHOOL">School</option>
-                <option value="PARENT">Parent</option>
                 <option value="ADMIN">Admin</option>
               </select>
             </div>
@@ -1209,7 +1340,7 @@ export default function AdminDashboard() {
       <ModalOverlay open={showCreateStudent} onClose={() => { setShowCreateStudent(false); setStudentFormError(""); }} maxW="max-w-lg">
         <div className="p-6">
           <h3 className="text-lg font-semibold text-on-background">Create New Student</h3>
-          <p className="text-xs text-[#737373] mt-1 mb-5">Enter student and parent/guardian details</p>
+          <p className="text-xs text-[#737373] mt-1 mb-5">Enter student, parent, and school details</p>
           {studentFormError && <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg text-red-600 text-xs font-medium">{studentFormError}</div>}
           <form onSubmit={handleCreateStudent} className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
@@ -1241,49 +1372,56 @@ export default function AdminDashboard() {
                 </select>
               </div>
             </div>
-            <div>
-              <label className="block text-[0.6875rem] font-medium text-[#737373] mb-1">School Name</label>
-              <input type="text" value={studentForm.school_name} onChange={(e) => setStudentForm({ ...studentForm, school_name: e.target.value })} className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
-            </div>
-
+            {/* ── Parent sub-section ── */}
             <div className="border-t border-slate-200 pt-3 mt-3">
-              <h4 className="text-sm font-semibold text-on-background mb-3">Parent/Guardian</h4>
-              {studentForm.parents.map((p, idx) => (
-                <div key={idx} className="space-y-2 mb-3 p-3 bg-slate-50 rounded-lg">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-[0.6875rem] font-medium text-[#737373] mb-1">Full Name</label>
-                      <input type="text" required value={p.full_name} onChange={(e) => { const parents = [...studentForm.parents]; parents[idx] = { ...p, full_name: e.target.value }; setStudentForm({ ...studentForm, parents }); }} className="w-full h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20" />
-                    </div>
-                    <div>
-                      <label className="block text-[0.6875rem] font-medium text-[#737373] mb-1">Email</label>
-                      <input type="email" required value={p.email} onChange={(e) => { const parents = [...studentForm.parents]; parents[idx] = { ...p, email: e.target.value }; setStudentForm({ ...studentForm, parents }); }} className="w-full h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20" />
-                    </div>
+              <h4 className="text-sm font-semibold text-on-background mb-3">Parents / Guardians</h4>
+              <div className="space-y-2 p-3 bg-slate-50 rounded-lg">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[0.6875rem] font-medium text-[#737373] mb-1">Full Name</label>
+                    <input type="text" required value={studentForm.parent_full_name} onChange={(e) => setStudentForm({ ...studentForm, parent_full_name: e.target.value })} className="w-full h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20" />
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <label className="block text-[0.6875rem] font-medium text-[#737373] mb-1">Phone</label>
-                      <input type="tel" value={p.phone} onChange={(e) => { const parents = [...studentForm.parents]; parents[idx] = { ...p, phone: e.target.value }; setStudentForm({ ...studentForm, parents }); }} className="w-full h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20" />
-                    </div>
-                    <div>
-                      <label className="block text-[0.6875rem] font-medium text-[#737373] mb-1">Relationship</label>
-                      <select value={p.relationship} onChange={(e) => { const parents = [...studentForm.parents]; parents[idx] = { ...p, relationship: e.target.value }; setStudentForm({ ...studentForm, parents }); }} className="w-full h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20">
-                        <option value="Mother">Mother</option>
-                        <option value="Father">Father</option>
-                        <option value="Guardian">Guardian</option>
-                        <option value="Grandparent">Grandparent</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[0.6875rem] font-medium text-[#737373] mb-1">Type</label>
-                      <select value={p.type} onChange={(e) => { const parents = [...studentForm.parents]; parents[idx] = { ...p, type: e.target.value }; setStudentForm({ ...studentForm, parents }); }} className="w-full h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20">
-                        <option value="parent">Parent</option>
-                        <option value="school">School</option>
-                      </select>
-                    </div>
+                  <div>
+                    <label className="block text-[0.6875rem] font-medium text-[#737373] mb-1">Email</label>
+                    <input type="email" required value={studentForm.parent_email} onChange={(e) => setStudentForm({ ...studentForm, parent_email: e.target.value })} className="w-full h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20" />
                   </div>
                 </div>
-              ))}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[0.6875rem] font-medium text-[#737373] mb-1">Phone</label>
+                    <input type="tel" required value={studentForm.parent_phone} onChange={(e) => setStudentForm({ ...studentForm, parent_phone: e.target.value })} className="w-full h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20" />
+                  </div>
+                  <div>
+                    <label className="block text-[0.6875rem] font-medium text-[#737373] mb-1">Relationship</label>
+                    <select value={studentForm.parent_relationship} onChange={(e) => setStudentForm({ ...studentForm, parent_relationship: e.target.value })} className="w-full h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                      <option value="Mother">Mother</option>
+                      <option value="Father">Father</option>
+                      <option value="Guardian">Guardian</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── School sub-section ── */}
+            <div className="border-t border-slate-200 pt-3 mt-3">
+              <h4 className="text-sm font-semibold text-on-background mb-3">School</h4>
+              <div className="space-y-2 p-3 bg-slate-50 rounded-lg">
+                <div>
+                  <label className="block text-[0.6875rem] font-medium text-[#737373] mb-1">School Name</label>
+                  <input type="text" required value={studentForm.school_name} onChange={(e) => setStudentForm({ ...studentForm, school_name: e.target.value })} className="w-full h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[0.6875rem] font-medium text-[#737373] mb-1">School Email</label>
+                    <input type="email" required value={studentForm.school_email} onChange={(e) => setStudentForm({ ...studentForm, school_email: e.target.value })} className="w-full h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20" />
+                  </div>
+                  <div>
+                    <label className="block text-[0.6875rem] font-medium text-[#737373] mb-1">School Phone</label>
+                    <input type="tel" required value={studentForm.school_phone} onChange={(e) => setStudentForm({ ...studentForm, school_phone: e.target.value })} className="w-full h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20" />
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="flex gap-3 pt-3">
@@ -1402,7 +1540,7 @@ export default function AdminDashboard() {
                             onChange={(e) => setEditingGuardianDraft({ ...editingGuardianDraft, relationship_type: e.target.value })}
                             className="h-8 px-2 text-[0.75rem] border border-[#dedede] rounded"
                           >
-                            {["Mother", "Father", "Guardian", "School", "Other"].map(opt => (
+                            {["Mother", "Father", "Guardian"].map(opt => (
                               <option key={opt} value={opt}>{opt}</option>
                             ))}
                           </select>
@@ -1513,7 +1651,7 @@ export default function AdminDashboard() {
                     onChange={(e) => setGuardianAddForm({ ...guardianAddForm, relationship_type: e.target.value })}
                     className="w-full h-9 px-2 text-[0.8125rem] border border-[#dedede] rounded"
                   >
-                    {["Mother", "Father", "Guardian", "School", "Other"].map(opt => (
+                    {["Mother", "Father", "Guardian"].map(opt => (
                       <option key={opt} value={opt}>{opt}</option>
                     ))}
                   </select>

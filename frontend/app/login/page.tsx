@@ -68,10 +68,10 @@ export default function LoginPage() {
           <span className="text-white font-serif text-xl tracking-wide">The Ed Psych Practice</span>
         </div>
         <nav className="hidden md:flex items-center gap-6 text-white text-[0.8125rem] uppercase tracking-wider">
-          <a href="/" className="hover:opacity-80 text-white">Home</a>
-          <a href="/about" className="hover:opacity-80 text-white">About</a>
-          <a href="/services" className="hover:opacity-80 text-white">Services</a>
-          <a href="/contact" className="hover:opacity-80 text-white">Contact</a>
+          <a href="https://www.theedpsych.com/" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 text-white">Home</a>
+          <a href="https://www.theedpsych.com/about_us" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 text-white">About</a>
+          <a href="https://www.theedpsych.com/services" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 text-white">Services</a>
+          <a href="https://www.theedpsych.com/contact_us" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 text-white">Contact</a>
         </nav>
       </div>
 
@@ -100,11 +100,11 @@ export default function LoginPage() {
             <div className="w-20 h-[2px] bg-[#00acb6] mx-auto mb-8" />
 
             <h2 className="font-serif text-[1.875rem] leading-[1.3] text-[#333] mb-6">
-              Assessment <span className="text-[#00a1aa]">Intelligence</span>
+              Clinical <span className="text-[#00a1aa]">Intelligence</span>
             </h2>
             <p className="text-[1.125rem] leading-[1.8] text-[#737373] max-w-md mx-auto mb-10">
-              Transforming assessment data into precise, actionable insights.
-              Built for practitioners who value clarity and depth.
+              Guided conversations with parents and schools, turned into clear
+              next steps. Built for practitioners who value clarity and depth.
             </p>
 
             <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
@@ -209,16 +209,16 @@ export default function LoginPage() {
 
               <div className="mt-4 p-4 bg-[#f4f4f4] border border-[#dedede] rounded">
                 <p className="text-[0.875rem] text-[#737373] text-center leading-relaxed">
-                  <span className="font-semibold text-[#333]">Parents:</span> Your psychologist will send you a magic link via email to set up your account.
+                  <span className="font-semibold text-[#333]">Parents:</span> You will receive the chatbot link via email to set up your account.
                 </p>
               </div>
             </form>
 
             <footer className="mt-12 text-center">
               <div className="flex justify-center gap-6 text-[0.6875rem] font-semibold uppercase tracking-[0.15em] text-[#737373]">
-                <a href="/faq" className="hover:text-[#e61844] transition-colors">FAQs</a>
-                <a href="/contact" className="hover:text-[#e61844] transition-colors">Support</a>
-                <a href="/terms-and-conditions" className="hover:text-[#e61844] transition-colors">Privacy</a>
+                <a href="https://www.theedpsych.com/faq" target="_blank" rel="noopener noreferrer" className="hover:text-[#e61844] transition-colors">FAQs</a>
+                <a href="https://www.theedpsych.com/contact_us" target="_blank" rel="noopener noreferrer" className="hover:text-[#e61844] transition-colors">Support</a>
+                <a href="https://www.theedpsych.com/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="hover:text-[#e61844] transition-colors">Privacy</a>
               </div>
               <div className="mt-6 text-[0.75rem] text-[#737373]">
                 © 2026 The Ed Psych Practice. All clinical data encrypted.

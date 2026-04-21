@@ -76,7 +76,7 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
   return nodes;
 }
 
-function renderMarkdown(md: string): ReactNode {
+export function renderMarkdown(md: string): ReactNode {
   if (!md || md.trim() === "") {
     return <p className="text-slate-400 italic">Nothing to preview yet.</p>;
   }

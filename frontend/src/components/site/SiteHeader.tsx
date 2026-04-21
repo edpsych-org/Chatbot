@@ -3,14 +3,18 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-const NAV = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
-  { label: "Services", href: "/services" },
-  { label: "Schools", href: "/schools" },
-  { label: "Consultants", href: "/consultants" },
-  { label: "Contact", href: "/contact" },
-  { label: "FAQs", href: "/faq" },
+type NavItem = { label: string; href: string; external?: boolean };
+
+// All nav items point at the WordPress marketing site — the app is the
+// authenticated portal only.
+const NAV: NavItem[] = [
+  { label: "Home", href: "https://www.theedpsych.com/", external: true },
+  { label: "About", href: "https://www.theedpsych.com/about_us", external: true },
+  { label: "Services", href: "https://www.theedpsych.com/services", external: true },
+  { label: "Schools", href: "https://www.theedpsych.com/schools", external: true },
+  { label: "Consultants", href: "https://www.theedpsych.com/consultants", external: true },
+  { label: "Contact", href: "https://www.theedpsych.com/contact_us", external: true },
+  { label: "FAQs", href: "https://www.theedpsych.com/faq", external: true },
 ];
 
 const EXTERNAL = [
@@ -68,15 +72,27 @@ export default function SiteHeader() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
             <nav className="hidden md:flex items-center gap-1">
-              {NAV.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="px-3 py-2 text-sm font-semibold text-slate-700 hover:text-primary hover:bg-teal-50 rounded-md transition-colors"
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {NAV.map((item) =>
+                item.external ? (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-2 text-sm font-semibold text-slate-700 hover:text-primary hover:bg-teal-50 rounded-md transition-colors"
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="px-3 py-2 text-sm font-semibold text-slate-700 hover:text-primary hover:bg-teal-50 rounded-md transition-colors"
+                  >
+                    {item.label}
+                  </Link>
+                )
+              )}
               {EXTERNAL.map((item) => (
                 <a
                   key={item.href}
@@ -122,16 +138,29 @@ export default function SiteHeader() {
           {menuOpen && (
             <div className="md:hidden pb-4 pt-2 border-t border-slate-100">
               <nav className="flex flex-col gap-1">
-                {NAV.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setMenuOpen(false)}
-                    className="px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-teal-50 rounded-md"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+                {NAV.map((item) =>
+                  item.external ? (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setMenuOpen(false)}
+                      className="px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-teal-50 rounded-md"
+                    >
+                      {item.label}
+                    </a>
+                  ) : (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMenuOpen(false)}
+                      className="px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-teal-50 rounded-md"
+                    >
+                      {item.label}
+                    </Link>
+                  )
+                )}
                 {EXTERNAL.map((item) => (
                   <a
                     key={item.href}

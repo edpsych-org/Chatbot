@@ -325,7 +325,7 @@ async def start_chat_session(
 
     if not assignment:
         raise HTTPException(status_code=404, detail="Assignment not found")
-    if assignment.assigned_to_user_id != current_user.id:
+    if assignment.assigned_to_user_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Access denied")
 
     # Check for completed session — block re-taking
@@ -416,7 +416,11 @@ async def start_chat_session(
     result = await db.execute(select(Student).where(Student.id == assignment.student_id))
     student = result.scalar_one_or_none()
 
-    flow_type = "parent_assessment_v1" if current_user.role == UserRole.PARENT else "teacher_assessment_v1"
+    # ADMIN demoing → fall back to parent flow (only one defined so far)
+    if current_user.role == UserRole.PARENT or current_user.role == UserRole.ADMIN:
+        flow_type = "parent_assessment_v1"
+    else:
+        flow_type = "teacher_assessment_v1"
 
     # Create new session
     session = ChatSession(

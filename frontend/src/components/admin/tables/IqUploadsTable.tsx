@@ -12,7 +12,7 @@ export default function IqUploadsTable({ rows }: IqUploadsTableProps) {
       </div>
 
       {!rows || rows.length === 0 ? (
-        <div className="py-12 text-center"><p className="text-sm text-[#737373]">No IQ uploads found</p></div>
+        <div className="py-12 text-center"><p className="text-sm text-[#737373]">No cognitive scores found</p></div>
       ) : (
         <div className="rounded-xl overflow-hidden border border-[#dedede]">
           <div className="overflow-x-auto">

@@ -103,9 +103,9 @@ export default function RegisterPage() {
           {/* Footer */}
           <footer className="mt-10 text-center">
             <div className="flex justify-center gap-6 text-[0.6875rem] font-semibold uppercase tracking-[0.15em] text-[#737373]">
-              <a href="/faq" className="hover:text-[#e61844] transition-colors">FAQs</a>
-              <a href="/contact" className="hover:text-[#e61844] transition-colors">Support</a>
-              <a href="/terms-and-conditions" className="hover:text-[#e61844] transition-colors">Privacy</a>
+              <a href="https://www.theedpsych.com/faq" target="_blank" rel="noopener noreferrer" className="hover:text-[#e61844] transition-colors">FAQs</a>
+              <a href="https://www.theedpsych.com/contact_us" target="_blank" rel="noopener noreferrer" className="hover:text-[#e61844] transition-colors">Support</a>
+              <a href="https://www.theedpsych.com/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="hover:text-[#e61844] transition-colors">Privacy</a>
             </div>
             <div className="mt-6 text-[0.75rem] text-[#737373]">
               &copy; 2026 The Ed Psych Practice. All clinical data encrypted.

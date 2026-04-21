@@ -323,11 +323,11 @@ export default function MagicLinkPage() {
             <div className="w-20 h-[2px] bg-[#00acb6] mx-auto mb-8" />
 
             <h2 className="font-serif text-[1.875rem] leading-[1.3] text-[#333] mb-6">
-              Your <span className="text-[#00a1aa]">Assessment Portal</span>
+              Your <span className="text-[#00a1aa]">Secure Portal</span>
             </h2>
             <p className="text-[1.125rem] leading-[1.8] text-[#737373] max-w-md mx-auto mb-10">
-              Your psychologist has invited you to securely access your child&apos;s
-              assessment. Set up your account to get started.
+              Your psychologist has invited you to securely access your
+              child&apos;s account. Set up your account to get started.
             </p>
 
             <div className="ed-card max-w-md mx-auto">
