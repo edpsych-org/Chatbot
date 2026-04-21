@@ -66,7 +66,7 @@ export default function CompletionBanner({ onNavigate }: CompletionBannerProps) 
 
         {/* Text */}
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2.5 tracking-tight">
-          Assessment Complete!
+          All done — thank you!
         </h2>
         <div className="mb-8" />
 

@@ -115,11 +115,15 @@ async def create_assignment(
             detail=f"This parent/guardian is not linked to the student. Please add them as a guardian first in the Students tab."
         )
 
-    # Check if there's already an active assignment for this student
+    # Check if there's already an active assignment for this (student, recipient)
+    # pair. A student may have BOTH a parent and a school assignment open at the
+    # same time, but the same recipient can't be assigned twice until the first
+    # one is cancelled or completed.
     result = await db.execute(
         select(AssessmentAssignment).where(
             and_(
                 AssessmentAssignment.student_id == assignment_data.student_id,
+                AssessmentAssignment.assigned_to_user_id == assignment_data.assigned_to_user_id,
                 AssessmentAssignment.status.in_([AssignmentStatus.ASSIGNED, AssignmentStatus.IN_PROGRESS])
             )
         )
@@ -127,9 +131,13 @@ async def create_assignment(
     existing = result.scalar_one_or_none()
 
     if existing:
+        role_label = "school" if assigned_to.role == UserRole.SCHOOL else "parent/guardian"
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Student already has an active assessment assignment"
+            detail=(
+                f"This {role_label} already has an active assignment for this "
+                "student. Cancel or complete the existing one first."
+            )
         )
 
     # Create assignment
