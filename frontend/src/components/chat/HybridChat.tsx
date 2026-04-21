@@ -90,6 +90,7 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
   } | null>(null);
   const [consecutiveMcqCount, setConsecutiveMcqCount] = useState(0);
   const [showTextNudge, setShowTextNudge] = useState(false);
+  const [nudgeColor, setNudgeColor] = useState(0);
   const nudgeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const slowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -429,6 +430,7 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
       setConsecutiveMcqCount((prev) => {
         const next = prev + 1;
         if (next >= 3 && next % 3 === 0) {
+          setNudgeColor((c) => (c + 1) % 6);
           setShowTextNudge(true);
           if (nudgeTimerRef.current) clearTimeout(nudgeTimerRef.current);
           nudgeTimerRef.current = setTimeout(() => setShowTextNudge(false), 6000);
@@ -593,21 +595,34 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
           )}
           {showTextInput && (
             <div className="relative">
-              {showTextNudge && (
+              {showTextNudge && (() => {
+                const palette = [
+                  { bg: "#ec4899", arrow: "border-t-[#ec4899]" }, // pink
+                  { bg: "#eab308", arrow: "border-t-[#eab308]" }, // yellow
+                  { bg: "#a855f7", arrow: "border-t-[#a855f7]" }, // purple
+                  { bg: "#f97316", arrow: "border-t-[#f97316]" }, // orange
+                  { bg: "#0ea5e9", arrow: "border-t-[#0ea5e9]" }, // sky
+                  { bg: "#10b981", arrow: "border-t-[#10b981]" }, // emerald
+                ];
+                const c = palette[nudgeColor % palette.length];
+                return (
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-40 animate-slide-up">
-                  <div className="relative bg-teal-600 text-white text-xs font-medium px-4 py-2.5 rounded-xl shadow-lg shadow-teal-200/50 whitespace-nowrap">
+                  <div
+                    className="relative text-white text-xs font-medium px-4 py-2.5 rounded-xl shadow-lg whitespace-nowrap"
+                    style={{ backgroundColor: c.bg }}
+                  >
                     Feel free to share more details using the text field below
                     <button
                       onClick={() => { setShowTextNudge(false); if (nudgeTimerRef.current) clearTimeout(nudgeTimerRef.current); }}
-                      className="ml-2 text-teal-200 hover:text-white"
+                      className="ml-2 text-white/70 hover:text-white"
                     >
                       ✕
                     </button>
-                    {/* Arrow pointing down */}
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-teal-600" />
+                    <div className={`absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] ${c.arrow}`} />
                   </div>
                 </div>
-              )}
+                );
+              })()}
               <ChatInput
                 onSend={handleTextSend}
                 disabled={loading || isCompleted}
