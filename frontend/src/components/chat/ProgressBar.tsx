@@ -63,7 +63,7 @@ export default function ProgressBar({ percentage, currentCategory }: ProgressBar
               </div>
             ) : (
               <span className="text-xs font-medium text-gray-400">
-                Assessment Progress
+                Progress
               </span>
             )}
           </div>
@@ -90,7 +90,7 @@ export default function ProgressBar({ percentage, currentCategory }: ProgressBar
             aria-valuenow={clampedPercentage}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label={`Assessment progress: ${Math.round(clampedPercentage)}%`}
+            aria-label={`Progress: ${Math.round(clampedPercentage)}%`}
           />
         </div>
       </div>

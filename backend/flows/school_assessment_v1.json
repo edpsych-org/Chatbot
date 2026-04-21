@@ -292,7 +292,7 @@
     },
     "hopes": {
       "type": "text",
-      "question": "What would you most like the psychologist's assessment to clarify?",
+      "question": "What would you most like the psychologist's report to clarify?",
       "category": "goals",
       "next": "anything_else",
       "text_prompt": "Diagnosis, learning profile, specific strategies, exam arrangements…",
@@ -303,7 +303,7 @@
       "question": "Anything else the psychologist should know?",
       "category": "other",
       "next": "thanks",
-      "text_prompt": "Safeguarding, home context you're aware of, prior assessments.",
+      "text_prompt": "Safeguarding, home context you're aware of, prior reports or referrals.",
       "metadata": {"required": false}
     },
 

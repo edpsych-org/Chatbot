@@ -103,7 +103,7 @@ class OrchestratorAgent:
 
         if isinstance(empathetic_response, Exception):
             logger.error(f"Empathy failed: {empathetic_response}")
-            empathetic_response = f"Thank you for sharing that about {student_name}. This is really helpful for the assessment."
+            empathetic_response = f"Thank you for sharing that about {student_name}. This is really helpful."
 
         # Step 3: Update background profile (non-blocking)
         background_update = None
