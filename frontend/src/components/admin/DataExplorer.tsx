@@ -4,26 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_BASE } from "@/lib/api";
 import StudentsTable from "./tables/StudentsTable";
-import AssessmentsTable from "./tables/AssessmentsTable";
-import ReportsTable from "./tables/ReportsTable";
-import CognitiveTable from "./tables/CognitiveTable";
-import IqUploadsTable from "./tables/IqUploadsTable";
 import type { DataExplorerTab } from "./types";
 
 const TAB_ENDPOINTS: Record<DataExplorerTab, string> = {
   students: "/admin/students",
-  assessments: "/admin/chat-sessions?limit=100&offset=0",
-  reports: "/admin/psychologist-reports?limit=100",
-  cognitive: "/admin/cognitive-profiles",
-  iq: "/admin/iq-uploads",
 };
 
 const TAB_LABELS: { key: DataExplorerTab; label: string }[] = [
   { key: "students", label: "Students" },
-  { key: "assessments", label: "Assessments" },
-  { key: "reports", label: "Reports" },
-  { key: "cognitive", label: "Cognitive" },
-  { key: "iq", label: "IQ Uploads" },
 ];
 
 type CacheState = Partial<Record<DataExplorerTab, any[]>>;
@@ -64,23 +52,25 @@ export default function DataExplorer() {
 
   return (
     <div className="bg-[#f4f4f4] backdrop-blur-sm rounded-2xl border border-[#dedede] p-5">
-      {/* Tab bar */}
-      <div className="flex flex-wrap gap-1.5 mb-5">
-        {TAB_LABELS.map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => setActiveTab(tab.key)}
-            className={`px-4 py-2 rounded-lg text-xs font-medium transition-all ${
-              activeTab === tab.key
-                ? "bg-[#00acb6] text-[#333]"
-                : "bg-[#f4f4f4] text-[#737373] hover:bg-[#eeeeee] hover:text-[#333]"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {/* Tab bar (hidden when only one tab exists) */}
+      {TAB_LABELS.length > 1 && (
+        <div className="flex flex-wrap gap-1.5 mb-5">
+          {TAB_LABELS.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-4 py-2 rounded-lg text-xs font-medium transition-all ${
+                activeTab === tab.key
+                  ? "bg-[#00acb6] text-[#333]"
+                  : "bg-[#f4f4f4] text-[#737373] hover:bg-[#eeeeee] hover:text-[#333]"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Row count */}
       {!loading && !error && (
@@ -109,10 +99,6 @@ export default function DataExplorer() {
       {!loading && !error && (
         <>
           {activeTab === "students" && <StudentsTable rows={currentRows} />}
-          {activeTab === "assessments" && <AssessmentsTable rows={currentRows} />}
-          {activeTab === "reports" && <ReportsTable initialRows={currentRows} />}
-          {activeTab === "cognitive" && <CognitiveTable rows={currentRows} />}
-          {activeTab === "iq" && <IqUploadsTable rows={currentRows} />}
         </>
       )}
     </div>

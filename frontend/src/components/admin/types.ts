@@ -2,12 +2,7 @@
 // Fields are intentionally permissive — admin endpoints return full DB rows
 // and we only depend on a stable subset for display.
 
-export type DataExplorerTab =
-  | "students"
-  | "assessments"
-  | "reports"
-  | "cognitive"
-  | "iq";
+export type DataExplorerTab = "students";
 
 export interface AdminStudentRow {
   id: string;
