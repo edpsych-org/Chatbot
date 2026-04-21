@@ -1,9 +1,9 @@
-name: Production Backend Deploy
+name: Staging Backend Deploy
 
 on:
   push:
     branches:
-      - master
+      - staging
   workflow_dispatch:
 
 jobs:
@@ -54,15 +54,15 @@ jobs:
 
           AWS_REGION=${{ vars.AWS_REGION }}
 
-          FRONTEND_URL=${{ vars.FRONTEND_URL }}
-          CORS_ORIGINS=${{ vars.CORS_ORIGINS }}
+          FRONTEND_URL=${{ vars.STAGE_FRONTEND_URL }}
+          CORS_ORIGINS=${{ vars.STAGE_CORS_ORIGINS }}
 
           S3_BUCKET_IQ_TESTS=${{ vars.S3_BUCKET_IQ_TESTS }}
           S3_BUCKET_REPORTS=${{ vars.S3_BUCKET_REPORTS }}
           S3_BUCKET_TEMP=${{ vars.S3_BUCKET_TEMP }}
           S3_ENDPOINT_URL=${{ vars.S3_ENDPOINT_URL }}
 
-          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          DATABASE_URL=${{ secrets.STAGE_DATABASE_URL }}
           SECRET_KEY=${{ secrets.SECRET_KEY }}
           OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
           GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
@@ -87,7 +87,7 @@ jobs:
       - name: Build & Push Docker Image
         env:
           REGISTRY: ${{ secrets.ECR_REGISTRY }}
-          REPOSITORY: prod-chatbot-be
+          REPOSITORY: stage-chatbot-api
         run: |
           docker build --no-cache \
             -f Dockerfile-be \
@@ -97,8 +97,8 @@ jobs:
       - name: Deploy to Amazon ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-          task-definition: chatbot-be-revision.json
-          cluster: Prod_Cluster
-          service: chatbot-be-svc
+          task-definition: stage-chatbot-api.json
+          cluster: stage-cluster
+          service: stage-chatbot-api-service
           force-new-deployment: true
           wait-for-service-stability: false

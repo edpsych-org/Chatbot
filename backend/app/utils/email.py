@@ -56,7 +56,7 @@ def _possessive_for(relationship_type: Optional[str]) -> str:
 
 def _intro_line(relationship_type: Optional[str], student_name: str) -> str:
     """First line of the email body, adapted to the relationship."""
-    return f"A new assessment has been assigned for {_possessive_for(relationship_type)} <strong>{student_name}</strong>."
+    return f"You've been invited to complete a short guided conversation about {_possessive_for(relationship_type)} <strong>{student_name}</strong>."
 
 
 # ---------------------------------------------------------------------------
@@ -138,7 +138,7 @@ def send_assessment_assignment_email(
     if email_service is None:
         email_service = EmailService()
 
-    subject = f"Assessment invitation for {student_name}"
+    subject = f"Invitation from The Ed Psych Practice for {student_name}"
 
     intro = _intro_line(relationship_type, student_name)
     role_label = (relationship_type or "Guardian").strip() or "Guardian"
@@ -176,7 +176,7 @@ def send_assessment_assignment_email(
     <body>
         <div class="header">
             <h1>The Ed Psych Practice</h1>
-            <p>Assessment invitation</p>
+            <p>An invitation from your psychologist</p>
         </div>
         <div class="content">
             <p>Dear {parent_name},</p>
@@ -184,10 +184,10 @@ def send_assessment_assignment_email(
             <p>{intro}</p>
 
             <div class="info-box">
-                <h3>Assessment details</h3>
+                <h3>Your invitation</h3>
                 <p style="margin:6px 0;"><strong>Student:</strong> {student_name}</p>
                 <p style="margin:6px 0;"><strong>You're invited as:</strong> <span class="pill">{role_label}</span></p>
-                <p style="margin:6px 0;"><strong>Assigned by:</strong> {psychologist_name}</p>
+                <p style="margin:6px 0;"><strong>Invited by:</strong> {psychologist_name}</p>
                 {due_html}
                 {notes_html}
             </div>
@@ -195,7 +195,7 @@ def send_assessment_assignment_email(
             <p>Click the button below to begin:</p>
 
             <div style="text-align: center;">
-                <a href="{assessment_link}" class="button" style="display:inline-block;background-color:{COLOR_RED};color:#ffffff;padding:12px 28px;text-decoration:none;border-radius:4px;font-weight:600;">Start assessment</a>
+                <a href="{assessment_link}" class="button" style="display:inline-block;background-color:{COLOR_RED};color:#ffffff;padding:12px 28px;text-decoration:none;border-radius:4px;font-weight:600;">Get started</a>
             </div>
 
             <p style="font-size: 13px; color: {COLOR_MUTED};">
@@ -209,7 +209,7 @@ def send_assessment_assignment_email(
             </p>
 
             <div class="expiry">
-                ⏰ This invitation link expires in {expiry_hours} hours. If it expires, ask whoever assigned the assessment to send a new one.
+                ⏰ This invitation link expires in {expiry_hours} hours. If it expires, ask whoever invited you to send a new one.
             </div>
 
             <p>{contact_phrase}</p>
@@ -225,23 +225,23 @@ def send_assessment_assignment_email(
     """
 
     text_intro = (
-        f"A new assessment has been assigned for {_possessive_for(relationship_type)} {student_name}"
+        f"You've been invited to complete a short guided conversation about {_possessive_for(relationship_type)} {student_name}"
     )
     text_body = f"""
-The Ed Psych Practice — Assessment invitation
+The Ed Psych Practice — Invitation
 
 Dear {parent_name},
 
 {text_intro} by {psychologist_name}.
 
-Assessment details:
+Your invitation:
 - Student: {student_name}
 - You're invited as: {role_label}
-- Assigned by: {psychologist_name}
+- Invited by: {psychologist_name}
 {f'- Due: {due_date}' if due_date else ''}
 {f'- Notes: {notes}' if notes else ''}
 
-Begin the assessment here:
+Get started here:
 {assessment_link}
 
 First time? You'll be asked to set a password when you open the link.
@@ -309,12 +309,12 @@ def send_parent_invitation_email(
     <body>
         <div class="header">
             <h1>Welcome to The Ed Psych Practice</h1>
-            <p>Your secure access to {possessive} {student_name}'s assessment portal</p>
+            <p>Your secure access to {possessive} {student_name}'s portal</p>
         </div>
         <div class="content">
             <p style="font-size: 15px;"><strong>Dear {parent_name},</strong></p>
 
-            <p>You've been invited to access the Educational Psychology Assessment Portal for <strong>{student_name}</strong>.</p>
+            <p>You've been invited to access the Ed Psych Practice portal for <strong>{student_name}</strong>.</p>
 
             <div class="welcome-box">
                 <h3>Get started — no password needed</h3>
@@ -332,8 +332,8 @@ def send_parent_invitation_email(
             <div style="margin: 18px 0;">
                 <p style="margin: 0 0 6px; font-weight: 600; color: {COLOR_INK};">What you can do here:</p>
                 <ul style="margin: 6px 0; padding-left: 22px; color: {COLOR_INK};">
-                    <li>Complete assessments for {student_name}</li>
-                    <li>Track assessment progress</li>
+                    <li>Complete guided conversations about {student_name}</li>
+                    <li>Track progress</li>
                     <li>View finalised reports once they're ready</li>
                 </ul>
             </div>
@@ -368,7 +368,7 @@ The Ed Psych Practice — Welcome
 
 Dear {parent_name},
 
-You've been invited to access the Educational Psychology Assessment Portal for {student_name}.
+You've been invited to access the Ed Psych Practice portal for {student_name}.
 
 GET STARTED — NO PASSWORD NEEDED
 Click this secure link to sign in instantly:
@@ -377,8 +377,8 @@ Click this secure link to sign in instantly:
 The link is valid for {expiry_hours} hours.
 
 WHAT YOU CAN DO:
-- Complete assessments for {student_name}
-- Track assessment progress
+- Complete guided conversations about {student_name}
+- Track progress
 - View finalised reports once they're ready
 
 ACCOUNT INFORMATION:

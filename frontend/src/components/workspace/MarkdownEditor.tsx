@@ -76,7 +76,7 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
   return nodes;
 }
 
-function renderMarkdown(md: string): ReactNode {
+export function renderMarkdown(md: string): ReactNode {
   if (!md || md.trim() === "") {
     return <p className="text-slate-400 italic">Nothing to preview yet.</p>;
   }
@@ -371,7 +371,7 @@ export default function MarkdownEditor({
         <textarea
           value={content}
           onChange={(e) => handleChange(e.target.value)}
-          className="w-full min-h-[400px] p-4 border border-slate-200 rounded-xl bg-white text-slate-800 font-mono text-sm leading-relaxed resize-y focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+          className="w-full min-h-[400px] p-4 border border-slate-200 rounded-xl bg-white text-slate-800 text-[0.9375rem] leading-relaxed resize-y focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-[var(--font-nunito),system-ui,sans-serif]"
           placeholder="# Heading&#10;&#10;Write your report in markdown..."
           spellCheck
         />

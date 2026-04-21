@@ -134,30 +134,34 @@ export default function SchoolDashboard() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="site-header-pinned bg-white border-b border-slate-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary rounded-xl flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </div>
-              <div>
-                <h1 className="text-xl font-black text-on-background tracking-tight">The EdPsych Practice</h1>
-                <p className="text-xs text-slate-500 font-medium">School Dashboard</p>
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-xl font-black text-on-background tracking-tight truncate">The EdPsych Practice</h1>
+                <p className="hidden sm:block text-xs text-slate-500 font-medium">School Dashboard</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="hidden md:block text-right">
+            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+              <div className="hidden lg:block text-right">
                 <p className="text-sm font-bold text-on-background">{user?.organization}</p>
                 <p className="text-xs text-slate-500">{user?.email}</p>
               </div>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm font-bold text-slate-600 hover:text-on-background transition-colors"
+                className="px-3 sm:px-4 py-2 text-sm font-bold text-slate-600 hover:text-on-background transition-colors"
+                aria-label="Logout"
               >
-                Logout
+                <span className="hidden sm:inline">Logout</span>
+                <svg className="sm:hidden w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
               </button>
             </div>
           </div>
@@ -165,7 +169,7 @@ export default function SchoolDashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 lg:px-8 py-8 lg:py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
         {/* Welcome Section */}
         <div className="mb-8 lg:mb-12">
           <h2 className="text-3xl lg:text-4xl font-extrabold text-on-background mb-3">

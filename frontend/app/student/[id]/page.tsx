@@ -136,27 +136,25 @@ export default function StudentDetailPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="site-header-pinned bg-white border-b border-slate-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => router.push("/dashboard")}
-                className="w-10 h-10 rounded-xl bg-surface hover:bg-slate-200 transition-colors flex items-center justify-center"
-              >
-                <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-surface hover:bg-slate-200 transition-colors flex items-center justify-center shrink-0"
+            >
+              <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary rounded-xl flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
-              </button>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
-                </div>
-                <div>
-                  <h1 className="text-xl font-black text-on-background tracking-tight">The EdPsych Practice</h1>
-                  <p className="text-xs text-slate-500 font-medium">Student Profile</p>
-                </div>
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-xl font-black text-on-background tracking-tight truncate">The EdPsych Practice</h1>
+                <p className="hidden sm:block text-xs text-slate-500 font-medium">Student Profile</p>
               </div>
             </div>
           </div>
@@ -164,7 +162,7 @@ export default function StudentDetailPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 lg:px-8 py-8 lg:py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
         {/* Student Profile Card */}
         <div className="glass-card p-8 rounded-3xl mb-8">
           <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6">
@@ -205,15 +203,6 @@ export default function StudentDetailPage() {
                 <span role="img" aria-label="clipboard">📋</span>
                 Open Reports Workspace
               </button>
-              <button
-                onClick={handleStartAssessment}
-                className="px-8 py-4 bg-on-background text-white font-bold rounded-xl shadow-lg hover:bg-slate-800 transition-all flex items-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                New Assessment
-              </button>
             </div>
           </div>
         </div>
@@ -228,18 +217,9 @@ export default function StudentDetailPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               <h4 className="text-lg font-bold text-on-background mb-2">No assessments yet</h4>
-              <p className="text-slate-500 mb-6">
-                Start the first assessment to begin tracking this student's educational progress.
+              <p className="text-slate-500">
+                Open the Reports Workspace to begin.
               </p>
-              <button
-                onClick={handleStartAssessment}
-                className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-teal-600 transition-all inline-flex items-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Start First Assessment
-              </button>
             </div>
           ) : (
             <div className="space-y-4">

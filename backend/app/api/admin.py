@@ -5,12 +5,15 @@ student creation, and assignment management.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, update, delete as sql_delete
 from typing import List, Optional
 from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field, model_validator
 from datetime import datetime, timezone
+from io import BytesIO
+import re
 
 from app.core.database import get_db
 from app.core.security import get_current_active_user, get_password_hash
@@ -363,6 +366,41 @@ async def admin_list_students(
     )
     session_counts = {row.student_id: row.session_count for row in count_rows.all()}
 
+    # Assessment status per student — derived from assignment rows.
+    # Priority: COMPLETED (all non-cancelled complete) > IN_PROGRESS > ASSIGNED > CANCELLED > NOT_ASSIGNED
+    assignment_rows = await db.execute(select(AssessmentAssignment))
+    assignments_by_student: dict = {}
+    for a in assignment_rows.scalars().all():
+        assignments_by_student.setdefault(a.student_id, []).append(a)
+
+    def _derive_status(assignments: list) -> str:
+        active = [a for a in assignments if a.status != AssignmentStatus.CANCELLED]
+        if not active:
+            return "CANCELLED" if assignments else "NOT_ASSIGNED"
+        if all(a.status == AssignmentStatus.COMPLETED for a in active):
+            return "COMPLETED"
+        if any(a.status == AssignmentStatus.IN_PROGRESS for a in active):
+            return "IN_PROGRESS"
+        return "ASSIGNED"
+
+    def _derive_progress(assignments: list) -> dict:
+        """Return {done, total, percent} for the progress bar.
+
+        - No assignments            → 0 / 0 / 0
+        - Only cancelled            → 0 / 0 / 0
+        - Else: done = COMPLETED count; total = non-cancelled count;
+          percent = floor(done/total * 100), but IN_PROGRESS contributes 0.5
+          so partially-started assignments show a visible bar.
+        """
+        active = [a for a in assignments if a.status != AssignmentStatus.CANCELLED]
+        total = len(active)
+        if total == 0:
+            return {"done": 0, "total": 0, "percent": 0}
+        done = sum(1 for a in active if a.status == AssignmentStatus.COMPLETED)
+        in_prog = sum(1 for a in active if a.status == AssignmentStatus.IN_PROGRESS)
+        raw = (done + 0.5 * in_prog) / total * 100
+        return {"done": done, "total": total, "percent": int(round(raw))}
+
     result = await db.execute(select(Student).order_by(Student.created_at.desc()))
     students = result.scalars().all()
 
@@ -378,6 +416,8 @@ async def admin_list_students(
             "primary_guardian_name": (guardians_by_student.get(s.id) or {}).get("guardian_name"),
             "primary_guardian_email": (guardians_by_student.get(s.id) or {}).get("guardian_email"),
             "chat_session_count": int(session_counts.get(s.id, 0)),
+            "assessment_status": _derive_status(assignments_by_student.get(s.id, [])),
+            "assessment_progress": _derive_progress(assignments_by_student.get(s.id, [])),
         }
         for s in students
     ]
@@ -605,6 +645,177 @@ async def admin_get_psychologist_report(
             f"{student.first_name} {student.last_name}" if student else None
         ),
     }
+
+
+def _render_markdown_to_docx(doc, md: str) -> None:
+    """
+    Render a subset of markdown (mirroring frontend renderMarkdown in
+    MarkdownEditor.tsx) into the given python-docx Document.
+
+    Supported constructs:
+      - # / ## / ### headings -> Heading 1 / 2 / 3
+      - **bold** inline runs
+      - *italic* inline runs
+      - "- item" (or "* item") bullet lists -> List Bullet
+      - blank-line-separated paragraphs; non-empty lines within a paragraph
+        are joined with soft line breaks.
+    """
+
+    def add_inline_runs(paragraph, text: str) -> None:
+        """Tokenize text into plain / bold / italic runs and append them."""
+        remaining = text
+        while remaining:
+            bold_start = remaining.find("**")
+            italic_start = remaining.find("*")
+            # Bold takes priority when they start at the same index.
+            if bold_start != -1 and (italic_start == -1 or bold_start <= italic_start):
+                if bold_start > 0:
+                    paragraph.add_run(remaining[:bold_start])
+                after = remaining[bold_start + 2 :]
+                close = after.find("**")
+                if close == -1:
+                    paragraph.add_run(remaining[bold_start:])
+                    return
+                run = paragraph.add_run(after[:close])
+                run.bold = True
+                remaining = after[close + 2 :]
+                continue
+            if italic_start != -1:
+                if italic_start > 0:
+                    paragraph.add_run(remaining[:italic_start])
+                after = remaining[italic_start + 1 :]
+                close = after.find("*")
+                if close == -1:
+                    paragraph.add_run(remaining[italic_start:])
+                    return
+                run = paragraph.add_run(after[:close])
+                run.italic = True
+                remaining = after[close + 1 :]
+                continue
+            paragraph.add_run(remaining)
+            return
+
+    lines = (md or "").splitlines()
+    paragraph_buf: list[str] = []
+    list_buf: list[str] = []
+
+    def flush_paragraph() -> None:
+        if paragraph_buf:
+            p = doc.add_paragraph()
+            for idx, ln in enumerate(paragraph_buf):
+                if idx > 0:
+                    p.add_run().add_break()
+                add_inline_runs(p, ln)
+            paragraph_buf.clear()
+
+    def flush_list() -> None:
+        if list_buf:
+            for item in list_buf:
+                p = doc.add_paragraph(style="List Bullet")
+                add_inline_runs(p, item)
+            list_buf.clear()
+
+    for raw in lines:
+        line = raw.rstrip()
+        if line.strip() == "":
+            flush_paragraph()
+            flush_list()
+            continue
+
+        h3 = re.match(r"^###\s+(.*)$", line)
+        h2 = re.match(r"^##\s+(.*)$", line)
+        h1 = re.match(r"^#\s+(.*)$", line)
+        li = re.match(r"^[-*]\s+(.*)$", line)
+
+        if h1:
+            flush_paragraph()
+            flush_list()
+            doc.add_heading(h1.group(1), level=1)
+        elif h2:
+            flush_paragraph()
+            flush_list()
+            doc.add_heading(h2.group(1), level=2)
+        elif h3:
+            flush_paragraph()
+            flush_list()
+            doc.add_heading(h3.group(1), level=3)
+        elif li:
+            flush_paragraph()
+            list_buf.append(li.group(1))
+        else:
+            flush_list()
+            paragraph_buf.append(line)
+
+    flush_paragraph()
+    flush_list()
+
+
+@router.get("/students/{student_id}/reports/download")
+async def admin_download_student_reports_docx(
+    student_id: UUID,
+    current_user: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Download a single .docx combining a student's Background + Cognitive
+    psychologist reports. Includes whichever of the two exists (in that
+    order). Returns 404 if neither report exists.
+    """
+    from docx import Document  # local import so missing dependency only hits this route
+
+    # Look up the student (for file name + H1 title).
+    student_res = await db.execute(select(Student).where(Student.id == student_id))
+    student = student_res.scalar_one_or_none()
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No reports found for this student",
+        )
+
+    # Fetch both relevant report types in a single query, then order
+    # deterministically in Python: background_summary first, then cognitive_report.
+    stmt = select(PsychologistReport).where(
+        PsychologistReport.student_id == student_id,
+        PsychologistReport.report_type.in_(("background_summary", "cognitive_report")),
+    )
+    rows = (await db.execute(stmt)).scalars().all()
+    if not rows:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No reports found for this student",
+        )
+
+    by_type = {r.report_type: r for r in rows}
+    section_order = [
+        ("background_summary", "Background"),
+        ("cognitive_report", "Cognitive Report"),
+    ]
+
+    # Build the document.
+    doc = Document()
+    full_name = f"{student.first_name} {student.last_name}".strip()
+    doc.add_heading(full_name or "Student Report", level=1)
+    for rtype, heading in section_order:
+        report = by_type.get(rtype)
+        if not report:
+            continue
+        doc.add_heading(heading, level=2)
+        _render_markdown_to_docx(doc, report.content_markdown or "")
+
+    buf = BytesIO()
+    doc.save(buf)
+    buf.seek(0)
+
+    safe_name = re.sub(r"[^A-Za-z0-9]+", "", f"{student.first_name}{student.last_name}") or "Student"
+    filename = f"{safe_name}_report.docx"
+
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type=(
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        ),
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/cognitive-profiles")
