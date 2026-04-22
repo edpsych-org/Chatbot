@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { API_BASE } from "@/lib/api";
 import DetailDrawer from "../DetailDrawer";
+import SchoolShareButton from "../SchoolShareButton";
 import { renderMarkdown } from "@/src/components/workspace/MarkdownEditor";
 import type { AdminStudentRow } from "../types";
 
@@ -255,6 +256,10 @@ export default function StudentsTable({ rows }: StudentsTableProps) {
                       >
                         {downloadingId === row.id ? "…" : "Download"}
                       </button>
+                      <SchoolShareButton
+                        studentId={row.id}
+                        studentName={`${row.first_name} ${row.last_name}`.trim()}
+                      />
                     </div>
                   </td>
                 </tr>
