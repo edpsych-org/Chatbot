@@ -460,9 +460,24 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
       } else {
         sendMessage('free_text', content);
       }
-      setConsecutiveMcqCount((prev) => (resolvedOption ? prev + 1 : 0));
+      // Dismiss any nudge currently on screen; a new one may fire below on
+      // streaks of option-only picks.
       setShowTextNudge(false);
       if (nudgeTimerRef.current) clearTimeout(nudgeTimerRef.current);
+
+      if (resolvedOption) {
+        setConsecutiveMcqCount((prev) => {
+          const next = prev + 1;
+          if (next >= 3 && next % 3 === 0) {
+            setNudgeColor((c) => (c + 1) % 3);
+            setShowTextNudge(true);
+            nudgeTimerRef.current = setTimeout(() => setShowTextNudge(false), 6000);
+          }
+          return next;
+        });
+      } else {
+        setConsecutiveMcqCount(0);
+      }
     },
     [sendMessage]
   );
@@ -609,6 +624,12 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
               onSend={handleCombinedSend}
               disabled={loading}
               resetKey={currentQuestion.question ?? `${messages.length}`}
+              showNudge={showTextNudge && Boolean(currentQuestion.allow_text)}
+              nudgeColor={nudgeColor}
+              onDismissNudge={() => {
+                setShowTextNudge(false);
+                if (nudgeTimerRef.current) clearTimeout(nudgeTimerRef.current);
+              }}
             />
           )}
           {showTextInput && !(currentQuestion?.options && currentQuestion.options.length > 0 && currentQuestion?.allow_text) && (
