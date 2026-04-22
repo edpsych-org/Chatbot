@@ -7,14 +7,20 @@ interface McqOptionsProps {
   options: McqOption[];
   allowText: boolean;
   disabled: boolean;
-  // Legacy path — fires when allowText=false and a chip is clicked.
   onSelect: (option: McqOption) => void;
-  // Combined path — fires when allowText=true and the user hits Send.
-  // `resolvedOption` is the chip value (or null if they only typed).
   onSend: (content: string, resolvedOption: string | null) => void;
-  // Reset internal state when the question changes.
   resetKey?: string;
+  // Optional "feel free to type" nudge rendered above the text box.
+  showNudge?: boolean;
+  nudgeColor?: number;
+  onDismissNudge?: () => void;
 }
+
+const NUDGE_PALETTE = [
+  { bg: '#a855f7', arrow: 'border-t-[#a855f7]' }, // purple
+  { bg: '#ec4899', arrow: 'border-t-[#ec4899]' }, // pink
+  { bg: '#3b82f6', arrow: 'border-t-[#3b82f6]' }, // blue
+];
 
 export default function McqOptions({
   options,
@@ -23,6 +29,9 @@ export default function McqOptions({
   onSelect,
   onSend,
   resetKey,
+  showNudge = false,
+  nudgeColor = 0,
+  onDismissNudge,
 }: McqOptionsProps) {
   const [text, setText] = useState('');
   const [picked, setPicked] = useState<McqOption | null>(null);
@@ -96,11 +105,34 @@ export default function McqOptions({
     }
   };
 
+  const nudge = NUDGE_PALETTE[nudgeColor % NUDGE_PALETTE.length];
+
   return (
     <div className="px-3 py-2.5 sm:px-6 sm:py-3 border-t border-gray-100/80 bg-gradient-to-t from-gray-50/90 to-white/80 backdrop-blur-sm">
-      <div className="max-w-3xl mx-auto space-y-2.5">
+      <div className="max-w-3xl mx-auto space-y-2">
         {/* Text box on top */}
         <div className="relative">
+          {showNudge && (
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-40 animate-slide-up w-full px-2 sm:px-0 sm:w-auto sm:max-w-[min(90vw,420px)] pointer-events-none">
+              <div
+                className="relative text-white text-[0.6875rem] sm:text-xs font-medium px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl shadow-lg leading-snug flex items-start gap-2 pointer-events-auto"
+                style={{ backgroundColor: nudge.bg }}
+              >
+                <span className="flex-1 break-words">
+                  <span className="hidden sm:inline">Feel free to share more details in the text box</span>
+                  <span className="sm:hidden">Add details in the text box</span>
+                </span>
+                <button
+                  onClick={() => onDismissNudge?.()}
+                  aria-label="Dismiss"
+                  className="text-white/70 hover:text-white flex-shrink-0 leading-none"
+                >
+                  ✕
+                </button>
+                <div className={`absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] ${nudge.arrow}`} />
+              </div>
+            </div>
+          )}
           <textarea
             ref={textareaRef}
             value={text}
@@ -128,8 +160,8 @@ export default function McqOptions({
           )}
         </div>
 
-        {/* Options below */}
-        <div className="flex flex-wrap gap-1.5 sm:grid sm:grid-cols-2 sm:gap-2.5">
+        {/* Options below — compact layout in combined panel */}
+        <div className="flex flex-wrap gap-1.5 sm:grid sm:grid-cols-2 sm:gap-1.5">
           {options.map((option, index) => (
             <ChipButton
               key={option.value}
@@ -137,6 +169,7 @@ export default function McqOptions({
               index={index}
               selected={picked?.value === option.value}
               disabled={disabled}
+              compact
               onClick={() => handleChipClick(option)}
             />
           ))}
@@ -191,22 +224,35 @@ function ChipButton({
   index,
   selected,
   disabled,
+  compact = false,
   onClick,
 }: {
   option: McqOption;
   index: number;
   selected: boolean;
   disabled: boolean;
+  compact?: boolean;
   onClick: () => void;
 }) {
+  const sizeClasses = compact
+    ? 'min-h-[30px] sm:min-h-[34px] px-2.5 py-1.5 rounded-lg'
+    : 'min-h-[38px] sm:min-h-[48px] px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl';
+  const badgeClasses = compact
+    ? 'w-4 h-4 sm:w-5 sm:h-5 rounded-md text-[0.5625rem] sm:text-[0.625rem]'
+    : 'w-6 h-6 sm:w-7 sm:h-7 rounded-lg text-[0.625rem] sm:text-[0.6875rem]';
+  const labelClasses = compact
+    ? 'text-[0.6875rem] sm:text-xs font-medium leading-tight'
+    : 'text-xs sm:text-sm font-medium leading-tight';
+  const gap = compact ? 'gap-1.5' : 'gap-2.5';
+
   return (
     <button
       onClick={onClick}
       disabled={disabled}
       aria-pressed={selected}
       aria-label={`Select: ${option.label}`}
-      className={`group flex-1 min-w-[calc(50%-4px)] sm:min-w-0 min-h-[38px] sm:min-h-[48px] px-3 py-2 sm:px-4 sm:py-3
-        border rounded-xl sm:rounded-2xl shadow-sm
+      className={`group flex-1 min-w-[calc(50%-4px)] sm:min-w-0 ${sizeClasses}
+        border shadow-sm
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-1
         transition-all duration-200 ease-out
         disabled:opacity-40 disabled:cursor-not-allowed
@@ -217,9 +263,9 @@ function ChipButton({
         }`}
       style={{ animationDelay: `${index * 60}ms` }}
     >
-      <span className="flex items-center gap-2.5">
+      <span className={`flex items-center ${gap}`}>
         <span
-          className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg border flex items-center justify-center text-[0.625rem] sm:text-[0.6875rem] font-bold flex-shrink-0 transition-all duration-200 shadow-sm ${
+          className={`${badgeClasses} border flex items-center justify-center font-bold flex-shrink-0 transition-all duration-200 shadow-sm ${
             selected
               ? 'bg-white/20 text-white border-white/40'
               : 'bg-gradient-to-br from-gray-100 to-gray-50 text-gray-500 border-gray-200/80 group-hover:from-teal-100 group-hover:to-teal-50 group-hover:text-teal-600 group-hover:border-teal-200'
@@ -227,7 +273,7 @@ function ChipButton({
         >
           {String.fromCharCode(65 + index)}
         </span>
-        <span className="text-xs sm:text-sm font-medium leading-tight">{option.label}</span>
+        <span className={labelClasses}>{option.label}</span>
       </span>
     </button>
   );

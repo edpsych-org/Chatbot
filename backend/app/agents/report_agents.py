@@ -683,3 +683,55 @@ CRITICAL TONE: This section is read by PARENTS. Use a STRENGTHS-BASED, warm, and
 NEVER CRITICISE PARENTS OR SCHOOLS: Do NOT imply parents were neglectful, unsupportive, or slow to seek help. Do NOT suggest schools failed to identify needs, provided inadequate support, or missed warning signs. Acknowledge and appreciate the efforts parents and schools have already made. In Recommendations, frame school actions as "building on existing provision" and parent actions as "complementing the support already being provided at home". If earlier intervention could have helped, frame as "with the benefit of this assessment, further targeted support can now be put in place" — NEVER blame anyone for delays."""
 
         return await self.call_llm(prompt, max_tokens=3000, temperature=0.3)
+
+
+
+# ============================================================================
+# SchoolResponseSummaryAgent — short narrative of the school's chatbot input.
+# Used by the admin "Email school answers to parent" flow.
+# ============================================================================
+class SchoolResponseSummaryAgent(BaseAgent):
+    """Produce a short, parent-friendly summary of the school's chatbot input."""
+
+    def __init__(self):
+        super().__init__(
+            name="SchoolResponseSummary",
+            timeout=12.0,
+            max_tokens=600,
+            default_provider="auto",
+        )
+
+    async def summarise(self, student_first_name: str, assessment_data: dict, qa_pairs: list) -> str:
+        first_name = student_first_name or "the student"
+        assessment_json = json.dumps(assessment_data or {}, indent=2, default=str)
+        qa_json = json.dumps(qa_pairs or [], indent=2, default=str)
+
+        prompt = f"""You are summarising the input a school has shared about {first_name} for the student's parents to read. Use ONLY the data below — do not invent, embellish, or add recommendations.
+
+DATA — assessment_data:
+{assessment_json}
+
+DATA — full Q&A pairs:
+{qa_json}
+
+Write 3 to 5 short paragraphs in a warm, professional tone:
+1. A one-paragraph overview of how {first_name} is presenting at school.
+2. Classroom attention and learning behaviour.
+3. Peer interactions, playground, and emotional regulation.
+4. Any concerns the school raised and any supports already in place (only if the data mentions them).
+
+Rules:
+- Parent-facing audience — plain, supportive language.
+- Do NOT use the word "assessment".
+- Do NOT invent diagnoses or make recommendations.
+- Do NOT copy the questions verbatim; paraphrase.
+- If the data is sparse, keep the summary proportionately short."""
+
+        try:
+            text = await self.call_llm(prompt, max_tokens=600, temperature=0.3)
+        except Exception as e:
+            logger.warning(f"[SchoolResponseSummary] LLM call raised: {e}")
+            text = None
+        if not text or not text.strip():
+            return "The school has completed the questionnaire. Full responses follow."
+        return text.strip()
