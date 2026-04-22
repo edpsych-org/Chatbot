@@ -434,7 +434,7 @@ async def start_chat_session(
         current_step=0,
         context_data={
             "user_profile": {
-                "student_name": f"{student.first_name} {student.last_name}" if student else "your child",
+                "student_name": student.first_name if student else "your child",
                 "student_age": None
             },
             "assessment_data": {},
