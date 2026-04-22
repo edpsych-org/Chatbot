@@ -424,6 +424,26 @@ async def start_chat_session(
     else:
         flow_type = "parent_assessment_v1"
 
+    # Derive age from student.date_of_birth (years, floored). Leaves
+    # student_age unset if DOB isn't recorded so the flow can still ask.
+    computed_age = None
+    if student and student.date_of_birth:
+        from datetime import date as _date
+        dob = student.date_of_birth
+        if hasattr(dob, "date"):
+            dob = dob.date()
+        today = _date.today()
+        years = today.year - dob.year - (
+            (today.month, today.day) < (dob.month, dob.day)
+        )
+        if 0 < years < 120:
+            computed_age = str(years)
+
+    answered_initial: list[str] = []
+    if computed_age:
+        # Pre-mark the age node answered so it's skipped on first advance.
+        answered_initial.append("student_age")
+
     # Create new session
     session = ChatSession(
         assignment_id=request.assignment_id,
@@ -435,13 +455,13 @@ async def start_chat_session(
         context_data={
             "user_profile": {
                 "student_name": student.first_name if student else "your child",
-                "student_age": None
+                "student_age": computed_age,
             },
             "assessment_data": {},
             "background_profile": {},
             "conversation_summary": "",
             "explored_areas": [],
-            "answered_node_ids": [],
+            "answered_node_ids": answered_initial,
             "messages_count": 0,
             "recent_messages": [],
         }
@@ -470,6 +490,16 @@ async def start_chat_session(
 
     # Auto-advance through non-interactive message nodes to first question
     final_node_id, final_node = flow_engine.advance_past_messages(flow_type, flow["start_node"])
+
+    # If we already know the age, skip the age question and advance to whatever
+    # node it points to (typically attention_intro).
+    if computed_age and final_node_id == "student_age" and final_node:
+        options = final_node.get("options", [])
+        next_after_age = options[0].get("next") if options else final_node.get("next")
+        if next_after_age:
+            final_node_id, final_node = flow_engine.advance_past_messages(
+                flow_type, next_after_age
+            )
 
     if final_node_id != flow["start_node"] and final_node:
         session.current_node_id = final_node_id
