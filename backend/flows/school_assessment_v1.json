@@ -308,10 +308,11 @@
     },
 
     "thanks": {
-      "type": "message",
-      "content": "✅ Thank you. The school's input has been recorded and will feed directly into {student_name}'s report.\n\nYou can close this window now.",
+      "type": "completion",
+      "content": "Thank you. The school's input has been recorded and will feed directly into {student_name}'s report.",
+      "action": "generate_report",
       "next": null,
-      "metadata": {"category": "close", "is_terminal": true}
+      "metadata": {"category": "completion", "is_terminal": true}
     }
   }
 }
