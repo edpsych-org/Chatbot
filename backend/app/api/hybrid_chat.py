@@ -424,6 +424,26 @@ async def start_chat_session(
     else:
         flow_type = "parent_assessment_v1"
 
+    # Derive age from student.date_of_birth (years, floored). Leaves
+    # student_age unset if DOB isn't recorded so the flow can still ask.
+    computed_age = None
+    if student and student.date_of_birth:
+        from datetime import date as _date
+        dob = student.date_of_birth
+        if hasattr(dob, "date"):
+            dob = dob.date()
+        today = _date.today()
+        years = today.year - dob.year - (
+            (today.month, today.day) < (dob.month, dob.day)
+        )
+        if 0 < years < 120:
+            computed_age = str(years)
+
+    answered_initial: list[str] = []
+    if computed_age:
+        # Pre-mark the age node answered so it's skipped on first advance.
+        answered_initial.append("student_age")
+
     # Create new session
     session = ChatSession(
         assignment_id=request.assignment_id,
@@ -434,14 +454,14 @@ async def start_chat_session(
         current_step=0,
         context_data={
             "user_profile": {
-                "student_name": f"{student.first_name} {student.last_name}" if student else "your child",
-                "student_age": None
+                "student_name": student.first_name if student else "your child",
+                "student_age": computed_age,
             },
             "assessment_data": {},
             "background_profile": {},
             "conversation_summary": "",
             "explored_areas": [],
-            "answered_node_ids": [],
+            "answered_node_ids": answered_initial,
             "messages_count": 0,
             "recent_messages": [],
         }
@@ -470,6 +490,16 @@ async def start_chat_session(
 
     # Auto-advance through non-interactive message nodes to first question
     final_node_id, final_node = flow_engine.advance_past_messages(flow_type, flow["start_node"])
+
+    # If we already know the age, skip the age question and advance to whatever
+    # node it points to (typically attention_intro).
+    if computed_age and final_node_id == "student_age" and final_node:
+        options = final_node.get("options", [])
+        next_after_age = options[0].get("next") if options else final_node.get("next")
+        if next_after_age:
+            final_node_id, final_node = flow_engine.advance_past_messages(
+                flow_type, next_after_age
+            )
 
     if final_node_id != flow["start_node"] and final_node:
         session.current_node_id = final_node_id
@@ -653,10 +683,6 @@ async def _handle_mcq_choice(session: ChatSession, message_input: ChatMessageInp
             answered_nodes.append(session.current_node_id)
             session.context_data["answered_node_ids"] = answered_nodes
 
-    # Store MCQ answer in assessment data
-    if current_node:
-        _store_mcq_answer(session, current_category, session.current_node_id, message_input.resolved_option)
-
     # Get the selected option label for AI context
     user_choice_label = message_input.content
     if current_node:
@@ -664,6 +690,23 @@ async def _handle_mcq_choice(session: ChatSession, message_input: ChatMessageInp
             if opt["value"] == message_input.resolved_option:
                 user_choice_label = opt.get("label", message_input.content)
                 break
+
+    # Derive elaboration: anything the user typed that wasn't just the option
+    # label verbatim. Empty string or label-only content means "no elaboration".
+    elaboration = None
+    submitted = (message_input.content or "").strip()
+    if submitted and submitted != (user_choice_label or "").strip():
+        elaboration = submitted
+
+    # Store MCQ answer (plus any elaboration) in assessment data
+    if current_node:
+        _store_mcq_answer(
+            session,
+            current_category,
+            session.current_node_id,
+            message_input.resolved_option,
+            elaboration=elaboration,
+        )
 
     # Get next node
     next_node_id = flow_engine.get_next_node_id(
@@ -946,8 +989,15 @@ async def _handle_free_text(
     }, None
 
 
-def _store_mcq_answer(session: ChatSession, category: str, node_id: str, value: str):
-    """Store MCQ answer in assessment data."""
+def _store_mcq_answer(
+    session: ChatSession,
+    category: str,
+    node_id: str,
+    value: str,
+    elaboration: Optional[str] = None,
+):
+    """Store MCQ answer in assessment data. Optionally attach free-text
+    elaboration the user typed alongside their option."""
     assessment = session.context_data.get("assessment_data", {})
     if category not in assessment:
         assessment[category] = {"mcq_answers": {}, "text_inputs": [], "indicators": []}
@@ -967,6 +1017,12 @@ def _store_mcq_answer(session: ChatSession, category: str, node_id: str, value: 
                 elif "level" in meta:
                     assessment[category]["severity"] = meta["level"]
                 break
+
+    if elaboration:
+        assessment[category].setdefault("elaborations", {})[node_id] = elaboration
+        # Also surface in free-text inputs so agents that scan text_inputs
+        # don't miss it.
+        assessment[category].setdefault("text_inputs", []).append(elaboration)
 
     session.context_data["assessment_data"] = assessment
 

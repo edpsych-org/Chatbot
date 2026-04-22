@@ -452,6 +452,21 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
     [sendMessage]
   );
 
+  const handleCombinedSend = useCallback(
+    (content: string, resolvedOption: string | null) => {
+      setInputFeedback(null);
+      if (resolvedOption) {
+        sendMessage('mcq_choice', content, resolvedOption);
+      } else {
+        sendMessage('free_text', content);
+      }
+      setConsecutiveMcqCount((prev) => (resolvedOption ? prev + 1 : 0));
+      setShowTextNudge(false);
+      if (nudgeTimerRef.current) clearTimeout(nudgeTimerRef.current);
+    },
+    [sendMessage]
+  );
+
   const handleRetry = useCallback(() => {
     if (lastFailedMessage) {
       sendMessage(
@@ -589,11 +604,14 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
           {currentQuestion?.options && currentQuestion.options.length > 0 && (
             <McqOptions
               options={currentQuestion.options}
+              allowText={Boolean(currentQuestion.allow_text)}
               onSelect={handleMcqSelect}
+              onSend={handleCombinedSend}
               disabled={loading}
+              resetKey={currentQuestion.question ?? `${messages.length}`}
             />
           )}
-          {showTextInput && (
+          {showTextInput && !(currentQuestion?.options && currentQuestion.options.length > 0 && currentQuestion?.allow_text) && (
             <div className="relative">
               {showTextNudge && (() => {
                 const palette = [
@@ -603,15 +621,19 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
                 ];
                 const c = palette[nudgeColor % palette.length];
                 return (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-40 animate-slide-up">
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-40 animate-slide-up w-full px-2 sm:px-0 sm:w-auto sm:max-w-[min(90vw,420px)] pointer-events-none">
                   <div
-                    className="relative text-white text-xs font-medium px-4 py-2.5 rounded-xl shadow-lg whitespace-nowrap"
+                    className="relative text-white text-[0.6875rem] sm:text-xs font-medium px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl shadow-lg leading-snug flex items-start gap-2 pointer-events-auto"
                     style={{ backgroundColor: c.bg }}
                   >
-                    Feel free to share more details using the text field below
+                    <span className="flex-1 break-words">
+                      <span className="hidden sm:inline">Feel free to share more details using the text field below</span>
+                      <span className="sm:hidden">Type more details below</span>
+                    </span>
                     <button
                       onClick={() => { setShowTextNudge(false); if (nudgeTimerRef.current) clearTimeout(nudgeTimerRef.current); }}
-                      className="ml-2 text-white/70 hover:text-white"
+                      aria-label="Dismiss"
+                      className="text-white/70 hover:text-white flex-shrink-0 leading-none"
                     >
                       ✕
                     </button>

@@ -187,6 +187,7 @@ Be specific and use British English. Base everything on the actual data provided
                 severity = data.get("severity", "unknown")
                 indicators = data.get("indicators", [])
                 mcq_answers = data.get("mcq_answers", {})
+                elaborations = data.get("elaborations", {})
                 text_inputs = data.get("text_inputs", [])
 
                 section = f"\n{category.upper()}:"
@@ -194,8 +195,13 @@ Be specific and use British English. Base everything on the actual data provided
                 if indicators:
                     section += f"\n  Indicators: {', '.join(indicators[:5])}"
                 if mcq_answers:
-                    answers = [f"{k}={v}" for k, v in list(mcq_answers.items())[:5]]
-                    section += f"\n  Responses: {', '.join(answers)}"
+                    # Include per-answer elaboration inline when present so
+                    # the LLM sees the option + the user's own words together.
+                    rendered = []
+                    for k, v in list(mcq_answers.items())[:5]:
+                        extra = elaborations.get(k) if isinstance(elaborations, dict) else None
+                        rendered.append(f"{k}={v}" + (f" ({extra})" if extra else ""))
+                    section += f"\n  Responses: {', '.join(rendered)}"
                 if text_inputs:
                     section += f"\n  Parent comments: {'; '.join(text_inputs[:3])}"
                 parts.append(section)
