@@ -452,6 +452,21 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
     [sendMessage]
   );
 
+  const handleCombinedSend = useCallback(
+    (content: string, resolvedOption: string | null) => {
+      setInputFeedback(null);
+      if (resolvedOption) {
+        sendMessage('mcq_choice', content, resolvedOption);
+      } else {
+        sendMessage('free_text', content);
+      }
+      setConsecutiveMcqCount((prev) => (resolvedOption ? prev + 1 : 0));
+      setShowTextNudge(false);
+      if (nudgeTimerRef.current) clearTimeout(nudgeTimerRef.current);
+    },
+    [sendMessage]
+  );
+
   const handleRetry = useCallback(() => {
     if (lastFailedMessage) {
       sendMessage(
@@ -589,11 +604,14 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
           {currentQuestion?.options && currentQuestion.options.length > 0 && (
             <McqOptions
               options={currentQuestion.options}
+              allowText={Boolean(currentQuestion.allow_text)}
               onSelect={handleMcqSelect}
+              onSend={handleCombinedSend}
               disabled={loading}
+              resetKey={currentQuestion.question ?? `${messages.length}`}
             />
           )}
-          {showTextInput && (
+          {showTextInput && !(currentQuestion?.options && currentQuestion.options.length > 0 && currentQuestion?.allow_text) && (
             <div className="relative">
               {showTextNudge && (() => {
                 const palette = [

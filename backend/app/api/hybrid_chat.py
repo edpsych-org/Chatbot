@@ -683,10 +683,6 @@ async def _handle_mcq_choice(session: ChatSession, message_input: ChatMessageInp
             answered_nodes.append(session.current_node_id)
             session.context_data["answered_node_ids"] = answered_nodes
 
-    # Store MCQ answer in assessment data
-    if current_node:
-        _store_mcq_answer(session, current_category, session.current_node_id, message_input.resolved_option)
-
     # Get the selected option label for AI context
     user_choice_label = message_input.content
     if current_node:
@@ -694,6 +690,23 @@ async def _handle_mcq_choice(session: ChatSession, message_input: ChatMessageInp
             if opt["value"] == message_input.resolved_option:
                 user_choice_label = opt.get("label", message_input.content)
                 break
+
+    # Derive elaboration: anything the user typed that wasn't just the option
+    # label verbatim. Empty string or label-only content means "no elaboration".
+    elaboration = None
+    submitted = (message_input.content or "").strip()
+    if submitted and submitted != (user_choice_label or "").strip():
+        elaboration = submitted
+
+    # Store MCQ answer (plus any elaboration) in assessment data
+    if current_node:
+        _store_mcq_answer(
+            session,
+            current_category,
+            session.current_node_id,
+            message_input.resolved_option,
+            elaboration=elaboration,
+        )
 
     # Get next node
     next_node_id = flow_engine.get_next_node_id(
@@ -976,8 +989,15 @@ async def _handle_free_text(
     }, None
 
 
-def _store_mcq_answer(session: ChatSession, category: str, node_id: str, value: str):
-    """Store MCQ answer in assessment data."""
+def _store_mcq_answer(
+    session: ChatSession,
+    category: str,
+    node_id: str,
+    value: str,
+    elaboration: Optional[str] = None,
+):
+    """Store MCQ answer in assessment data. Optionally attach free-text
+    elaboration the user typed alongside their option."""
     assessment = session.context_data.get("assessment_data", {})
     if category not in assessment:
         assessment[category] = {"mcq_answers": {}, "text_inputs": [], "indicators": []}
@@ -997,6 +1017,12 @@ def _store_mcq_answer(session: ChatSession, category: str, node_id: str, value: 
                 elif "level" in meta:
                     assessment[category]["severity"] = meta["level"]
                 break
+
+    if elaboration:
+        assessment[category].setdefault("elaborations", {})[node_id] = elaboration
+        # Also surface in free-text inputs so agents that scan text_inputs
+        # don't miss it.
+        assessment[category].setdefault("text_inputs", []).append(elaboration)
 
     session.context_data["assessment_data"] = assessment
 
