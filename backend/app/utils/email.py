@@ -406,3 +406,106 @@ The login link expires in {expiry_hours} hours for your security.
         html_body=html_body,
         text_body=text_body,
     )
+
+
+# ---------------------------------------------------------------------------
+# School-input share (admin -> parent)
+# ---------------------------------------------------------------------------
+def send_school_share_email(
+    recipient_email: str,
+    recipient_name: str,
+    student_name: str,
+    admin_note: Optional[str],
+    pdf_bytes: bytes,
+    filename: str,
+) -> tuple:
+    """Send the school's chatbot input to a parent with a PDF attached.
+
+    Returns (ok, message_id_or_error).
+    """
+    import base64
+
+    subject = f"School input for {student_name}"
+
+    safe_note_html = ""
+    if admin_note:
+        escaped = (
+            admin_note.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        )
+        safe_note_html = (
+            f'<div style="margin:18px 0;padding:14px 16px;background:{COLOR_TEAL_TINT};'
+            f'border-left:3px solid {COLOR_TEAL};border-radius:3px;white-space:pre-wrap;">'
+            f"{escaped}</div>"
+        )
+
+    html_body = f"""<!DOCTYPE html>
+<html>
+<body style="font-family:'Helvetica Neue',Arial,sans-serif;line-height:1.6;color:{COLOR_INK};max-width:600px;margin:0 auto;padding:20px;background:#ffffff;">
+  <div style="background:{COLOR_TEAL};color:#ffffff;padding:24px;border-radius:4px 4px 0 0;text-align:center;">
+    <h1 style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:400;">The Ed Psych Practice</h1>
+    <p style="margin:6px 0 0;font-size:13px;opacity:0.9;">School input for {student_name}</p>
+  </div>
+  <div style="padding:28px;border:1px solid {COLOR_BORDER};border-top:none;border-radius:0 0 4px 4px;">
+    <p>Dear {recipient_name},</p>
+    <p>At your request, we're sharing the responses the school provided about <strong>{student_name}</strong>. The attached PDF contains a short summary followed by the full set of questions and answers.</p>
+    {safe_note_html}
+    <p style="margin-top:22px;">If anything in the PDF is unclear, please reply to this email and we will be happy to help.</p>
+    <p style="margin-top:24px;">Kind regards,<br>The Ed Psych Practice</p>
+  </div>
+  <div style="text-align:center;color:{COLOR_MUTED};font-size:11px;margin-top:16px;">© The Ed Psych Practice</div>
+</body>
+</html>"""
+
+    text_body = (
+        f"Dear {recipient_name},\n\n"
+        f"At your request, we're sharing the school's responses about {student_name}. "
+        f"The attached PDF contains a short summary followed by the full questions and answers.\n\n"
+    )
+    if admin_note:
+        text_body += f"Note from the practice:\n{admin_note}\n\n"
+    text_body += "If anything is unclear, please reply to this email.\n\nKind regards,\nThe Ed Psych Practice"
+
+    if not BREVO_API_KEY:
+        logger.info(f"[EMAIL MODE: DEV] Would send school-share email to {recipient_email}")
+        logger.info(f"Subject: {subject}")
+        logger.info(f"Attachment: {filename} ({len(pdf_bytes)} bytes)")
+        return True, "dev-mode"
+
+    payload = {
+        "sender": {"name": EMAIL_FROM_NAME, "email": EMAIL_FROM_ADDRESS},
+        "to": [{"email": recipient_email, "name": recipient_name}],
+        "subject": subject,
+        "htmlContent": html_body,
+        "textContent": text_body,
+        "attachment": [
+            {
+                "name": filename,
+                "content": base64.b64encode(pdf_bytes).decode("ascii"),
+            }
+        ],
+    }
+
+    try:
+        resp = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers={
+                "api-key": BREVO_API_KEY,
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+            json=payload,
+            timeout=20,
+        )
+    except Exception as e:
+        logger.exception("Brevo school-share email request raised")
+        return False, str(e)
+
+    if resp.status_code in (200, 201):
+        try:
+            message_id = resp.json().get("messageId")
+        except Exception:
+            message_id = None
+        logger.info(f"School-share email sent to {recipient_email} (messageId={message_id})")
+        return True, message_id
+    logger.error(f"Brevo school-share error {resp.status_code}: {resp.text}")
+    return False, f"{resp.status_code}: {resp.text[:200]}"

@@ -1493,7 +1493,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <label className="block text-[0.6875rem] font-medium text-[#737373] mb-1">Notes (optional)</label>
-              <textarea value={assignForm.notes} onChange={(e) => setAssignForm({ ...assignForm, notes: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none" rows={2} placeholder="Any notes for the parent..." />
+              <textarea value={assignForm.notes} onChange={(e) => setAssignForm({ ...assignForm, notes: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none" rows={2} placeholder="Any notes for the parent or school..." />
             </div>
             <div className="flex gap-3 pt-3">
               <button type="button" onClick={() => { setShowAssignForm(false); setAssignFormError(""); }} className="flex-1 h-10 text-sm font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">Cancel</button>

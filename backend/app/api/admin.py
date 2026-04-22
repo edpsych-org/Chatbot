@@ -1632,3 +1632,231 @@ async def admin_cancel_assignment(
     await db.commit()
 
     return {"message": "Assignment cancelled successfully"}
+
+
+# ============================================================================
+# School-input share (admin -> parent)
+# ============================================================================
+
+class SchoolShareSend(BaseModel):
+    recipient_user_id: UUID
+    note: Optional[str] = None
+
+    @model_validator(mode="after")
+    def _cap_note(self):
+        if self.note and len(self.note) > 500:
+            raise ValueError("Note must be 500 characters or fewer")
+        return self
+
+
+async def _fetch_completed_school_session(db: AsyncSession, student_id: UUID):
+    """Return the most recent COMPLETED school ChatSession for a student, or None."""
+    from app.models.chat import ChatSessionStatus
+
+    stmt = (
+        select(ChatSession, AssessmentAssignment)
+        .join(AssessmentAssignment, AssessmentAssignment.id == ChatSession.assignment_id)
+        .join(User, User.id == ChatSession.user_id)
+        .where(
+            AssessmentAssignment.student_id == student_id,
+            User.role == UserRole.SCHOOL,
+            ChatSession.status == ChatSessionStatus.COMPLETED.value,
+        )
+        .order_by(ChatSession.completed_at.desc().nullslast())
+        .limit(1)
+    )
+    row = (await db.execute(stmt)).first()
+    if not row:
+        return None
+    return row[0]
+
+
+async def _list_parent_recipients(db: AsyncSession, student_id: UUID) -> list:
+    stmt = (
+        select(
+            User.id.label("user_id"),
+            User.full_name.label("name"),
+            User.email.label("email"),
+            StudentGuardian.relationship_type.label("relationship"),
+        )
+        .join(StudentGuardian, StudentGuardian.guardian_user_id == User.id)
+        .where(
+            StudentGuardian.student_id == student_id,
+            User.role == UserRole.PARENT,
+        )
+        .order_by(StudentGuardian.is_primary.desc().nullslast(), User.full_name.asc())
+    )
+    rows = (await db.execute(stmt)).all()
+    return [
+        {
+            "user_id": str(r.user_id),
+            "name": r.name,
+            "email": r.email,
+            "relationship": r.relationship or "Guardian",
+        }
+        for r in rows
+    ]
+
+
+def _previously_shared_from_session(session: ChatSession) -> list:
+    entries = (session.context_data or {}).get("shared_with_parents") or []
+    out = []
+    for e in entries:
+        if not isinstance(e, dict):
+            continue
+        out.append(
+            {
+                "sent_at": e.get("sent_at"),
+                "recipient_email": e.get("recipient_email"),
+                "recipient_name": e.get("recipient_name"),
+                "relationship": e.get("relationship"),
+            }
+        )
+    return out
+
+
+@router.get("/students/{student_id}/school-share/preview")
+async def admin_school_share_preview(
+    student_id: UUID,
+    current_user: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Preview data for the School-share modal: completed school session,
+    eligible parent recipients, and past shares."""
+    student_res = await db.execute(select(Student).where(Student.id == student_id))
+    student = student_res.scalar_one_or_none()
+    if not student:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+
+    session = await _fetch_completed_school_session(db, student_id)
+    if not session:
+        return {
+            "school_session": None,
+            "recipients": [],
+            "previously_shared": [],
+        }
+
+    qa_pairs = (session.context_data or {}).get("completed_qa_pairs") or []
+    recipients = await _list_parent_recipients(db, student_id)
+
+    return {
+        "school_session": {
+            "session_id": str(session.id),
+            "completed_at": session.completed_at.isoformat() if session.completed_at else None,
+            "answers_count": len(qa_pairs),
+        },
+        "recipients": recipients,
+        "previously_shared": _previously_shared_from_session(session),
+    }
+
+
+@router.post(
+    "/students/{student_id}/school-share/send",
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def admin_school_share_send(
+    student_id: UUID,
+    body: SchoolShareSend,
+    current_user: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Email a PDF of the school's chatbot input to a linked parent guardian."""
+    from app.utils.email import send_school_share_email
+    from app.services.pdf_builder import build_school_share_pdf
+    from app.agents.report_agents import SchoolResponseSummaryAgent
+    from sqlalchemy.orm.attributes import flag_modified
+
+    student_res = await db.execute(select(Student).where(Student.id == student_id))
+    student = student_res.scalar_one_or_none()
+    if not student:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+
+    session = await _fetch_completed_school_session(db, student_id)
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No completed school input for this student",
+        )
+
+    sg_row = (
+        await db.execute(
+            select(StudentGuardian, User)
+            .join(User, User.id == StudentGuardian.guardian_user_id)
+            .where(
+                StudentGuardian.student_id == student_id,
+                StudentGuardian.guardian_user_id == body.recipient_user_id,
+                User.role == UserRole.PARENT,
+            )
+        )
+    ).first()
+    if not sg_row:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Recipient is not a linked parent/guardian for this student",
+        )
+    sg, parent_user = sg_row
+
+    ctx_pre = session.context_data or {}
+    try:
+        summariser = SchoolResponseSummaryAgent()
+        summary_text = await summariser.summarise(
+            student_first_name=student.first_name,
+            assessment_data=ctx_pre.get("assessment_data") or {},
+            qa_pairs=ctx_pre.get("completed_qa_pairs") or [],
+        )
+    except Exception as e:
+        import logging as _log
+        _log.getLogger(__name__).exception("Summariser failed")
+        summary_text = "The school has completed the questionnaire. Full responses follow."
+
+    try:
+        completed_str = session.completed_at.strftime("%d %b %Y") if session.completed_at else None
+        pdf_bytes = build_school_share_pdf(
+            student=student,
+            session=session,
+            summary_text=summary_text,
+            completed_at_display=completed_str,
+        )
+    except Exception as e:
+        import logging as _log
+        _log.getLogger(__name__).exception("PDF build failed")
+        raise HTTPException(status_code=500, detail=f"Failed to build PDF: {type(e).__name__}: {e}")
+
+    safe_name = re.sub(r"[^A-Za-z0-9]+", "", f"{student.first_name}{student.last_name}") or "Student"
+    filename = f"{safe_name}_school_input.pdf"
+
+    ok, provider_detail = send_school_share_email(
+        recipient_email=parent_user.email,
+        recipient_name=parent_user.full_name or "Parent",
+        student_name=f"{student.first_name} {student.last_name}".strip(),
+        admin_note=body.note,
+        pdf_bytes=pdf_bytes,
+        filename=filename,
+    )
+
+    if not ok:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail={"detail": "Email delivery failed", "provider_error": provider_detail},
+        )
+
+    ctx = session.context_data or {}
+    shared = list(ctx.get("shared_with_parents") or [])
+    shared.append(
+        {
+            "sent_at": datetime.now(timezone.utc).isoformat(),
+            "sent_by_admin_id": str(current_user.id),
+            "recipient_user_id": str(parent_user.id),
+            "recipient_email": parent_user.email,
+            "recipient_name": parent_user.full_name,
+            "relationship": sg.relationship_type or "Guardian",
+            "note": body.note or "",
+            "brevo_message_id": provider_detail,
+        }
+    )
+    ctx["shared_with_parents"] = shared
+    session.context_data = ctx
+    flag_modified(session, "context_data")
+    await db.commit()
+
+    return {"status": "sent", "recipient_email": parent_user.email}
