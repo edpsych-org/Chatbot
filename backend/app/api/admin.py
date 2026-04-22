@@ -1796,13 +1796,18 @@ async def admin_school_share_send(
         )
     sg, parent_user = sg_row
 
-    summariser = SchoolResponseSummaryAgent()
     ctx_pre = session.context_data or {}
-    summary_text = await summariser.summarise(
-        student_first_name=student.first_name,
-        assessment_data=ctx_pre.get("assessment_data") or {},
-        qa_pairs=ctx_pre.get("completed_qa_pairs") or [],
-    )
+    try:
+        summariser = SchoolResponseSummaryAgent()
+        summary_text = await summariser.summarise(
+            student_first_name=student.first_name,
+            assessment_data=ctx_pre.get("assessment_data") or {},
+            qa_pairs=ctx_pre.get("completed_qa_pairs") or [],
+        )
+    except Exception as e:
+        import logging as _log
+        _log.getLogger(__name__).exception("Summariser failed")
+        summary_text = "The school has completed the questionnaire. Full responses follow."
 
     try:
         completed_str = session.completed_at.strftime("%d %b %Y") if session.completed_at else None
@@ -1813,7 +1818,9 @@ async def admin_school_share_send(
             completed_at_display=completed_str,
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to build PDF: {e}")
+        import logging as _log
+        _log.getLogger(__name__).exception("PDF build failed")
+        raise HTTPException(status_code=500, detail=f"Failed to build PDF: {type(e).__name__}: {e}")
 
     safe_name = re.sub(r"[^A-Za-z0-9]+", "", f"{student.first_name}{student.last_name}") or "Student"
     filename = f"{safe_name}_school_input.pdf"

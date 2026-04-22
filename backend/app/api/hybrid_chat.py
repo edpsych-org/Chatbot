@@ -651,6 +651,19 @@ async def send_message(
     if is_complete:
         session.status = ChatSessionStatus.COMPLETED.value
         session.completed_at = datetime.utcnow()
+        # Also mark the linked assignment COMPLETED right here so the admin
+        # Assignments view updates even if the frontend never reaches
+        # /sessions/{id}/complete (e.g. the parent closes the tab).
+        if session.assignment_id:
+            assign_res = await db.execute(
+                select(AssessmentAssignment).where(
+                    AssessmentAssignment.id == session.assignment_id
+                )
+            )
+            assignment = assign_res.scalar_one_or_none()
+            if assignment and assignment.status != AssignmentStatus.COMPLETED:
+                assignment.status = AssignmentStatus.COMPLETED
+                assignment.completed_at = datetime.utcnow()
         await db.commit()
 
     return SendMessageResponse(
@@ -1460,6 +1473,19 @@ async def complete_chat_session(
         and "completed_qa_pairs" in session.context_data
     )
     if already_finalized:
+        # Still ensure the linked assignment is COMPLETED — earlier code paths
+        # may have finalized the session but missed the assignment flip.
+        if session.assignment_id:
+            assign_res = await db.execute(
+                select(AssessmentAssignment).where(
+                    AssessmentAssignment.id == session.assignment_id
+                )
+            )
+            assignment_row = assign_res.scalar_one_or_none()
+            if assignment_row and assignment_row.status != AssignmentStatus.COMPLETED:
+                assignment_row.status = AssignmentStatus.COMPLETED
+                assignment_row.completed_at = datetime.utcnow()
+                await db.commit()
         return {
             "message": "Chat session already finalized",
             "session_id": str(session.id),
