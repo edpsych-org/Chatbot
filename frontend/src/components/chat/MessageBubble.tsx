@@ -90,7 +90,12 @@ export default function MessageBubble({
     if (res.ok) {
       setEditing(false);
     } else {
-      setError(res.error || 'Could not save. Try again.');
+      const raw = res.error;
+      const safe =
+        typeof raw === 'string' && raw.trim()
+          ? raw
+          : 'Could not save. Try again.';
+      setError(safe);
     }
   };
 

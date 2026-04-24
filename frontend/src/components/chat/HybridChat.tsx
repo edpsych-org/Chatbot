@@ -532,8 +532,20 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
         return { ok: true };
       } catch (err) {
         let msg = 'Could not save. Try again.';
-        if (axios.isAxiosError(err) && err.response?.data?.detail) {
-          msg = String(err.response.data.detail);
+        if (axios.isAxiosError(err)) {
+          const detail = err.response?.data?.detail;
+          if (typeof detail === 'string') {
+            msg = detail;
+          } else if (Array.isArray(detail) && detail.length > 0) {
+            // FastAPI pydantic validation returns an array of issue objects.
+            const first = detail[0] as { msg?: string } | undefined;
+            msg = first?.msg ?? msg;
+          } else if (detail && typeof detail === 'object') {
+            const d = detail as { detail?: string; msg?: string };
+            msg = d.detail ?? d.msg ?? msg;
+          } else if (typeof err.response?.data === 'string') {
+            msg = err.response.data;
+          }
         }
         return { ok: false, error: msg };
       }
