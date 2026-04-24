@@ -64,22 +64,12 @@ export default function McqOptions({
     );
   }
 
-  const applyOption = (option: McqOption, overwriteText: boolean) => {
-    setPicked(option);
-    if (overwriteText) setText(option.label);
-    requestAnimationFrame(() => textareaRef.current?.focus());
-  };
-
   const handleChipClick = (option: McqOption) => {
     if (disabled) return;
-    const trimmed = text.trim();
-    const pickedLabel = (picked?.label ?? '').trim();
-    // Prefill text with the label only when the box is empty or still shows
-    // the previously-picked label verbatim. If the user typed their own
-    // elaboration, keep it — their typing becomes the elaboration attached to
-    // the newly-picked option.
-    const shouldPrefill = !trimmed || trimmed === pickedLabel;
-    applyOption(option, shouldPrefill);
+    // Picking acts as a radio. The textarea is always the user's elaboration;
+    // never auto-filled, never overwritten. Type freely before or after.
+    setPicked(option);
+    requestAnimationFrame(() => textareaRef.current?.focus());
   };
 
   const canSend = (picked !== null) || text.trim().length > 0;
@@ -135,7 +125,7 @@ export default function McqOptions({
             onKeyDown={handleKeyDown}
             disabled={disabled}
             rows={2}
-            placeholder={picked ? 'Add any extra detail…' : 'Pick an option below, or type your own answer…'}
+            placeholder={picked ? 'Optional — add any extra detail…' : 'Type extra details here (optional), or pick an option below'}
             className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-400 resize-none placeholder:text-gray-400 disabled:opacity-50"
           />
           {picked && (
