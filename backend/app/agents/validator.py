@@ -137,15 +137,38 @@ class InputValidatorAgent(BaseAgent):
     """Validates whether parent input is detailed enough for assessment."""
 
     def __init__(self):
-        # Pin to OpenAI — short-answer relevance is nuanced and the user
-        # specifically wants gpt-4o-mini (or whatever OPENAI_MODEL points
-        # at) deciding whether a one- or two-word reply is on-topic.
+        # Default to OpenAI for nuanced short-answer relevance; fall back to
+        # Groq transparently if OpenAI is unavailable or returns nothing.
         super().__init__(
             name="InputValidator",
             timeout=8.0,
             max_tokens=150,
             default_provider="openai",
         )
+
+    async def call_llm(
+        self,
+        prompt: str,
+        format_json: bool = False,
+        max_tokens: Optional[int] = None,
+        temperature: float = 0.3,
+    ) -> Optional[str]:
+        """Try OpenAI first; on None (missing key, non-200, exception)
+        fall through to Groq so short-answer validation never dies
+        silently on a misconfigured OpenAI credential."""
+        try:
+            result = await self._call_openai(prompt, format_json, max_tokens, temperature)
+        except Exception as e:
+            logger.warning(f"[InputValidator] OpenAI raised: {e} — falling back to Groq")
+            result = None
+        if result:
+            return result
+        logger.info("[InputValidator] OpenAI returned nothing — falling back to Groq")
+        try:
+            return await self._call_groq(prompt, format_json, max_tokens, temperature)
+        except Exception as e:
+            logger.warning(f"[InputValidator] Groq fallback raised: {e}")
+            return None
 
     async def validate(
         self,
