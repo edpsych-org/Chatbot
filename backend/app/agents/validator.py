@@ -137,12 +137,14 @@ class InputValidatorAgent(BaseAgent):
     """Validates whether parent input is detailed enough for assessment."""
 
     def __init__(self):
-        # Chat-flow agent → Groq
+        # Pin to OpenAI — short-answer relevance is nuanced and the user
+        # specifically wants gpt-4o-mini (or whatever OPENAI_MODEL points
+        # at) deciding whether a one- or two-word reply is on-topic.
         super().__init__(
             name="InputValidator",
             timeout=8.0,
             max_tokens=150,
-            default_provider="groq",
+            default_provider="openai",
         )
 
     async def validate(
@@ -372,23 +374,31 @@ class InputValidatorAgent(BaseAgent):
         self, text: str, question: str, student_name: str
     ) -> Optional[bool]:
         """
-        Use LLM to check if the response is relevant to the assessment question.
+        Use the OpenAI LLM to check if the response is relevant to the question.
         Returns True if relevant, False if not, None if LLM call failed.
+
+        IMPORTANT: one- and two-word answers are valid when they plausibly
+        answer the question. "Yes", "No", "Reading", "Mother", "Sometimes",
+        "Rarely" should all return YES. The check only rejects clearly
+        off-topic or gibberish replies.
         """
-        # Truncate very long input to save tokens
         truncated = text[:500] if len(text) > 500 else text
 
-        prompt = f"""You are validating a parent's response in a child educational assessment.
+        prompt = f"""You are validating a parent's response in a short guided questionnaire about a child.
 
-QUESTION ASKED: "{question}"
+QUESTION ASKED TO THE PARENT: "{question}"
 
 PARENT'S RESPONSE: "{truncated}"
 
-Is this response a genuine, personal answer about their child that relates to the question?
-A valid answer talks about the child's specific experiences, behaviors, or situations.
-An INVALID answer is: copied text, random content, off-topic text, Wikipedia articles, news, jokes, or anything not about the child.
+Decide whether the response is a plausible answer to the question.
 
-Reply with ONLY one word: YES or NO"""
+Rules:
+- Short answers (even a single word like "Yes", "No", "Reading", "Mother", "Sometimes", "Rarely", "Often") ARE VALID if they could reasonably answer the question.
+- Longer answers are VALID when they describe the child's behaviour, feelings, routines, strengths, or difficulties.
+- Only mark INVALID when the response is clearly off-topic (random text, Wikipedia, jokes, nonsense, a different topic entirely) OR gibberish / keyboard mashing.
+- When in doubt, mark VALID.
+
+Reply with ONLY one word: YES (valid) or NO (invalid)."""
 
         try:
             result = await self.call_llm(
