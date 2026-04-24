@@ -35,14 +35,12 @@ export default function McqOptions({
 }: McqOptionsProps) {
   const [text, setText] = useState('');
   const [picked, setPicked] = useState<McqOption | null>(null);
-  const [confirmReplace, setConfirmReplace] = useState<McqOption | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Reset local state when the question changes.
   useEffect(() => {
     setText('');
     setPicked(null);
-    setConfirmReplace(null);
   }, [resetKey]);
 
   if (!allowText) {
@@ -66,11 +64,9 @@ export default function McqOptions({
     );
   }
 
-  const applyOption = (option: McqOption) => {
+  const applyOption = (option: McqOption, overwriteText: boolean) => {
     setPicked(option);
-    setText(option.label);
-    setConfirmReplace(null);
-    // Focus so the user can immediately keep typing.
+    if (overwriteText) setText(option.label);
     requestAnimationFrame(() => textareaRef.current?.focus());
   };
 
@@ -78,12 +74,12 @@ export default function McqOptions({
     if (disabled) return;
     const trimmed = text.trim();
     const pickedLabel = (picked?.label ?? '').trim();
-    // If user typed past the current label, confirm before replacing.
-    if (trimmed && trimmed !== pickedLabel) {
-      setConfirmReplace(option);
-      return;
-    }
-    applyOption(option);
+    // Prefill text with the label only when the box is empty or still shows
+    // the previously-picked label verbatim. If the user typed their own
+    // elaboration, keep it — their typing becomes the elaboration attached to
+    // the newly-picked option.
+    const shouldPrefill = !trimmed || trimmed === pickedLabel;
+    applyOption(option, shouldPrefill);
   };
 
   const canSend = (picked !== null) || text.trim().length > 0;
@@ -95,7 +91,6 @@ export default function McqOptions({
     // Local reset — parent will also swap resetKey when the new question arrives.
     setText('');
     setPicked(null);
-    setConfirmReplace(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -190,30 +185,6 @@ export default function McqOptions({
           </button>
         </div>
 
-        {/* Confirm replace dialog (inline) */}
-        {confirmReplace && (
-          <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-center justify-between gap-3">
-            <span>
-              Replace your typed text with <strong>{confirmReplace.label}</strong>?
-            </span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => applyOption(confirmReplace)}
-                className="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-semibold"
-              >
-                Replace
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmReplace(null)}
-                className="px-3 py-1 rounded-lg bg-white hover:bg-amber-100 text-amber-800 border border-amber-200"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
