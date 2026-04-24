@@ -271,9 +271,12 @@ class InputValidatorAgent(BaseAgent):
                 "confidence": 0.75,
             }
 
-        # 3. LLM-based relevance check for longer inputs (>30 words)
-        #    Short personal answers are trusted; longer ones get verified
-        if word_count > 30 and question_context:
+        # 3. LLM-based relevance check.
+        #    Short inputs (<15 words) with no strong keyword match OR long
+        #    inputs (>30 words) are both verified against the question to
+        #    catch gibberish/off-topic answers like "ghvvl;k sd jkj c dghj".
+        should_llm_check = (word_count < 15 or word_count > 30) and question_context
+        if should_llm_check:
             llm_result = await self._llm_relevance_check(text, question_context, student_name)
             if llm_result is not None and not llm_result:
                 prompt = RELEVANCE_PROMPTS.get(category, RELEVANCE_PROMPTS["general"])
@@ -305,10 +308,17 @@ class InputValidatorAgent(BaseAgent):
         if not words:
             return True
 
-        # Check what fraction of words are recognizable English
-        real_word_count = sum(1 for w in words if w in COMMON_WORDS or len(w) <= 2)
-        ratio = real_word_count / len(words)
+        # Only genuine short words ("i", "a", "he", "it", "do") are counted
+        # as English — don't credit arbitrary 1-2 char tokens ("k", "sd", "c")
+        # that trivially let keyboard mashing slip through.
+        real_word_count = sum(1 for w in words if w in COMMON_WORDS)
 
+        # If no recognizable English words at all, it's gibberish regardless
+        # of length — nothing legitimate reads as "ghvvl;k sd jkj c dghj".
+        if real_word_count == 0 and len(words) >= 2:
+            return True
+
+        ratio = real_word_count / len(words)
         # If less than 30% of words are recognizable, it's likely gibberish
         if ratio < 0.3:
             return True
