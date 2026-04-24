@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import { ChatMessage } from '@/src/types/chat';
 import MessageBubble from './MessageBubble';
 import TypingIndicator from './TypingIndicator';
@@ -8,14 +8,32 @@ import TypingIndicator from './TypingIndicator';
 interface MessageListProps {
   messages: ChatMessage[];
   isTyping: boolean;
+  canEditLastAnswer?: boolean;
+  onEditSubmit?: (
+    messageId: string,
+    content: string,
+    resolvedOption: string | null,
+  ) => Promise<{ ok: boolean; error?: string }>;
 }
 
-export default function MessageList({ messages, isTyping }: MessageListProps) {
+export default function MessageList({
+  messages,
+  isTyping,
+  canEditLastAnswer,
+  onEditSubmit,
+}: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
+
+  const lastUserMessageId = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') return messages[i].id;
+    }
+    return null;
+  }, [messages]);
 
   return (
     <div
@@ -33,13 +51,18 @@ export default function MessageList({ messages, isTyping }: MessageListProps) {
       </div>
 
       <div className="max-w-3xl mx-auto space-y-4 relative">
-        {messages.map((message, index) => (
-          <MessageBubble
-            key={message.id}
-            message={message}
-            isLatest={index === messages.length - 1}
-          />
-        ))}
+        {messages.map((message, index) => {
+          const isLatestUser = message.id === lastUserMessageId;
+          return (
+            <MessageBubble
+              key={message.id}
+              message={message}
+              isLatest={index === messages.length - 1}
+              canEdit={Boolean(canEditLastAnswer && isLatestUser)}
+              onEditSubmit={onEditSubmit}
+            />
+          );
+        })}
 
         {isTyping && <TypingIndicator />}
 

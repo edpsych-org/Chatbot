@@ -16,6 +16,8 @@ export interface McqOption {
 
 export interface QuestionMetadata {
   question?: string;
+  question_id?: string;
+  node_id?: string;
   options?: McqOption[];
   allow_text?: boolean;
   text_prompt?: string;
@@ -31,6 +33,17 @@ export interface ChatMessage {
   metadata?: QuestionMetadata;
   timestamp: string;
   isValidationFeedback?: boolean;
+  // Edit support (last user message only)
+  resolvedOption?: string | null;
+  // Question context snapshotted so we can render chips in edit mode.
+  questionId?: string | null;
+  questionOptions?: McqOption[] | null;
+  editedAt?: string | null;
+}
+
+export interface EditMessagePayload {
+  content: string;
+  resolved_option: string | null;
 }
 
 export interface BotResponse {

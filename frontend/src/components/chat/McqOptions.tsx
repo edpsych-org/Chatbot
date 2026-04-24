@@ -35,55 +35,27 @@ export default function McqOptions({
 }: McqOptionsProps) {
   const [text, setText] = useState('');
   const [picked, setPicked] = useState<McqOption | null>(null);
-  const [confirmReplace, setConfirmReplace] = useState<McqOption | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Reset local state when the question changes.
   useEffect(() => {
     setText('');
     setPicked(null);
-    setConfirmReplace(null);
   }, [resetKey]);
 
-  if (!allowText) {
-    return (
-      <div className="px-3 py-2.5 sm:px-6 sm:py-3 border-t border-gray-100/80 bg-gradient-to-t from-gray-50/90 to-white/80 backdrop-blur-sm">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex flex-wrap gap-1.5 sm:grid sm:grid-cols-2 sm:gap-2.5">
-            {options.map((option, index) => (
-              <ChipButton
-                key={option.value}
-                option={option}
-                index={index}
-                selected={false}
-                disabled={disabled}
-                onClick={() => onSelect(option)}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const applyOption = (option: McqOption) => {
-    setPicked(option);
-    setText(option.label);
-    setConfirmReplace(null);
-    // Focus so the user can immediately keep typing.
-    requestAnimationFrame(() => textareaRef.current?.focus());
-  };
+  // Combined layout is used for every MCQ question, regardless of the
+  // node's `allow_text` flag. Free-text elaboration is always available
+  // so parents/schools can add detail before or after picking an option.
+  // (The `allowText` / `onSelect` props are kept for backwards compat.)
+  void allowText;
+  void onSelect;
 
   const handleChipClick = (option: McqOption) => {
     if (disabled) return;
-    const trimmed = text.trim();
-    const pickedLabel = (picked?.label ?? '').trim();
-    // If user typed past the current label, confirm before replacing.
-    if (trimmed && trimmed !== pickedLabel) {
-      setConfirmReplace(option);
-      return;
-    }
-    applyOption(option);
+    // Picking acts as a radio. The textarea is always the user's elaboration;
+    // never auto-filled, never overwritten. Type freely before or after.
+    setPicked(option);
+    requestAnimationFrame(() => textareaRef.current?.focus());
   };
 
   const canSend = (picked !== null) || text.trim().length > 0;
@@ -95,7 +67,6 @@ export default function McqOptions({
     // Local reset — parent will also swap resetKey when the new question arrives.
     setText('');
     setPicked(null);
-    setConfirmReplace(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -140,7 +111,7 @@ export default function McqOptions({
             onKeyDown={handleKeyDown}
             disabled={disabled}
             rows={2}
-            placeholder={picked ? 'Add any extra detail…' : 'Pick an option below, or type your own answer…'}
+            placeholder={picked ? 'Optional — add any extra detail…' : 'Type extra details here (optional), or pick an option below'}
             className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-400 resize-none placeholder:text-gray-400 disabled:opacity-50"
           />
           {picked && (
@@ -190,30 +161,6 @@ export default function McqOptions({
           </button>
         </div>
 
-        {/* Confirm replace dialog (inline) */}
-        {confirmReplace && (
-          <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-center justify-between gap-3">
-            <span>
-              Replace your typed text with <strong>{confirmReplace.label}</strong>?
-            </span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => applyOption(confirmReplace)}
-                className="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-semibold"
-              >
-                Replace
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmReplace(null)}
-                className="px-3 py-1 rounded-lg bg-white hover:bg-amber-100 text-amber-800 border border-amber-200"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

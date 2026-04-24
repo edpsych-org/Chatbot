@@ -324,6 +324,9 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
           message_type: messageType === 'mcq_choice' ? 'mcq_choice' : 'text',
           content,
           timestamp: new Date().toISOString(),
+          resolvedOption: messageType === 'mcq_choice' ? (choiceValue ?? null) : null,
+          questionId: currentQuestion?.question_id ?? currentQuestion?.node_id ?? null,
+          questionOptions: currentQuestion?.options ?? null,
         };
         setMessages((prev) => [...prev, userMessage]);
       }
@@ -492,6 +495,52 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
     }
   }, [lastFailedMessage, sendMessage]);
 
+  const [editToast, setEditToast] = useState<string | null>(null);
+  const editToastTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const handleEditSubmit = useCallback(
+    async (messageId: string, content: string, resolvedOption: string | null) => {
+      if (!sessionId) return { ok: false, error: 'No active session' };
+      try {
+        const token = getAuthToken();
+        const res = await axios.patch(
+          `${API_BASE}/hybrid-chat/sessions/${sessionId}/messages/${messageId}`,
+          { content, resolved_option: resolvedOption },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const data = res.data as {
+          id: string;
+          content: string;
+          message_metadata?: Record<string, unknown>;
+          edited_at?: string;
+        };
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === messageId
+              ? {
+                  ...m,
+                  content: data.content,
+                  resolvedOption: resolvedOption,
+                  editedAt: data.edited_at ?? new Date().toISOString(),
+                }
+              : m,
+          ),
+        );
+        setEditToast('Response saved');
+        if (editToastTimer.current) clearTimeout(editToastTimer.current);
+        editToastTimer.current = setTimeout(() => setEditToast(null), 3000);
+        return { ok: true };
+      } catch (err) {
+        let msg = 'Could not save. Try again.';
+        if (axios.isAxiosError(err) && err.response?.data?.detail) {
+          msg = String(err.response.data.detail);
+        }
+        return { ok: false, error: msg };
+      }
+    },
+    [sessionId],
+  );
+
   const handleNavigateDashboard = useCallback(() => {
     router.push('/dashboard');
   }, [router]);
@@ -588,7 +637,22 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
         <span className="text-[0.625rem] text-amber-600 font-medium">End-to-end encrypted - Your responses are confidential</span>
       </div>
 
-      <MessageList messages={messages} isTyping={isTyping} />
+      <MessageList
+        messages={messages}
+        isTyping={isTyping}
+        canEditLastAnswer={!isCompleted && !loading}
+        onEditSubmit={handleEditSubmit}
+      />
+      {editToast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[70] px-4 py-2 rounded-full bg-emerald-500 text-white text-xs font-semibold shadow-lg animate-slide-up">
+          <span className="inline-flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            {editToast}
+          </span>
+        </div>
+      )}
 
       {/* Retry Button */}
       {lastFailedMessage && !loading && (
@@ -624,7 +688,7 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
               onSend={handleCombinedSend}
               disabled={loading}
               resetKey={currentQuestion.question ?? `${messages.length}`}
-              showNudge={showTextNudge && Boolean(currentQuestion.allow_text)}
+              showNudge={showTextNudge}
               nudgeColor={nudgeColor}
               onDismissNudge={() => {
                 setShowTextNudge(false);
@@ -632,7 +696,7 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
               }}
             />
           )}
-          {showTextInput && !(currentQuestion?.options && currentQuestion.options.length > 0 && currentQuestion?.allow_text) && (
+          {showTextInput && !(currentQuestion?.options && currentQuestion.options.length > 0) && (
             <div className="relative">
               {showTextNudge && (() => {
                 const palette = [
