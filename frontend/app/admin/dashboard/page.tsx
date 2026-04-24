@@ -1150,20 +1150,61 @@ export default function AdminDashboard() {
                     <thead><tr className="border-b border-[#dedede]">
                       <th className="px-5 py-3 text-left text-[0.6875rem] font-semibold text-[#737373] uppercase tracking-wider">Student</th>
                       <th className="px-5 py-3 text-left text-[0.6875rem] font-semibold text-[#737373] uppercase tracking-wider">Assigned To</th>
+                      <th className="px-5 py-3 text-left text-[0.6875rem] font-semibold text-[#737373] uppercase tracking-wider">Role</th>
                       <th className="px-5 py-3 text-left text-[0.6875rem] font-semibold text-[#737373] uppercase tracking-wider">Status</th>
                       <th className="px-5 py-3 text-left text-[0.6875rem] font-semibold text-[#737373] uppercase tracking-wider">Due Date</th>
                       <th className="px-5 py-3 text-left text-[0.6875rem] font-semibold text-[#737373] uppercase tracking-wider">Assigned</th>
                       <th className="px-5 py-3 text-right text-[0.6875rem] font-semibold text-[#737373] uppercase tracking-wider">Actions</th>
                     </tr></thead>
                     <tbody className="divide-y divide-[#dedede]">
-                      {filteredAssignments.map((a: any) => (
-                        <tr key={a.id} className="hover:bg-white transition-colors group">
+                      {(() => {
+                        // Group consecutive rows by student so the name only
+                        // renders on the first row of each group.
+                        const sorted = [...filteredAssignments].sort((x: any, y: any) => {
+                          const xn = `${x.student?.first_name || ""} ${x.student?.last_name || ""}`.trim().toLowerCase();
+                          const yn = `${y.student?.first_name || ""} ${y.student?.last_name || ""}`.trim().toLowerCase();
+                          if (xn !== yn) return xn.localeCompare(yn);
+                          const xd = x.assigned_at ? new Date(x.assigned_at).getTime() : 0;
+                          const yd = y.assigned_at ? new Date(y.assigned_at).getTime() : 0;
+                          return yd - xd;
+                        });
+                        return sorted.map((a: any, idx: number) => {
+                          const studentName = a.student ? `${a.student.first_name || ""} ${a.student.last_name || ""}`.trim() || "Unknown" : "Unknown";
+                          const prev = idx > 0 ? sorted[idx - 1] : null;
+                          const prevName = prev && prev.student ? `${prev.student.first_name || ""} ${prev.student.last_name || ""}`.trim() || "Unknown" : "Unknown";
+                          const showStudent = idx === 0 || studentName !== prevName;
+                          const rel = (a.relationship_type || a.assigned_to?.relationship_type || "").trim();
+                          const role = (a.assigned_to?.role || "").toString().toUpperCase();
+                          let roleLabel = rel;
+                          if (!roleLabel) {
+                            if (role === "SCHOOL") roleLabel = "School";
+                            else if (role === "PARENT") roleLabel = "Parent/Guardian";
+                            else if (role) roleLabel = role.charAt(0) + role.slice(1).toLowerCase();
+                            else roleLabel = "Guardian";
+                          }
+                          const roleBadgeClass =
+                            role === "SCHOOL"
+                              ? "bg-violet-100 text-violet-700"
+                              : role === "PARENT"
+                              ? "bg-sky-100 text-sky-700"
+                              : "bg-slate-100 text-slate-700";
+                          return (
+                        <tr key={a.id} className={`hover:bg-white transition-colors group ${showStudent && idx > 0 ? "border-t-2 border-[#dedede]" : ""}`}>
                           <td className="px-5 py-3.5">
-                            <p className="text-sm font-medium text-[#333]">{a.student ? `${a.student.first_name || ""} ${a.student.last_name || ""}`.trim() || "Unknown" : "Unknown"}</p>
+                            {showStudent ? (
+                              <p className="text-sm font-medium text-[#333]">{studentName}</p>
+                            ) : (
+                              <span className="sr-only">{studentName}</span>
+                            )}
                           </td>
                           <td className="px-5 py-3.5">
                             <p className="text-sm text-[#333]">{a.assigned_to?.name || "Unknown"}</p>
                             <p className="text-[0.6875rem] text-[#737373]">{a.assigned_to?.email || ""}</p>
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-semibold ${roleBadgeClass}`}>
+                              {roleLabel}
+                            </span>
                           </td>
                           <td className="px-5 py-3.5">
                             <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-semibold ${
@@ -1187,7 +1228,9 @@ export default function AdminDashboard() {
                             </div>
                           </td>
                         </tr>
-                      ))}
+                          );
+                        });
+                      })()}
                     </tbody>
                   </table>
                 </div>
