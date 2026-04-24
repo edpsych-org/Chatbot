@@ -18,6 +18,7 @@ from datetime import datetime, date
 import json
 import os
 import logging
+import re
 
 from app.core.database import get_db
 from app.core.security import get_current_active_user
@@ -285,6 +286,50 @@ orchestrator = OrchestratorAgent()
 
 
 # ============================================================================
+# Pronoun substitution
+# ============================================================================
+_PRONOUN_MALE = {
+    "they": "he", "them": "him", "their": "his",
+    "theirs": "his", "themself": "himself", "themselves": "himself",
+}
+_PRONOUN_FEMALE = {
+    "they": "she", "them": "her", "their": "her",
+    "theirs": "hers", "themself": "herself", "themselves": "herself",
+}
+_PRONOUN_PATTERN = re.compile(
+    r"\b(They|Them|Their|Theirs|Themself|Themselves|they|them|their|theirs|themself|themselves)\b"
+)
+
+
+def _pronouns_for_gender(gender):
+    g = (gender or "").strip().lower()
+    if g in ("male", "m", "boy", "man"):
+        return _PRONOUN_MALE
+    if g in ("female", "f", "girl", "woman"):
+        return _PRONOUN_FEMALE
+    return None
+
+
+def _apply_pronouns(text, pronouns):
+    """Case-preserving word-boundary replace of generic they/them/their
+    with gendered pronouns. No-op when pronouns is None/empty."""
+    if not text or not pronouns:
+        return text
+
+    def _sub(m):
+        word = m.group(0)
+        lower = word.lower()
+        repl = pronouns.get(lower)
+        if not repl:
+            return word
+        if word[0].isupper():
+            repl = repl[:1].upper() + repl[1:]
+        return repl
+
+    return _PRONOUN_PATTERN.sub(_sub, text)
+
+
+# ============================================================================
 # HELPER: Build response metadata
 # ============================================================================
 
@@ -444,6 +489,8 @@ async def start_chat_session(
         # Pre-mark the age node answered so it's skipped on first advance.
         answered_initial.append("student_age")
 
+    pronouns_map = _pronouns_for_gender(getattr(student, "gender", None)) if student else None
+
     # Create new session
     session = ChatSession(
         assignment_id=request.assignment_id,
@@ -456,6 +503,8 @@ async def start_chat_session(
             "user_profile": {
                 "student_name": student.first_name if student else "your child",
                 "student_age": computed_age,
+                "student_gender": getattr(student, "gender", None) if student else None,
+                "pronouns": pronouns_map,
             },
             "assessment_data": {},
             "background_profile": {},
@@ -516,6 +565,15 @@ async def start_chat_session(
         # Combine welcome + question
         bot_message_data = question_data
         bot_message_data["content"] = bot_message.content + "\n\n" + question_data["content"]
+
+    # Gender-aware pronoun substitution on outbound content (and stored DB rows).
+    if pronouns_map:
+        bot_message.content = _apply_pronouns(bot_message.content, pronouns_map)
+        if final_node_id != flow["start_node"] and final_node:
+            question_msg.content = _apply_pronouns(question_msg.content, pronouns_map)
+        bot_message_data["content"] = _apply_pronouns(
+            bot_message_data.get("content", ""), pronouns_map
+        )
 
     await db.commit()
     await db.refresh(session)
@@ -611,6 +669,32 @@ async def send_message(
     # Final fallback - should never happen but just in case
     if not bot_response_data:
         bot_response_data = _graceful_fallback(session, student_name)
+
+    # Gender-aware pronoun substitution on outbound content.
+    user_profile = session.context_data.get("user_profile") or {}
+    pronouns_map = user_profile.get("pronouns")
+    if pronouns_map is None and session.assignment_id:
+        # Backfill for sessions created before the pronouns field existed.
+        assign_res = await db.execute(
+            select(AssessmentAssignment).where(
+                AssessmentAssignment.id == session.assignment_id
+            )
+        )
+        a_row = assign_res.scalar_one_or_none()
+        if a_row:
+            st_res = await db.execute(
+                select(Student).where(Student.id == a_row.student_id)
+            )
+            st_row = st_res.scalar_one_or_none()
+            if st_row:
+                pronouns_map = _pronouns_for_gender(getattr(st_row, "gender", None))
+                user_profile["pronouns"] = pronouns_map
+                user_profile["student_gender"] = getattr(st_row, "gender", None)
+                session.context_data["user_profile"] = user_profile
+    if pronouns_map and bot_response_data.get("content"):
+        bot_response_data["content"] = _apply_pronouns(
+            bot_response_data["content"], pronouns_map
+        )
 
     # Create bot message in DB
     bot_message = ChatMessage(
