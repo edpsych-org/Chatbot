@@ -52,16 +52,22 @@ export default function McqOptions({
 
   const handleChipClick = (option: McqOption) => {
     if (disabled) return;
-    // Selecting an option copies its label into the textarea so the user can
-    // edit or append detail from there. Picking a different option replaces
-    // the textarea with the new label.
+    const trimmed = text.trim();
+    const previousLabel = (picked?.label ?? '').trim();
+    // Prefill behaviour:
+    //   - empty textarea -> copy the option label in.
+    //   - textarea still shows the previously-picked label verbatim -> swap to
+    //     the new label.
+    //   - user typed something custom -> keep their text untouched, just flip
+    //     the selected chip.
+    const shouldOverwrite = !trimmed || trimmed === previousLabel;
     setPicked(option);
-    setText(option.label);
+    if (shouldOverwrite) setText(option.label);
     requestAnimationFrame(() => {
       const el = textareaRef.current;
-      if (el) {
-        el.focus();
-        // Place cursor at end so the user can keep typing after the label.
+      if (!el) return;
+      el.focus();
+      if (shouldOverwrite) {
         const len = option.label.length;
         try { el.setSelectionRange(len, len); } catch { /* ignore */ }
       }
