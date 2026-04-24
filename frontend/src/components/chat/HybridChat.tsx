@@ -624,7 +624,7 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
               onSend={handleCombinedSend}
               disabled={loading}
               resetKey={currentQuestion.question ?? `${messages.length}`}
-              showNudge={showTextNudge && Boolean(currentQuestion.allow_text)}
+              showNudge={showTextNudge}
               nudgeColor={nudgeColor}
               onDismissNudge={() => {
                 setShowTextNudge(false);
@@ -632,7 +632,7 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
               }}
             />
           )}
-          {showTextInput && !(currentQuestion?.options && currentQuestion.options.length > 0 && currentQuestion?.allow_text) && (
+          {showTextInput && !(currentQuestion?.options && currentQuestion.options.length > 0) && (
             <div className="relative">
               {showTextNudge && (() => {
                 const palette = [

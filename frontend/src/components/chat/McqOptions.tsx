@@ -43,26 +43,12 @@ export default function McqOptions({
     setPicked(null);
   }, [resetKey]);
 
-  if (!allowText) {
-    return (
-      <div className="px-3 py-2.5 sm:px-6 sm:py-3 border-t border-gray-100/80 bg-gradient-to-t from-gray-50/90 to-white/80 backdrop-blur-sm">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex flex-wrap gap-1.5 sm:grid sm:grid-cols-2 sm:gap-2.5">
-            {options.map((option, index) => (
-              <ChipButton
-                key={option.value}
-                option={option}
-                index={index}
-                selected={false}
-                disabled={disabled}
-                onClick={() => onSelect(option)}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Combined layout is used for every MCQ question, regardless of the
+  // node's `allow_text` flag. Free-text elaboration is always available
+  // so parents/schools can add detail before or after picking an option.
+  // (The `allowText` / `onSelect` props are kept for backwards compat.)
+  void allowText;
+  void onSelect;
 
   const handleChipClick = (option: McqOption) => {
     if (disabled) return;
