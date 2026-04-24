@@ -52,10 +52,20 @@ export default function McqOptions({
 
   const handleChipClick = (option: McqOption) => {
     if (disabled) return;
-    // Picking acts as a radio. The textarea is always the user's elaboration;
-    // never auto-filled, never overwritten. Type freely before or after.
+    // Selecting an option copies its label into the textarea so the user can
+    // edit or append detail from there. Picking a different option replaces
+    // the textarea with the new label.
     setPicked(option);
-    requestAnimationFrame(() => textareaRef.current?.focus());
+    setText(option.label);
+    requestAnimationFrame(() => {
+      const el = textareaRef.current;
+      if (el) {
+        el.focus();
+        // Place cursor at end so the user can keep typing after the label.
+        const len = option.label.length;
+        try { el.setSelectionRange(len, len); } catch { /* ignore */ }
+      }
+    });
   };
 
   const canSend = (picked !== null) || text.trim().length > 0;
@@ -111,7 +121,7 @@ export default function McqOptions({
             onKeyDown={handleKeyDown}
             disabled={disabled}
             rows={2}
-            placeholder={picked ? 'Optional — add any extra detail…' : 'Type extra details here (optional), or pick an option below'}
+            placeholder={picked ? 'Edit or add more detail…' : 'Pick an option below, or type your own answer…'}
             className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-400 resize-none placeholder:text-gray-400 disabled:opacity-50"
           />
           {picked && (
