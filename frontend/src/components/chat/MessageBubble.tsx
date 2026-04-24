@@ -1,13 +1,44 @@
 'use client';
 
-import { ChatMessage } from '@/src/types/chat';
+import { useEffect, useRef, useState } from 'react';
+import { ChatMessage, McqOption } from '@/src/types/chat';
 
 interface MessageBubbleProps {
   message: ChatMessage;
   isLatest?: boolean;
+  // Edit support — only enabled on the last user message of an active session.
+  canEdit?: boolean;
+  onEditSubmit?: (
+    messageId: string,
+    content: string,
+    resolvedOption: string | null,
+  ) => Promise<{ ok: boolean; error?: string }>;
 }
 
-export default function MessageBubble({ message, isLatest }: MessageBubbleProps) {
+export default function MessageBubble({
+  message,
+  isLatest,
+  canEdit,
+  onEditSubmit,
+}: MessageBubbleProps) {
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(message.content);
+  const [picked, setPicked] = useState<string | null>(
+    message.resolvedOption ?? null,
+  );
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (editing) {
+      setText(message.content);
+      setPicked(message.resolvedOption ?? null);
+      setError(null);
+      requestAnimationFrame(() => textareaRef.current?.focus());
+    }
+  }, [editing, message.content, message.resolvedOption]);
+
   const timestamp = new Date(message.timestamp);
   const timeString = timestamp.toLocaleTimeString([], {
     hour: '2-digit',
@@ -30,6 +61,43 @@ export default function MessageBubble({ message, isLatest }: MessageBubbleProps)
 
   const isUser = message.role === 'user';
   const isValidation = message.isValidationFeedback;
+  const options: McqOption[] | null | undefined = message.questionOptions;
+
+  const startEdit = () => {
+    if (!canEdit || busy) return;
+    setEditing(true);
+  };
+
+  const cancelEdit = () => {
+    if (busy) return;
+    setEditing(false);
+    setText(message.content);
+    setPicked(message.resolvedOption ?? null);
+    setError(null);
+  };
+
+  const submitEdit = async () => {
+    if (!onEditSubmit || busy) return;
+    const finalText = text.trim();
+    if (!finalText && !picked) {
+      setError('Answer cannot be empty');
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    const res = await onEditSubmit(message.id, finalText, picked);
+    setBusy(false);
+    if (res.ok) {
+      setEditing(false);
+    } else {
+      const raw = res.error;
+      const safe =
+        typeof raw === 'string' && raw.trim()
+          ? raw
+          : 'Could not save. Try again.';
+      setError(safe);
+    }
+  };
 
   return (
     <div
@@ -37,7 +105,6 @@ export default function MessageBubble({ message, isLatest }: MessageBubbleProps)
         isLatest ? (isUser ? 'msg-user-enter' : 'msg-bot-enter') : 'animate-fade-in'
       }`}
     >
-      {/* Bot Avatar */}
       {!isUser && (
         <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-500 via-teal-600 to-teal-600 flex items-center justify-center flex-shrink-0 mb-0.5 shadow-md shadow-teal-200/40 avatar-glow">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
@@ -58,13 +125,11 @@ export default function MessageBubble({ message, isLatest }: MessageBubbleProps)
             : 'bg-white text-gray-800 border border-gray-100 rounded-2xl rounded-bl-md shadow-sm hover:shadow-md transition-shadow duration-300'
         }`}
       >
-        {/* Subtle inner glow for bot messages */}
         {!isUser && !isValidation && (
           <div className="absolute inset-0 rounded-2xl rounded-bl-md bg-gradient-to-br from-teal-50/30 via-transparent to-teal-50/20 pointer-events-none" />
         )}
 
         <div className="relative px-4 py-3">
-          {/* Validation icon */}
           {isValidation && (
             <div className="flex items-center gap-1.5 mb-1.5">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-amber-500">
@@ -74,29 +139,107 @@ export default function MessageBubble({ message, isLatest }: MessageBubbleProps)
             </div>
           )}
 
-          <p className={`whitespace-pre-wrap text-[0.875rem] sm:text-[0.9375rem] leading-relaxed ${
-            isUser ? 'text-white/95' : ''
-          }`}>
-            {message.content}
-          </p>
+          {editing ? (
+            <div className="space-y-2 min-w-[240px]">
+              <textarea
+                ref={textareaRef}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                rows={2}
+                disabled={busy}
+                className="w-full text-[0.9375rem] leading-relaxed bg-white/90 text-gray-800 border border-white/40 rounded-lg px-2.5 py-2 outline-none focus:border-white/80 resize-none disabled:opacity-60"
+              />
+              {options && options.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {options.map((opt) => {
+                    const selected = picked === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setPicked(selected ? null : opt.value)}
+                        disabled={busy}
+                        className={`px-2 py-1 rounded-md text-[0.6875rem] font-medium border transition-colors ${
+                          selected
+                            ? 'bg-white text-teal-700 border-white'
+                            : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
+                        } disabled:opacity-50`}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {error && (
+                <p className="text-[0.6875rem] text-red-100 bg-red-500/30 border border-red-200/40 rounded px-2 py-1">
+                  {error}
+                </p>
+              )}
+              <div className="flex items-center justify-end gap-1.5">
+                <button
+                  type="button"
+                  onClick={cancelEdit}
+                  disabled={busy}
+                  className="px-2.5 py-1 text-[0.6875rem] font-semibold rounded-md bg-white/10 text-white border border-white/30 hover:bg-white/20 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={submitEdit}
+                  disabled={busy}
+                  className="px-2.5 py-1 text-[0.6875rem] font-semibold rounded-md bg-white text-teal-700 hover:bg-teal-50 disabled:opacity-50 inline-flex items-center gap-1"
+                >
+                  {busy && (
+                    <span className="w-3 h-3 border-2 border-teal-400 border-t-teal-700 rounded-full animate-spin" />
+                  )}
+                  {busy ? 'Saving…' : 'Save'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p className={`whitespace-pre-wrap text-[0.875rem] sm:text-[0.9375rem] leading-relaxed ${
+                isUser ? 'text-white/95' : ''
+              }`}>
+                {message.content}
+              </p>
 
-          <div className={`flex items-center gap-1.5 mt-1.5 ${isUser ? 'justify-end' : 'justify-start'}`}>
-            <p className={`text-[0.625rem] font-medium ${
-              isUser ? 'text-teal-200/60' : isValidation ? 'text-amber-400/70' : 'text-gray-300'
-            }`}>
-              {timeString}
-            </p>
-            {/* Sent indicator for user messages */}
-            {isUser && (
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3 text-teal-200/50">
-                <path fillRule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd" />
-              </svg>
-            )}
-          </div>
+              <div className={`flex items-center gap-1.5 mt-1.5 ${isUser ? 'justify-end' : 'justify-start'}`}>
+                {isUser && message.editedAt && (
+                  <span className="text-[0.625rem] font-medium text-teal-200/70 italic">edited</span>
+                )}
+                <p className={`text-[0.625rem] font-medium ${
+                  isUser ? 'text-teal-200/60' : isValidation ? 'text-amber-400/70' : 'text-gray-300'
+                }`}>
+                  {timeString}
+                </p>
+                {isUser && (
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3 text-teal-200/50">
+                    <path fillRule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd" />
+                  </svg>
+                )}
+                {isUser && canEdit && (
+                  <button
+                    type="button"
+                    onClick={startEdit}
+                    aria-label="Edit this answer"
+                    title="Edit this answer"
+                    className="ml-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white text-teal-700 text-[0.625rem] font-semibold shadow-sm hover:bg-teal-50 border border-white/80"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
+                      <path d="M2.695 14.763l-1.262 3.154a.5.5 0 00.65.65l3.155-1.262a4 4 0 001.343-.886L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
+                    </svg>
+                    Edit
+                  </button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      {/* User Avatar */}
       {isUser && (
         <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center flex-shrink-0 mb-0.5 shadow-sm">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-4 h-4 opacity-90">

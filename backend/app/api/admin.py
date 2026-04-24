@@ -1188,19 +1188,42 @@ async def admin_assign_assessment(
             },
         )
 
-    # 4. Idempotency: find guardians with an existing active assignment for this student
+    # 3b. One-active-assignment-per-student policy covers batch size too:
+    #     admin can only send to a single recipient at a time for a given
+    #     student. Multi-guardian batches are rejected up front.
+    if len(assignment.guardian_ids) > 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "Only one recipient can be assigned per student at a time. "
+                "Pick a single parent/guardian or school."
+            ),
+        )
+
+    # 4. One-active-assignment-per-student policy. If ANY recipient already
+    #    has an active assignment for this student, block the whole request
+    #    — admin must cancel or complete the existing one before creating
+    #    new ones (even for a different guardian).
     active_states = [AssignmentStatus.ASSIGNED, AssignmentStatus.IN_PROGRESS]
-    existing_result = await db.execute(
+    blocker_result = await db.execute(
         select(AssessmentAssignment).where(
             and_(
                 AssessmentAssignment.student_id == assignment.student_id,
-                AssessmentAssignment.assigned_to_user_id.in_(assignment.guardian_ids),
                 AssessmentAssignment.status.in_(active_states),
             )
         )
     )
-    existing_by_user_id = {a.assigned_to_user_id: a for a in existing_result.scalars().all()}
+    blocker = blocker_result.scalars().first()
+    if blocker:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "This student already has an active assignment. "
+                "Cancel or complete the existing one first."
+            ),
+        )
 
+    existing_by_user_id: dict = {}
     created: list[dict] = []
     skipped: list[dict] = []
 

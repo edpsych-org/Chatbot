@@ -137,13 +137,38 @@ class InputValidatorAgent(BaseAgent):
     """Validates whether parent input is detailed enough for assessment."""
 
     def __init__(self):
-        # Chat-flow agent → Groq
+        # Default to OpenAI for nuanced short-answer relevance; fall back to
+        # Groq transparently if OpenAI is unavailable or returns nothing.
         super().__init__(
             name="InputValidator",
             timeout=8.0,
             max_tokens=150,
-            default_provider="groq",
+            default_provider="openai",
         )
+
+    async def call_llm(
+        self,
+        prompt: str,
+        format_json: bool = False,
+        max_tokens: Optional[int] = None,
+        temperature: float = 0.3,
+    ) -> Optional[str]:
+        """Try OpenAI first; on None (missing key, non-200, exception)
+        fall through to Groq so short-answer validation never dies
+        silently on a misconfigured OpenAI credential."""
+        try:
+            result = await self._call_openai(prompt, format_json, max_tokens, temperature)
+        except Exception as e:
+            logger.warning(f"[InputValidator] OpenAI raised: {e} — falling back to Groq")
+            result = None
+        if result:
+            return result
+        logger.info("[InputValidator] OpenAI returned nothing — falling back to Groq")
+        try:
+            return await self._call_groq(prompt, format_json, max_tokens, temperature)
+        except Exception as e:
+            logger.warning(f"[InputValidator] Groq fallback raised: {e}")
+            return None
 
     async def validate(
         self,
@@ -246,9 +271,12 @@ class InputValidatorAgent(BaseAgent):
                 "confidence": 0.75,
             }
 
-        # 3. LLM-based relevance check for longer inputs (>30 words)
-        #    Short personal answers are trusted; longer ones get verified
-        if word_count > 30 and question_context:
+        # 3. LLM-based relevance check.
+        #    Short inputs (<15 words) with no strong keyword match OR long
+        #    inputs (>30 words) are both verified against the question to
+        #    catch gibberish/off-topic answers like "ghvvl;k sd jkj c dghj".
+        should_llm_check = (word_count < 15 or word_count > 30) and question_context
+        if should_llm_check:
             llm_result = await self._llm_relevance_check(text, question_context, student_name)
             if llm_result is not None and not llm_result:
                 prompt = RELEVANCE_PROMPTS.get(category, RELEVANCE_PROMPTS["general"])
@@ -280,10 +308,17 @@ class InputValidatorAgent(BaseAgent):
         if not words:
             return True
 
-        # Check what fraction of words are recognizable English
-        real_word_count = sum(1 for w in words if w in COMMON_WORDS or len(w) <= 2)
-        ratio = real_word_count / len(words)
+        # Only genuine short words ("i", "a", "he", "it", "do") are counted
+        # as English — don't credit arbitrary 1-2 char tokens ("k", "sd", "c")
+        # that trivially let keyboard mashing slip through.
+        real_word_count = sum(1 for w in words if w in COMMON_WORDS)
 
+        # If no recognizable English words at all, it's gibberish regardless
+        # of length — nothing legitimate reads as "ghvvl;k sd jkj c dghj".
+        if real_word_count == 0 and len(words) >= 2:
+            return True
+
+        ratio = real_word_count / len(words)
         # If less than 30% of words are recognizable, it's likely gibberish
         if ratio < 0.3:
             return True
@@ -372,23 +407,31 @@ class InputValidatorAgent(BaseAgent):
         self, text: str, question: str, student_name: str
     ) -> Optional[bool]:
         """
-        Use LLM to check if the response is relevant to the assessment question.
+        Use the OpenAI LLM to check if the response is relevant to the question.
         Returns True if relevant, False if not, None if LLM call failed.
+
+        IMPORTANT: one- and two-word answers are valid when they plausibly
+        answer the question. "Yes", "No", "Reading", "Mother", "Sometimes",
+        "Rarely" should all return YES. The check only rejects clearly
+        off-topic or gibberish replies.
         """
-        # Truncate very long input to save tokens
         truncated = text[:500] if len(text) > 500 else text
 
-        prompt = f"""You are validating a parent's response in a child educational assessment.
+        prompt = f"""You are validating a parent's response in a short guided questionnaire about a child.
 
-QUESTION ASKED: "{question}"
+QUESTION ASKED TO THE PARENT: "{question}"
 
 PARENT'S RESPONSE: "{truncated}"
 
-Is this response a genuine, personal answer about their child that relates to the question?
-A valid answer talks about the child's specific experiences, behaviors, or situations.
-An INVALID answer is: copied text, random content, off-topic text, Wikipedia articles, news, jokes, or anything not about the child.
+Decide whether the response is a plausible answer to the question.
 
-Reply with ONLY one word: YES or NO"""
+Rules:
+- Short answers (even a single word like "Yes", "No", "Reading", "Mother", "Sometimes", "Rarely", "Often") ARE VALID if they could reasonably answer the question.
+- Longer answers are VALID when they describe the child's behaviour, feelings, routines, strengths, or difficulties.
+- Only mark INVALID when the response is clearly off-topic (random text, Wikipedia, jokes, nonsense, a different topic entirely) OR gibberish / keyboard mashing.
+- When in doubt, mark VALID.
+
+Reply with ONLY one word: YES (valid) or NO (invalid)."""
 
         try:
             result = await self.call_llm(

@@ -18,6 +18,7 @@ from datetime import datetime, date
 import json
 import os
 import logging
+import re
 
 from app.core.database import get_db
 from app.core.security import get_current_active_user
@@ -161,6 +162,12 @@ class StartChatRequest(BaseModel):
     assignment_id: UUID
 
 
+class EditMessageIn(BaseModel):
+    """Payload for PATCH .../messages/{id} — edit the latest answer."""
+    content: str
+    resolved_option: Optional[str] = None
+
+
 # ============================================================================
 # FLOW ENGINE
 # ============================================================================
@@ -282,6 +289,50 @@ class FlowEngine:
 # Global instances
 flow_engine = FlowEngine()
 orchestrator = OrchestratorAgent()
+
+
+# ============================================================================
+# Pronoun substitution
+# ============================================================================
+_PRONOUN_MALE = {
+    "they": "he", "them": "him", "their": "his",
+    "theirs": "his", "themself": "himself", "themselves": "himself",
+}
+_PRONOUN_FEMALE = {
+    "they": "she", "them": "her", "their": "her",
+    "theirs": "hers", "themself": "herself", "themselves": "herself",
+}
+_PRONOUN_PATTERN = re.compile(
+    r"\b(They|Them|Their|Theirs|Themself|Themselves|they|them|their|theirs|themself|themselves)\b"
+)
+
+
+def _pronouns_for_gender(gender):
+    g = (gender or "").strip().lower()
+    if g in ("male", "m", "boy", "man"):
+        return _PRONOUN_MALE
+    if g in ("female", "f", "girl", "woman"):
+        return _PRONOUN_FEMALE
+    return None
+
+
+def _apply_pronouns(text, pronouns):
+    """Case-preserving word-boundary replace of generic they/them/their
+    with gendered pronouns. No-op when pronouns is None/empty."""
+    if not text or not pronouns:
+        return text
+
+    def _sub(m):
+        word = m.group(0)
+        lower = word.lower()
+        repl = pronouns.get(lower)
+        if not repl:
+            return word
+        if word[0].isupper():
+            repl = repl[:1].upper() + repl[1:]
+        return repl
+
+    return _PRONOUN_PATTERN.sub(_sub, text)
 
 
 # ============================================================================
@@ -444,6 +495,8 @@ async def start_chat_session(
         # Pre-mark the age node answered so it's skipped on first advance.
         answered_initial.append("student_age")
 
+    pronouns_map = _pronouns_for_gender(getattr(student, "gender", None)) if student else None
+
     # Create new session
     session = ChatSession(
         assignment_id=request.assignment_id,
@@ -456,6 +509,8 @@ async def start_chat_session(
             "user_profile": {
                 "student_name": student.first_name if student else "your child",
                 "student_age": computed_age,
+                "student_gender": getattr(student, "gender", None) if student else None,
+                "pronouns": pronouns_map,
             },
             "assessment_data": {},
             "background_profile": {},
@@ -516,6 +571,15 @@ async def start_chat_session(
         # Combine welcome + question
         bot_message_data = question_data
         bot_message_data["content"] = bot_message.content + "\n\n" + question_data["content"]
+
+    # Gender-aware pronoun substitution on outbound content (and stored DB rows).
+    if pronouns_map:
+        bot_message.content = _apply_pronouns(bot_message.content, pronouns_map)
+        if final_node_id != flow["start_node"] and final_node:
+            question_msg.content = _apply_pronouns(question_msg.content, pronouns_map)
+        bot_message_data["content"] = _apply_pronouns(
+            bot_message_data.get("content", ""), pronouns_map
+        )
 
     await db.commit()
     await db.refresh(session)
@@ -611,6 +675,32 @@ async def send_message(
     # Final fallback - should never happen but just in case
     if not bot_response_data:
         bot_response_data = _graceful_fallback(session, student_name)
+
+    # Gender-aware pronoun substitution on outbound content.
+    user_profile = session.context_data.get("user_profile") or {}
+    pronouns_map = user_profile.get("pronouns")
+    if pronouns_map is None and session.assignment_id:
+        # Backfill for sessions created before the pronouns field existed.
+        assign_res = await db.execute(
+            select(AssessmentAssignment).where(
+                AssessmentAssignment.id == session.assignment_id
+            )
+        )
+        a_row = assign_res.scalar_one_or_none()
+        if a_row:
+            st_res = await db.execute(
+                select(Student).where(Student.id == a_row.student_id)
+            )
+            st_row = st_res.scalar_one_or_none()
+            if st_row:
+                pronouns_map = _pronouns_for_gender(getattr(st_row, "gender", None))
+                user_profile["pronouns"] = pronouns_map
+                user_profile["student_gender"] = getattr(st_row, "gender", None)
+                session.context_data["user_profile"] = user_profile
+    if pronouns_map and bot_response_data.get("content"):
+        bot_response_data["content"] = _apply_pronouns(
+            bot_response_data["content"], pronouns_map
+        )
 
     # Create bot message in DB
     bot_message = ChatMessage(
@@ -1345,6 +1435,155 @@ async def get_session_data(
             for msg in all_messages
         ],
         "total_messages": len(all_messages),
+    }
+
+
+# ============================================================================
+# EDIT LAST ANSWER
+# ============================================================================
+
+@router.patch("/sessions/{session_id}/messages/{message_id}")
+async def edit_user_message(
+    session_id: UUID,
+    message_id: UUID,
+    body: EditMessageIn,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Edit the respondent's most recent message in this session. Replaces
+    content + resolved_option, refreshes assessment_data in place, stamps
+    message_metadata.edited_at. Does not regenerate the bot's follow-up.
+
+    Only the last user message may be edited. Admins bypass the ownership
+    check, same as /sessions/{id}/message.
+    """
+    from sqlalchemy.orm.attributes import flag_modified
+
+    # Lock the session row to serialise with concurrent /message calls
+    stmt = (
+        select(ChatSession)
+        .where(ChatSession.id == session_id)
+        .with_for_update()
+    )
+    session = (await db.execute(stmt)).scalar_one_or_none()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if session.user_id != current_user.id and current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    if session.status == ChatSessionStatus.COMPLETED.value:
+        raise HTTPException(
+            status_code=400, detail="This has already been completed."
+        )
+
+    msg_res = await db.execute(
+        select(ChatMessage).where(ChatMessage.id == message_id)
+    )
+    message = msg_res.scalar_one_or_none()
+    if not message or message.session_id != session.id:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    if message.role != MessageRole.USER.value:
+        raise HTTPException(
+            status_code=400, detail="Only your own messages can be edited"
+        )
+
+    # Confirm this is the latest user message in the session
+    latest_res = await db.execute(
+        select(ChatMessage.id)
+        .where(
+            ChatMessage.session_id == session.id,
+            ChatMessage.role == MessageRole.USER.value,
+        )
+        .order_by(ChatMessage.timestamp.desc())
+        .limit(1)
+    )
+    latest_id = latest_res.scalar_one_or_none()
+    if latest_id != message.id:
+        raise HTTPException(
+            status_code=400, detail="Only the latest answer can be edited"
+        )
+
+    new_content = (body.content or "").strip()
+    new_option = (body.resolved_option or None) if body.resolved_option else None
+
+    if not new_content and not new_option:
+        raise HTTPException(status_code=400, detail="Answer cannot be empty")
+
+    # Resolve node + validate option if provided
+    meta = dict(message.message_metadata or {})
+    node_id = meta.get("question_id")
+    node = flow_engine.get_node(session.flow_type, node_id) if node_id else None
+    category = (node.get("category") if node else "general") or "general"
+
+    option_label = None
+    if new_option:
+        if not node or node.get("type") != "mcq":
+            raise HTTPException(status_code=400, detail="Invalid option")
+        match = next(
+            (o for o in node.get("options", []) if o.get("value") == new_option),
+            None,
+        )
+        if not match:
+            raise HTTPException(status_code=400, detail="Invalid option")
+        option_label = match.get("label") or new_option
+
+    # Update the message row
+    message.content = new_content or option_label or ""
+    meta["selected_option"] = new_option
+    meta["edited_at"] = datetime.utcnow().isoformat()
+    message.message_metadata = meta
+    flag_modified(message, "message_metadata")
+
+    # Refresh assessment_data for the edited node
+    ctx = session.context_data or {}
+    assessment = ctx.get("assessment_data") or {}
+    cat_bucket = assessment.get(category)
+    if not isinstance(cat_bucket, dict):
+        cat_bucket = {"mcq_answers": {}, "text_inputs": [], "elaborations": {}}
+
+    mcq_answers = dict(cat_bucket.get("mcq_answers") or {})
+    elaborations = dict(cat_bucket.get("elaborations") or {})
+
+    if new_option and node_id:
+        mcq_answers[node_id] = new_option
+        # Derive elaboration as content minus the option label
+        if new_content and new_content.strip() != (option_label or "").strip():
+            elaborations[node_id] = new_content.strip()
+        else:
+            elaborations.pop(node_id, None)
+        # Severity from the newly-picked option's metadata
+        opt_meta = (match.get("metadata") or {}) if match else {}
+        if "severity" in opt_meta:
+            cat_bucket["severity"] = opt_meta["severity"]
+        elif "level" in opt_meta:
+            cat_bucket["severity"] = opt_meta["level"]
+    else:
+        # Free-text edit — drop the mcq pick, store text as elaboration
+        if node_id:
+            mcq_answers.pop(node_id, None)
+            if new_content:
+                elaborations[node_id] = new_content
+            else:
+                elaborations.pop(node_id, None)
+
+    cat_bucket["mcq_answers"] = mcq_answers
+    cat_bucket["elaborations"] = elaborations
+    assessment[category] = cat_bucket
+    ctx["assessment_data"] = assessment
+    session.context_data = ctx
+    flag_modified(session, "context_data")
+
+    session.last_interaction_at = datetime.utcnow()
+    await db.commit()
+    await db.refresh(message)
+
+    return {
+        "id": str(message.id),
+        "content": message.content,
+        "message_metadata": message.message_metadata,
+        "edited_at": message.message_metadata.get("edited_at"),
     }
 
 
