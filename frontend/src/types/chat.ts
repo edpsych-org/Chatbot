@@ -39,6 +39,7 @@ export interface ChatMessage {
   questionId?: string | null;
   questionOptions?: McqOption[] | null;
   editedAt?: string | null;
+  skipped?: boolean;
 }
 
 export interface EditMessagePayload {

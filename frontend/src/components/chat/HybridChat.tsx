@@ -495,6 +495,91 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
     }
   }, [lastFailedMessage, sendMessage]);
 
+  const handleSkip = useCallback(async () => {
+    if (!sessionId || loading || isCompleted) return;
+    // node_id is optional — backend falls back to session.current_node_id.
+    // This matters when the bot is in a validation re-prompt and the local
+    // currentQuestion metadata no longer carries a node id.
+    const nodeId = currentQuestion?.node_id ?? currentQuestion?.question_id ?? null;
+
+    setInputFeedback(null);
+    setLoading(true);
+    setIsTyping(true);
+
+    const localUserId = `user-skip-${Date.now()}`;
+    const userMessage: ChatMessage = {
+      id: localUserId,
+      role: 'user',
+      message_type: 'text',
+      content: '(skipped)',
+      timestamp: new Date().toISOString(),
+      skipped: true,
+      questionId: nodeId,
+    };
+    setMessages((prev) => [...prev, userMessage]);
+
+    try {
+      const token = getAuthToken();
+      const response = await axios.post(
+        `${API_BASE}/hybrid-chat/sessions/${sessionId}/message`,
+        {
+          message_type: 'skip',
+          content: '',
+          question_id: nodeId,
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      if (!mountedRef.current) return;
+      const data: BotResponse = response.data;
+
+      if (data.bot_message) {
+        const botMessage: ChatMessage = {
+          id: `bot-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          role: 'bot',
+          message_type: (data.bot_message.message_type || 'text') as ChatMessage['message_type'],
+          content: data.bot_message.content,
+          metadata: data.bot_message.metadata,
+          timestamp: new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, botMessage]);
+        setCurrentQuestion(data.bot_message.metadata || null);
+      }
+
+      const newProgress = data.progress_percentage || 0;
+      setProgress(newProgress);
+      if (data.current_category) setCurrentCategory(data.current_category);
+      savePersistedSession(assignmentId, sessionId, newProgress);
+      if (data.status === 'completed' || data.is_complete) {
+        setIsCompleted(true);
+        completeAssessment(sessionId);
+      }
+    } catch (err: unknown) {
+      if (!mountedRef.current) return;
+      // Roll back the optimistic skipped bubble on failure
+      setMessages((prev) => prev.filter((m) => m.id !== localUserId));
+      let detail = 'Could not skip. Try again.';
+      if (axios.isAxiosError(err)) {
+        const d = err.response?.data?.detail;
+        if (typeof d === 'string' && d.trim()) detail = d;
+      }
+      addSystemMessage(detail);
+    } finally {
+      if (mountedRef.current) {
+        setLoading(false);
+        setIsTyping(false);
+      }
+    }
+  }, [
+    sessionId,
+    loading,
+    isCompleted,
+    currentQuestion,
+    assignmentId,
+    completeAssessment,
+    addSystemMessage,
+  ]);
+
   const [editToast, setEditToast] = useState<string | null>(null);
   const editToastTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -744,6 +829,7 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
                 disabled={loading || isCompleted}
                 placeholder={inputPlaceholder}
                 validationFeedback={inputFeedback}
+                onSkip={handleSkip}
               />
             </div>
           )}
