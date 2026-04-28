@@ -636,7 +636,7 @@ export default function AdminDashboard() {
 
   const handleDeleteUser = (userId: string) => {
     showConfirm("Delete User", "This will permanently remove this user and all their data. This cannot be undone.", "danger", "Delete", async () => {
-      try { const token = localStorage.getItem("access_token"); const r = await fetch(`${API_BASE}/admin/users/${userId}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }); if (r.ok) { fetchAdminData(token!); showAlert("Deleted", "User deleted successfully.", "success"); } else showAlert("Error", "Failed to delete user", "danger"); } catch { showAlert("Error", "An error occurred", "danger"); }
+      try { const token = localStorage.getItem("access_token"); const r = await fetch(`${API_BASE}/admin/users/${userId}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }); if (r.ok) { fetchAdminData(token!); showAlert("Deleted", "User deleted successfully.", "success"); } else { let msg = "Failed to delete user"; try { const body = await r.json(); if (body?.detail) msg = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail); } catch { /* ignore */ } showAlert("Error", msg, "danger"); } } catch { showAlert("Error", "An error occurred", "danger"); }
     });
   };
 
@@ -1406,8 +1406,8 @@ export default function AdminDashboard() {
                 <input type="text" value={studentForm.grade} onChange={(e) => setStudentForm({ ...studentForm, grade: e.target.value })} className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" placeholder="Year 7" />
               </div>
               <div>
-                <label className="block text-[0.6875rem] font-medium text-[#737373] mb-1">Gender</label>
-                <select value={studentForm.gender} onChange={(e) => setStudentForm({ ...studentForm, gender: e.target.value })} className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                <label className="block text-[0.6875rem] font-medium text-[#737373] mb-1">Gender <span className="text-red-500">*</span></label>
+                <select required value={studentForm.gender} onChange={(e) => setStudentForm({ ...studentForm, gender: e.target.value })} className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
                   <option value="">Select...</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>

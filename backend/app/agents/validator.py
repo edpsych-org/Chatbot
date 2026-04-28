@@ -89,14 +89,16 @@ CATEGORY_KEYWORDS = {
     },
 }
 
-# Friendly relevance prompts per category
+# Friendly relevance prompts per category. Gender-neutral phrasing — avoid
+# possessive pronouns so the message reads correctly regardless of student
+# gender (and stays correct if gender is not set).
 RELEVANCE_PROMPTS = {
-    "attention": "I'd love to hear more about {student_name}'s experience with this. Could you share something specific about how they handle focusing or paying attention?",
-    "social": "I'd love to hear more about {student_name}'s experience with this. Could you share something specific about how they interact with other children?",
-    "emotional": "I'd love to hear more about {student_name}'s experience with this. Could you share something specific about how they handle their emotions?",
-    "academic": "I'd love to hear more about {student_name}'s experience with this. Could you share something specific about how they manage schoolwork or learning?",
-    "behavioral": "I'd love to hear more about {student_name}'s experience with this. Could you share something specific about their behaviour at home or school?",
-    "general": "I'd love to hear more about {student_name}'s experience with this. Could you share something related to their day-to-day life at home or school?",
+    "attention": "I'd love to hear more about {student_name}. Could you share something specific about focusing or paying attention?",
+    "social": "I'd love to hear more about {student_name}. Could you share something specific about interactions with other children?",
+    "emotional": "I'd love to hear more about {student_name}. Could you share something specific about how feelings are handled?",
+    "academic": "I'd love to hear more about {student_name}. Could you share something specific about schoolwork or learning?",
+    "behavioral": "I'd love to hear more about {student_name}. Could you share something specific about behaviour at home or school?",
+    "general": "I'd love to hear more about {student_name}. Could you share something about day-to-day life at home or school?",
 }
 
 # Follow-up prompts keyed by assessment category
