@@ -497,8 +497,10 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
 
   const handleSkip = useCallback(async () => {
     if (!sessionId || loading || isCompleted) return;
+    // node_id is optional — backend falls back to session.current_node_id.
+    // This matters when the bot is in a validation re-prompt and the local
+    // currentQuestion metadata no longer carries a node id.
     const nodeId = currentQuestion?.node_id ?? currentQuestion?.question_id ?? null;
-    if (!nodeId) return;
 
     setInputFeedback(null);
     setLoading(true);

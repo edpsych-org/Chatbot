@@ -1105,17 +1105,31 @@ async def _handle_free_text(
         current_question=current_question_text,
     )
 
-    # Handle validation feedback (input too short/vague/gibberish) - do NOT advance
+    # Handle validation feedback (input too short/vague/gibberish) - do NOT advance.
+    # Escape hatch: after MAX_VALIDATION_ATTEMPTS rejects on the same node, accept
+    # whatever the user typed so the questionnaire can never deadlock.
+    MAX_VALIDATION_ATTEMPTS = 2
     if result["response_type"] == "validation_feedback":
-        return {
-            "role": "bot",
-            "message_type": "text",
-            "content": result["content"],
-            "allow_text": True,
-            "text_prompt": "Share more details...",
-            "generation_source": "ai_validator",
-            "metadata": {"validation": True}
-        }, result["content"]
+        attempts_map = session.context_data.setdefault("validation_attempts", {})
+        node_key = session.current_node_id or "unknown"
+        attempts = attempts_map.get(node_key, 0) + 1
+        attempts_map[node_key] = attempts
+        from sqlalchemy.orm.attributes import flag_modified as _fm
+        _fm(session, "context_data")
+        if attempts < MAX_VALIDATION_ATTEMPTS:
+            return {
+                "role": "bot",
+                "message_type": "text",
+                "content": result["content"],
+                "allow_text": True,
+                "text_prompt": "Share more details...",
+                "generation_source": "ai_validator",
+                "metadata": {"validation": True}
+            }, result["content"]
+        # Force-accept after the limit — fall through to the success path so the
+        # answer is recorded and the flow advances. Reset counter.
+        attempts_map[node_key] = 0
+        _fm(session, "context_data")
 
     # Mark current node as answered only AFTER validation passes
     answered_nodes = session.context_data.get("answered_node_ids", [])
