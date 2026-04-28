@@ -313,12 +313,33 @@ async def delete_user(
             detail="Cannot delete your own account"
         )
 
-    # Use raw SQL DELETE so the database ON DELETE CASCADE handles child rows
-    # directly, avoiding SQLAlchemy's ORM-level FK nullification which crashes
-    # on NOT NULL columns.
-    from sqlalchemy import delete as sql_delete
-    await db.execute(sql_delete(User).where(User.id == user_id))
-    await db.commit()
+    # AssessmentAssignment.assigned_to_user_id and assigned_by_psychologist_id
+    # were created WITHOUT ondelete=CASCADE, so a raw User delete fails with an
+    # FK violation when the user has assignments. Pre-delete them so the
+    # cascade chain (assignment -> chat_session -> chat_message + magic_link)
+    # runs cleanly via the existing CASCADE FKs on those child tables.
+    from sqlalchemy import delete as sql_delete, or_
+    from app.models.assignment import AssessmentAssignment
+
+    try:
+        await db.execute(
+            sql_delete(AssessmentAssignment).where(
+                or_(
+                    AssessmentAssignment.assigned_to_user_id == user_id,
+                    AssessmentAssignment.assigned_by_psychologist_id == user_id,
+                )
+            )
+        )
+        await db.execute(sql_delete(User).where(User.id == user_id))
+        await db.commit()
+    except Exception as exc:
+        await db.rollback()
+        import logging as _log
+        _log.exception("delete_user failed for %s", user_id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete user: {type(exc).__name__}: {exc}",
+        )
 
     return {"message": "User deleted successfully"}
 
