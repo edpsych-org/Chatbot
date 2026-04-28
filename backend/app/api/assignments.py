@@ -115,14 +115,21 @@ async def create_assignment(
             detail=f"This parent/guardian is not linked to the student. Please add them as a guardian first in the Students tab."
         )
 
-    # One active assignment per student, total. If any recipient already has
-    # an active assignment for this student, block the request — admin must
-    # cancel or complete the existing one before a new one can be created.
+    # One active assignment per (student, recipient role) bucket. Parent and
+    # School are independent buckets so home + school questionnaires can run
+    # concurrently. A second mom (or second school) for the same student is
+    # blocked until the active one completes or is cancelled.
     result = await db.execute(
-        select(AssessmentAssignment).where(
+        select(AssessmentAssignment)
+        .join(User, AssessmentAssignment.assigned_to_user_id == User.id)
+        .where(
             and_(
                 AssessmentAssignment.student_id == assignment_data.student_id,
-                AssessmentAssignment.status.in_([AssignmentStatus.ASSIGNED, AssignmentStatus.IN_PROGRESS])
+                AssessmentAssignment.status.in_([
+                    AssignmentStatus.ASSIGNED,
+                    AssignmentStatus.IN_PROGRESS,
+                ]),
+                User.role == assigned_to.role,
             )
         )
     )
@@ -132,8 +139,9 @@ async def create_assignment(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
-                "This student already has an active assignment. "
-                "Cancel or complete the existing one first."
+                f"This student already has an active "
+                f"{assigned_to.role.value.lower()} assignment. "
+                f"Cancel or complete the existing one first."
             )
         )
 
