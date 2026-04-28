@@ -703,8 +703,21 @@ class SchoolResponseSummaryAgent(BaseAgent):
 
     async def summarise(self, student_first_name: str, assessment_data: dict, qa_pairs: list) -> str:
         first_name = student_first_name or "the student"
+
+        # Drop skipped node ids from both the assessment_data dump and the QA
+        # list so the LLM never sees them and cannot invent answers for them.
+        skipped_ids: set = set()
+        for cat_bucket in (assessment_data or {}).values():
+            if isinstance(cat_bucket, dict):
+                skipped_ids.update(cat_bucket.get("skipped_nodes") or [])
+
+        filtered_qa = [
+            p for p in (qa_pairs or [])
+            if (p.get("question_node_id") or p.get("node_id")) not in skipped_ids
+        ]
+
         assessment_json = json.dumps(assessment_data or {}, indent=2, default=str)
-        qa_json = json.dumps(qa_pairs or [], indent=2, default=str)
+        qa_json = json.dumps(filtered_qa, indent=2, default=str)
 
         prompt = f"""You are summarising the input a school has shared about {first_name} for the student's parents to read. Use ONLY the data below — do not invent, embellish, or add recommendations.
 
