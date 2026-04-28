@@ -286,6 +286,8 @@ Write in authoritative third-person clinical prose. NEVER say "data was insuffic
 
 CRITICAL TONE: This report is read by PARENTS. Use a STRENGTHS-BASED, warm, and empathetic tone. Lead each subsection with POSITIVE observations before discussing areas of difficulty. Frame challenges constructively — use "areas where support would be beneficial" rather than deficit language. Highlight {first_name}'s strengths, interests, resilience, and positive qualities throughout. Parents should feel that their child is understood and valued, not labelled negatively. NEVER use blunt negative statements like "{first_name} struggles with..." or "{first_name} has poor..." — instead use "{first_name} would benefit from additional support with..." or "An area for development is...".
 
+LANGUAGE: Use British English spelling and terminology throughout — "Maths" not "Math", "behaviour" not "behavior", "organised" not "organized", "recognise" not "recognize", "colour" not "color", "centre" not "center", "Year 7/8/9" not "Grade 7/8/9".
+
 NEVER CRITICISE PARENTS OR SCHOOLS: Do NOT imply parents were neglectful, unsupportive, or slow to act. Do NOT suggest schools failed, missed signs, or provided inadequate support. Acknowledge the efforts parents and schools have ALREADY made. If support was delayed, frame neutrally — "Further assessment was sought to clarify {first_name}'s needs" NOT "The school failed to identify...". Frame gaps as opportunities for enhanced provision, not failures.
 
 Use EXACTLY these headings and structure:
@@ -506,7 +508,7 @@ RAW SCORES:
 PSYCHOMETRIC INTERPRETATION:
 {interpretation}
 
-Write the final published report section in the style of a senior UK educational psychologist. This section will be read by parents, SENCOs, and potentially tribunals.
+Write the final published report section in the style of a senior UK educational psychologist. This section will be read by parents, SENCOs, and potentially tribunals. Use British English spelling and terminology throughout (Maths, behaviour, organised, recognise, colour, Year 7/8/9).
 
 IMPORTANT: Different students receive different test batteries. You MUST adapt the report structure to match ONLY the tests actually present in the scores data. Do NOT include sections for tests that were not administered.
 
@@ -644,7 +646,7 @@ TONE: Lead with strengths and protective factors. Frame difficulties as areas fo
         self, background: str, cognitive: str, analysis: str,
         student_name: str, first_name: str
     ) -> Optional[str]:
-        prompt = f"""You are a Chartered Educational Psychologist writing the UNIFIED INSIGHTS AND RECOMMENDATIONS section of a confidential diagnostic assessment report for {student_name}.
+        prompt = f"""You are a Chartered Educational Psychologist writing the UNIFIED INSIGHTS AND RECOMMENDATIONS section of a confidential diagnostic assessment report for {student_name}. Use British English spelling and terminology throughout (Maths, behaviour, organised, recognise, colour, Year 7/8/9).
 
 You have the background summary, cognitive report, and an internal pattern analysis from your team.
 
@@ -735,6 +737,7 @@ Write 3 to 5 short paragraphs in a warm, professional tone:
 
 Rules:
 - Parent-facing audience — plain, supportive language.
+- Use British English spelling and terminology (e.g. "Maths" not "Math", "behaviour" not "behavior", "organised" not "organized").
 - Do NOT use the word "assessment".
 - Do NOT invent diagnoses or make recommendations.
 - Do NOT copy the questions verbatim; paraphrase.
