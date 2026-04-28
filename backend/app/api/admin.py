@@ -1188,53 +1188,56 @@ async def admin_assign_assessment(
             },
         )
 
-    # 3b. One-active-assignment-per-student policy covers batch size too:
-    #     admin can only send to a single recipient at a time for a given
-    #     student. Multi-guardian batches are rejected up front.
-    if len(assignment.guardian_ids) > 1:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                "Only one recipient can be assigned per student at a time. "
-                "Pick a single parent/guardian or school."
-            ),
-        )
-
-    # 4. One-active-assignment-per-student policy. If ANY recipient already
-    #    has an active assignment for this student, block the whole request
-    #    — admin must cancel or complete the existing one before creating
-    #    new ones (even for a different guardian).
+    # 4. Per-role-bucket policy: one active PARENT and one active SCHOOL
+    #    assignment per student. Reject if any incoming recipient (or two
+    #    incoming recipients of the same role) would violate this.
     active_states = [AssignmentStatus.ASSIGNED, AssignmentStatus.IN_PROGRESS]
+
+    # Collect role per incoming recipient.
+    incoming_roles = {gid: users_by_id[gid].role for gid in assignment.guardian_ids}
+
+    # 4a. Reject same-role duplicates within the incoming batch
+    #     (e.g. mom + dad both PARENT in one batch).
+    seen_roles: set = set()
+    for gid in assignment.guardian_ids:
+        role = incoming_roles[gid]
+        if role in seen_roles:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Cannot assign two {role.value.lower()} recipients "
+                    f"in the same batch — only one of each role per student."
+                ),
+            )
+        seen_roles.add(role)
+
+    # 4b. Look up active assignments for this student grouped by recipient role.
     blocker_result = await db.execute(
-        select(AssessmentAssignment).where(
+        select(AssessmentAssignment, User.role)
+        .join(User, AssessmentAssignment.assigned_to_user_id == User.id)
+        .where(
             and_(
                 AssessmentAssignment.student_id == assignment.student_id,
                 AssessmentAssignment.status.in_(active_states),
             )
         )
     )
-    blocker = blocker_result.scalars().first()
-    if blocker:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                "This student already has an active assignment. "
-                "Cancel or complete the existing one first."
-            ),
-        )
+    active_role_set = {row_role for _, row_role in blocker_result.all()}
 
     existing_by_user_id: dict = {}
+    for gid in assignment.guardian_ids:
+        if incoming_roles[gid] in active_role_set:
+            existing_by_user_id[gid] = True
     created: list[dict] = []
     skipped: list[dict] = []
 
     # 5. Create assignment + magic link for each remaining guardian
     for gid in assignment.guardian_ids:
         if gid in existing_by_user_id:
-            existing = existing_by_user_id[gid]
             skipped.append({
                 "guardian_id": str(gid),
                 "reason": "already_has_active_assignment",
-                "existing_assignment_id": str(existing.id),
+                "existing_assignment_role": users_by_id[gid].role.value,
             })
             continue
 
