@@ -7,6 +7,7 @@ interface ChatInputProps {
   disabled: boolean;
   placeholder: string;
   validationFeedback?: string | null;
+  onSkip?: () => void;
 }
 
 // Web Speech API types
@@ -34,7 +35,7 @@ function isMobile(): boolean {
   return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
-export default function ChatInput({ onSend, disabled, placeholder, validationFeedback }: ChatInputProps) {
+export default function ChatInput({ onSend, disabled, placeholder, validationFeedback, onSkip }: ChatInputProps) {
   const [value, setValue] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
@@ -263,6 +264,24 @@ export default function ChatInput({ onSend, disabled, placeholder, validationFee
               </span>
             )}
           </div>
+
+          {/* Skip button — only when free-text question allows skipping */}
+          {onSkip && (
+            <button
+              type="button"
+              onClick={() => { if (!disabled) onSkip(); }}
+              disabled={disabled}
+              aria-label="Skip this question"
+              title="Skip this question"
+              className="h-[42px] sm:h-[46px] px-3 sm:px-4 flex items-center justify-center flex-shrink-0
+                rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800
+                text-xs sm:text-sm font-medium border border-gray-200 shadow-sm
+                transition-all duration-200
+                disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Skip
+            </button>
+          )}
 
           {/* Microphone button */}
           {speechSupported && (
