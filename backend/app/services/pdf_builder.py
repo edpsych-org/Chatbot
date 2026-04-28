@@ -90,13 +90,30 @@ def _escape(text: str) -> str:
     )
 
 
+def _collect_skipped_node_ids(ctx: dict) -> set:
+    """Gather every skipped node id across categories so PDF/report
+    rendering can drop them."""
+    skipped: set = set()
+    for cat_bucket in (ctx.get("assessment_data") or {}).values():
+        if isinstance(cat_bucket, dict):
+            skipped.update(cat_bucket.get("skipped_nodes") or [])
+    return skipped
+
+
 def _iter_qa_pairs(session) -> Iterable[dict]:
     """Prefer the pre-built completed_qa_pairs list. If missing,
-    fall back to assessment_data mcq_answers keyed by node id."""
+    fall back to assessment_data mcq_answers keyed by node id.
+    Skipped nodes are excluded."""
     ctx = session.context_data or {}
+    skipped_ids = _collect_skipped_node_ids(ctx)
+
+    def _is_skipped(pair: dict) -> bool:
+        nid = pair.get("question_node_id") or pair.get("node_id")
+        return bool(nid and nid in skipped_ids)
+
     pairs = ctx.get("completed_qa_pairs") or []
     if pairs:
-        return pairs
+        return [p for p in pairs if not _is_skipped(p)]
     rebuilt: list[dict] = []
     for category, data in (ctx.get("assessment_data") or {}).items():
         if not isinstance(data, dict):
@@ -104,6 +121,8 @@ def _iter_qa_pairs(session) -> Iterable[dict]:
         mcq_answers = data.get("mcq_answers") or {}
         elaborations = data.get("elaborations") or {}
         for node_id, value in mcq_answers.items():
+            if node_id in skipped_ids:
+                continue
             rebuilt.append(
                 {
                     "question_text": node_id,

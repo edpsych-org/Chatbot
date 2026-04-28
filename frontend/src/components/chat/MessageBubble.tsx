@@ -202,8 +202,8 @@ export default function MessageBubble({
             <>
               <p className={`whitespace-pre-wrap text-[0.875rem] sm:text-[0.9375rem] leading-relaxed ${
                 isUser ? 'text-white/95' : ''
-              }`}>
-                {message.content}
+              } ${message.skipped ? 'italic opacity-70' : ''}`}>
+                {message.skipped ? '(skipped)' : message.content}
               </p>
 
               <div className={`flex items-center gap-1.5 mt-1.5 ${isUser ? 'justify-end' : 'justify-start'}`}>
@@ -220,7 +220,7 @@ export default function MessageBubble({
                     <path fillRule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd" />
                   </svg>
                 )}
-                {isUser && canEdit && (
+                {isUser && canEdit && !message.skipped && (
                   <button
                     type="button"
                     onClick={startEdit}
