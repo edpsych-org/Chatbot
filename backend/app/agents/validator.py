@@ -99,29 +99,6 @@ RELEVANCE_PROMPTS = {
     "general": "I'd love to hear more about {student_name}'s experience with this. Could you share something related to their day-to-day life at home or school?",
 }
 
-# Common English words used to detect gibberish
-# If a message has very few real words, it's likely nonsense
-COMMON_WORDS = {
-    "i", "he", "she", "we", "they", "it", "my", "his", "her", "our", "the", "a", "an",
-    "is", "are", "was", "were", "has", "have", "had", "do", "does", "did", "will", "would",
-    "can", "could", "should", "not", "no", "yes", "and", "or", "but", "in", "on", "at",
-    "to", "for", "with", "from", "by", "about", "up", "out", "of", "that", "this", "what",
-    "when", "where", "how", "who", "which", "very", "really", "much", "more", "also",
-    "just", "like", "time", "been", "being", "some", "than", "then", "them", "their",
-    "there", "these", "those", "so", "if", "all", "any", "each", "every", "both",
-    "school", "class", "teacher", "homework", "child", "kid", "son", "daughter",
-    "student", "learn", "learning", "read", "reading", "write", "writing", "math",
-    "help", "need", "problem", "issue", "hard", "easy", "difficult", "focus", "attention",
-    "behavior", "behaviour", "friend", "friends", "social", "emotional", "feel", "feeling",
-    "think", "know", "understand", "work", "home", "sometimes", "often", "always", "never",
-    "because", "since", "well", "good", "bad", "better", "worse", "gets", "get", "got",
-    "make", "makes", "made", "go", "goes", "going", "come", "comes", "say", "says", "said",
-    "see", "seen", "take", "takes", "give", "want", "wants", "need", "needs", "try", "tries",
-    "seem", "seems", "lot", "many", "few", "still", "keep", "keeps", "day", "days",
-    "year", "years", "old", "new", "first", "last", "long", "short", "big", "small",
-    "him", "able", "unable", "sit", "sitting", "play", "playing", "talk", "talking",
-}
-
 # Follow-up prompts keyed by assessment category
 FOLLOW_UP_PROMPTS = {
     "attention": "Could you give an example of when {student_name} has trouble focusing? For instance, during homework, in class, or during activities?",
@@ -242,14 +219,6 @@ class InputValidatorAgent(BaseAgent):
                 "confidence": 0.75,
             }
 
-        # Gibberish / nonsense detection
-        if self._is_gibberish(text):
-            return {
-                "is_sufficient": False,
-                "feedback": "I didn't quite understand that. Could you describe your thoughts in a sentence or two?",
-                "confidence": 0.9,
-            }
-
         # ── Strict relevance checks ─────────────────────────────────────
 
         # 1. Excessive length check — real answers are typically under 100 words
@@ -300,48 +269,6 @@ class InputValidatorAgent(BaseAgent):
             "feedback": None,
             "confidence": 0.95,
         }
-
-    @staticmethod
-    def _is_gibberish(text: str) -> bool:
-        """Detect gibberish/random keyboard mashing."""
-        words = re.findall(r"[a-zA-Z']+", text.lower())
-        if not words:
-            return True
-
-        # Only genuine short words ("i", "a", "he", "it", "do") are counted
-        # as English — don't credit arbitrary 1-2 char tokens ("k", "sd", "c")
-        # that trivially let keyboard mashing slip through.
-        real_word_count = sum(1 for w in words if w in COMMON_WORDS)
-
-        # If no recognizable English words at all, it's gibberish regardless
-        # of length — nothing legitimate reads as "ghvvl;k sd jkj c dghj".
-        if real_word_count == 0 and len(words) >= 2:
-            return True
-
-        ratio = real_word_count / len(words)
-        # If less than 30% of words are recognizable, it's likely gibberish
-        if ratio < 0.3:
-            return True
-
-        # Check for excessive consonant clusters (keyboard mashing signature)
-        consonant_heavy = 0
-        for word in words:
-            if len(word) >= 4:
-                vowels = sum(1 for c in word if c in "aeiou")
-                if vowels / len(word) < 0.15:
-                    consonant_heavy += 1
-        if len(words) > 0 and consonant_heavy / len(words) > 0.5:
-            return True
-
-        # Check for repeated random capitalization patterns
-        alpha_chars = [c for c in text if c.isalpha()]
-        if len(alpha_chars) > 10:
-            upper_ratio = sum(1 for c in alpha_chars if c.isupper()) / len(alpha_chars)
-            # Normal text has <15% uppercase; random mashing has ~50%
-            if upper_ratio > 0.4:
-                return True
-
-        return False
 
     @staticmethod
     def _is_copy_paste(text: str) -> bool:
