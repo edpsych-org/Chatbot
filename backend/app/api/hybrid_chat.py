@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 class ChatMessageInput(BaseModel):
     """User message input"""
-    message_type: str  # "mcq_choice" | "free_text"
+    message_type: str  # "mcq_choice" | "free_text" | "skip"
     content: str
     question_id: Optional[str] = None
     selected_option: Optional[str] = None
@@ -623,14 +623,16 @@ async def send_message(
     student_name = session.context_data.get("user_profile", {}).get("student_name", "your child")
 
     # Store user message
+    is_skip = message_input.message_type == "skip"
     user_message = ChatMessage(
         session_id=session.id,
         role=MessageRole.USER.value,
         message_type=message_input.message_type,
-        content=message_input.content,
+        content="(skipped)" if is_skip else message_input.content,
         message_metadata={
             "question_id": message_input.question_id,
-            "selected_option": message_input.resolved_option
+            "selected_option": message_input.resolved_option,
+            "skipped": is_skip,
         }
     )
     db.add(user_message)
@@ -660,6 +662,10 @@ async def send_message(
         elif message_input.message_type == "mcq_choice" and message_input.resolved_option == "more":
             # --- "Tell me more" quick-reply ---
             bot_response_data = await _handle_more(session, student_name)
+
+        elif message_input.message_type == "skip":
+            # --- SKIP: only allowed on free-text questions ---
+            bot_response_data = await _handle_skip(session, message_input, student_name)
 
         elif message_input.message_type == "free_text":
             # --- FREE TEXT: multi-agent processing ---
@@ -934,6 +940,83 @@ async def _handle_more(session: ChatSession, student_name: str) -> dict:
         "text_prompt": "Type your response...",
         "generation_source": "ai_empathetic",
         "metadata": {"category": current_category}
+    }
+
+
+async def _handle_skip(
+    session: ChatSession,
+    message_input: ChatMessageInput,
+    student_name: str,
+) -> dict:
+    """Skip a free-text question. Records the node id in assessment_data
+    and advances to the next node. Rejected for MCQ nodes — those drive
+    severity scoring."""
+    from sqlalchemy.orm.attributes import flag_modified
+
+    flow_id = session.flow_type
+    node_id = message_input.question_id or session.current_node_id
+    node = flow_engine.get_node(flow_id, node_id)
+    if not node:
+        raise HTTPException(status_code=400, detail="Question not found")
+
+    # Skip is only valid on free-text questions. MCQ scales drive severity
+    # scoring — skipping them would corrupt the report.
+    if node.get("type") not in ("text", "text_only"):
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot skip a multiple-choice question",
+        )
+
+    # Stale request guard: client-supplied node_id must match the session's
+    # current node — if a race causes drift, we reject.
+    if node_id != session.current_node_id:
+        raise HTTPException(status_code=400, detail="Question is no longer active")
+
+    # Record the skip in assessment_data per category.
+    category = (node.get("metadata") or {}).get("category") or node.get("category") or "general"
+    assessment_data = session.context_data.setdefault("assessment_data", {})
+    cat_bucket = assessment_data.setdefault(category, {})
+    skipped_list = cat_bucket.setdefault("skipped_nodes", [])
+    if node_id not in skipped_list:
+        skipped_list.append(node_id)
+
+    # Mark the node answered so progress reflects the skip.
+    answered = session.context_data.get("answered_node_ids", [])
+    if node_id not in answered:
+        answered.append(node_id)
+        session.context_data["answered_node_ids"] = answered
+
+    flag_modified(session, "context_data")
+
+    # Advance to the next node.
+    next_id = flow_engine.get_next_node_id(flow_id, node_id, user_choice=None)
+    if not next_id:
+        session.current_node_id = None
+        return {
+            "role": "bot",
+            "message_type": "system",
+            "content": "(skipped)",
+            "metadata": {"completed": True},
+            "generation_source": "flow_engine",
+        }
+
+    final_id, final_node = flow_engine.advance_past_messages(flow_id, next_id)
+    session.current_node_id = final_id
+    if final_node:
+        question_data = flow_engine.format_bot_message(final_node, student_name, final_id)
+        return {
+            "role": "bot",
+            "message_type": question_data["message_type"],
+            "content": question_data["content"],
+            "metadata": question_data.get("metadata", {}),
+            "generation_source": "flow_engine",
+        }
+    return {
+        "role": "bot",
+        "message_type": "system",
+        "content": "(skipped)",
+        "metadata": {"completed": True},
+        "generation_source": "flow_engine",
     }
 
 
