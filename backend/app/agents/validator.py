@@ -344,21 +344,27 @@ class InputValidatorAgent(BaseAgent):
         """
         truncated = text[:500] if len(text) > 500 else text
 
-        prompt = f"""You are validating a parent's response in a short guided questionnaire about a child.
+        prompt = f"""You are validating a respondent's reply in a short guided questionnaire about a child. The respondent may be a parent, school staff member, or teaching assistant — many will type briefly or with imperfect grammar.
 
-QUESTION ASKED TO THE PARENT: "{question}"
+QUESTION: "{question}"
 
-PARENT'S RESPONSE: "{truncated}"
+REPLY: "{truncated}"
 
-Decide whether the response is a plausible answer to the question.
+Decide whether the reply is a plausible answer.
 
-Rules:
-- Short answers (even a single word like "Yes", "No", "Reading", "Mother", "Sometimes", "Rarely", "Often") ARE VALID if they could reasonably answer the question.
-- Longer answers are VALID when they describe the child's behaviour, feelings, routines, strengths, or difficulties.
-- Only mark INVALID when the response is clearly off-topic (random text, Wikipedia, jokes, nonsense, a different topic entirely) OR gibberish / keyboard mashing.
-- When in doubt, mark VALID.
+DEFAULT TO VALID. Only mark INVALID for these specific cases:
+- Random keyboard mashing or non-words (e.g. "ghvvl;k sd").
+- Clearly a different topic — talking about something completely unrelated (e.g. weather, politics, recipes).
+- Spam / copy-pasted Wikipedia / jokes / advertisements.
 
-Reply with ONLY one word: YES (valid) or NO (invalid)."""
+VALID examples (accept all of these):
+- One- or two-word answers like "Yes", "No", "Minimal contact", "Group work", "Falls behind".
+- Vague but on-topic answers like "He is fine at home", "She is always happy", "Nothing much".
+- Grammatically imperfect sentences ("we works well", "him is happy") — still accept.
+- Brief generalities about the child's day, mood, behaviour, friends, or learning.
+- Anything that mentions the child or could plausibly describe their experience.
+
+Reply with ONLY one word: YES or NO."""
 
         try:
             result = await self.call_llm(
