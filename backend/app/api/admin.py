@@ -1088,14 +1088,35 @@ async def admin_create_student_with_parents(
             )
             existing_user = existing_user_result.scalar_one_or_none()
 
+            desired_role = (
+                UserRole.PARENT if parent_data.type == "parent" else UserRole.SCHOOL
+            )
             if existing_user:
                 parent = existing_user
+                # Re-align fields when the admin re-uses the same email for a
+                # different role / name / phone (e.g. testing flows where the
+                # previous student was deleted and the email is being recycled).
+                changed = False
+                if parent.role != desired_role:
+                    parent.role = desired_role
+                    changed = True
+                if parent_data.full_name and parent.full_name != parent_data.full_name:
+                    parent.full_name = parent_data.full_name
+                    changed = True
+                if parent_data.phone and parent.phone != parent_data.phone:
+                    parent.phone = parent_data.phone
+                    changed = True
+                if not parent.is_active:
+                    parent.is_active = True
+                    changed = True
+                if changed:
+                    await db.flush()
             else:
                 # Create new parent account (no password – will set via magic link)
                 parent = User(
                     email=parent_data.email,
                     password_hash=None,
-                    role=UserRole.PARENT if parent_data.type == "parent" else UserRole.SCHOOL,
+                    role=desired_role,
                     full_name=parent_data.full_name,
                     phone=parent_data.phone,
                     is_active=True,
