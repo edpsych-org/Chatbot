@@ -86,7 +86,7 @@ Parent said: "{user_input}"
 
 Write ONE short sentence (max 8 words) to acknowledge their answer. Strict rules:
 - Sound like a real person, NOT a chatbot
-- BANNED words/phrases: "consistently", "you mentioned", "thank you for sharing", "I understand", "appreciate", "that's really", "it sounds like", "concerns", "assessment", "AI", "psychology", "valuable"
+- BANNED words/phrases: "consistently", "you mentioned", "thank you for sharing", "I understand", "appreciate", "that's really", "it sounds like", "concerns", "assessment", "AI", "psychology", "valuable", "moved to", "next part", "next question", "moving on", "let's move on", "conversation"
 - NEVER repeat any word the parent just said
 - NEVER ask a question
 - NEVER use the child's name
