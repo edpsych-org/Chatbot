@@ -181,8 +181,28 @@ async def delete_student(
             detail="Student not found"
         )
 
-    await db.delete(student)
-    await db.commit()
+    # AssessmentAssignment.student_id lacks ondelete=CASCADE so we must pre-delete
+    # those rows (which themselves cascade-delete chat sessions, messages, magic
+    # links) before removing the student.
+    from sqlalchemy import delete as sql_delete
+    from app.models.assignment import AssessmentAssignment
+
+    try:
+        await db.execute(
+            sql_delete(AssessmentAssignment).where(
+                AssessmentAssignment.student_id == student_id
+            )
+        )
+        await db.delete(student)
+        await db.commit()
+    except Exception as exc:
+        await db.rollback()
+        import logging as _log
+        _log.exception("delete_student failed for %s", student_id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete student: {type(exc).__name__}: {exc}",
+        )
 
     return None
 
