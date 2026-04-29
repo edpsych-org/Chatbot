@@ -53,6 +53,7 @@ export interface BotResponse {
     content: string;
     metadata?: QuestionMetadata;
   };
+  user_message_id?: string | null;
   progress_percentage: number;
   status: 'in_progress' | 'completed';
   is_complete: boolean;
