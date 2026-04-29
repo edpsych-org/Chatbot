@@ -161,7 +161,7 @@
     },
     "peer_friendships": {
       "type": "mcq",
-      "question": "Peer friendships — how would you describe them?",
+      "question": "How would you describe peer friendships?",
       "category": "social",
       "options": [
         {"value": "many", "label": "Many friends, popular", "next": "playground"},
@@ -173,7 +173,7 @@
     },
     "playground": {
       "type": "mcq",
-      "question": "On the playground / during free time, {student_name} usually…",
+      "question": "In the playground / during free time, {student_name} usually…",
       "category": "social",
       "options": [
         {"value": "joins_games", "label": "Joins group games happily", "next": "group_work"},
@@ -251,7 +251,7 @@
     },
     "intervention_effect": {
       "type": "mcq",
-      "question": "If interventions are in place — how are they working?",
+      "question": "If interventions are in place — how is progress?",
       "category": "provision",
       "options": [
         {"value": "good_progress", "label": "Good progress", "next": "school_concerns"},
