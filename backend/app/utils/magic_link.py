@@ -87,9 +87,29 @@ async def create_invite_magic_link(
     assignment_id: str,
     expiry_hours: int = 48
 ) -> MagicLinkToken:
-    """Create a magic link tied to a specific assessment assignment."""
+    """Create a magic link tied to a specific assessment assignment.
+
+    Any prior unused assessment-invite magic link tokens for this user are
+    marked consumed so that stale emails (e.g. from a previously deleted
+    student that re-used the same parent email) cannot be clicked instead of
+    the freshly-generated one.
+    """
+    from sqlalchemy import update as sql_update
+
+    now = datetime.now(timezone.utc)
+
+    await db.execute(
+        sql_update(MagicLinkToken)
+        .where(
+            MagicLinkToken.user_id == user_id,
+            MagicLinkToken.purpose == "assessment_invite",
+            MagicLinkToken.used_at.is_(None),
+        )
+        .values(used_at=now)
+    )
+
     token = generate_magic_token()
-    expires_at = datetime.now(timezone.utc) + timedelta(hours=expiry_hours)
+    expires_at = now + timedelta(hours=expiry_hours)
 
     magic_link = MagicLinkToken(
         user_id=user_id,
