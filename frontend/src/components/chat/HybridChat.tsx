@@ -316,10 +316,13 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
       setLastFailedMessage(null);
       startSlowResponseTimer();
 
-      // Add user message immediately (only on first attempt)
+      // Add user message immediately (only on first attempt). Track its local id so
+      // we can swap it for the backend-issued UUID once the request returns —
+      // that lets edit/skip flows target the persisted row by its real id.
+      const localUserMessageId = `user-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
       if (retryAttempt === 0) {
         const userMessage: ChatMessage = {
-          id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          id: localUserMessageId,
           role: 'user',
           message_type: messageType === 'mcq_choice' ? 'mcq_choice' : 'text',
           content,
@@ -347,6 +350,16 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
         clearSlowResponseTimer();
 
         const data: BotResponse = response.data;
+
+        // Swap the optimistic local user-message id for the real DB UUID so
+        // subsequent edit/skip calls hit a valid path param.
+        if (data.user_message_id) {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === localUserMessageId ? { ...m, id: data.user_message_id! } : m,
+            ),
+          );
+        }
 
         // Handle input validation feedback
         if (data.input_feedback) {
@@ -532,6 +545,14 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
 
       if (!mountedRef.current) return;
       const data: BotResponse = response.data;
+
+      if (data.user_message_id) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === localUserId ? { ...m, id: data.user_message_id! } : m,
+          ),
+        );
+      }
 
       if (data.bot_message) {
         const botMessage: ChatMessage = {

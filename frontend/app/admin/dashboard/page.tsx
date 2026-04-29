@@ -634,6 +634,25 @@ export default function AdminDashboard() {
     });
   };
 
+  const handleDeleteStudent = (studentId: string, studentName: string) => {
+    showConfirm("Delete Student", `This will permanently remove ${studentName} and all their assessment data. This cannot be undone.`, "danger", "Delete", async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        const r = await fetch(`${API_BASE}/students/${studentId}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+        if (r.ok || r.status === 204) {
+          fetchAdminData(token!);
+          showAlert("Deleted", "Student deleted successfully.", "success");
+        } else {
+          let msg = "Failed to delete student";
+          try { const body = await r.json(); if (body?.detail) msg = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail); } catch { /* ignore */ }
+          showAlert("Error", msg, "danger");
+        }
+      } catch {
+        showAlert("Error", "An error occurred", "danger");
+      }
+    });
+  };
+
   const handleDeleteUser = (userId: string) => {
     showConfirm("Delete User", "This will permanently remove this user and all their data. This cannot be undone.", "danger", "Delete", async () => {
       try { const token = localStorage.getItem("access_token"); const r = await fetch(`${API_BASE}/admin/users/${userId}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }); if (r.ok) { fetchAdminData(token!); showAlert("Deleted", "User deleted successfully.", "success"); } else { let msg = "Failed to delete user"; try { const body = await r.json(); if (body?.detail) msg = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail); } catch { /* ignore */ } showAlert("Error", msg, "danger"); } } catch { showAlert("Error", "An error occurred", "danger"); }
@@ -1085,6 +1104,14 @@ export default function AdminDashboard() {
                               <a href={`/student/${s.id}/workspace`} className="text-[0.6875rem] font-medium text-[#00acb6] hover:text-[#0c888e]">
                                 Reports Workspace
                               </a>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteStudent(s.id, `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim() || "this student")}
+                                className="text-[0.6875rem] font-medium text-red-600 hover:text-red-700 border border-red-200 hover:border-red-400 px-2.5 py-1 rounded transition-colors"
+                                title="Permanently delete this student and all related data"
+                              >
+                                Delete
+                              </button>
                             </div>
                           </td>
                         </tr>

@@ -127,7 +127,7 @@
     },
     "attention_6": {
       "type": "mcq",
-      "question": "How well does {student_name} keep their school materials, desk, or workspace organized?",
+      "question": "How well does {student_name} keep their things, desk, or workspace organised?",
       "category": "attention",
       "options": [
         {"value": "very_organized", "label": "Very organized", "next": "attention_7"},
@@ -246,7 +246,7 @@
     },
     "attention_13": {
       "type": "mcq",
-      "question": "Does {student_name} have difficulty holding information in mind while working on a task (e.g., remembering instructions while doing them)?",
+      "question": "Does {student_name} have difficulty holding information in mind while working on a task (e.g., remembering instructions while doing the task)?",
       "category": "attention",
       "options": [
         {"value": "often", "label": "Yes, often", "next": "attention_14", "metadata": {"severity": "high"}},
@@ -391,7 +391,7 @@
     },
     "social_1": {
       "type": "mcq",
-      "question": "How does {student_name} interact with peers at school or in group settings?",
+      "question": "How does {student_name} interact with peers?",
       "category": "social",
       "options": [
         {"value": "very_social", "label": "Very social and outgoing", "next": "social_2"},
@@ -408,7 +408,7 @@
     },
     "social_2": {
       "type": "mcq",
-      "question": "How does {student_name} behave in group activities or team settings?",
+      "question": "How does {student_name} behave in group activities?",
       "category": "social",
       "options": [
         {"value": "leads", "label": "Takes a leadership role", "next": "social_3"},
@@ -429,7 +429,7 @@
       "category": "social",
       "options": [
         {"value": "very_well", "label": "Yes, very well", "next": "social_4"},
-        {"value": "adequately", "label": "Adequately for their age", "next": "social_4"},
+        {"value": "adequately", "label": "Age appropriately", "next": "social_4"},
         {"value": "struggles", "label": "Struggles to express themselves", "next": "social_4", "metadata": {"severity": "medium"}},
         {"value": "rarely", "label": "Rarely communicates feelings", "next": "social_4", "metadata": {"severity": "high"}}
       ],
@@ -1225,7 +1225,7 @@
     },
     "academic_9": {
       "type": "mcq",
-      "question": "Does {student_name} understand what they read, or do they struggle with comprehension?",
+      "question": "Does {student_name} understand what is read, or struggle with comprehension?",
       "category": "academic",
       "options": [
         {"value": "excellent", "label": "Excellent comprehension", "next": "academic_10"},
@@ -1387,7 +1387,7 @@
         {"value": "very_disorganized", "label": "Very disorganized, loses assignments", "next": "academic_19", "metadata": {"severity": "high"}}
       ],
       "allow_text": true,
-      "text_prompt": "Or describe their school organization:",
+      "text_prompt": "Or describe their organisation:",
       "metadata": {
         "category": "academic",
         "key_indicator": "organizational_skills_school"

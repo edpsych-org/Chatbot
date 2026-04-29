@@ -147,6 +147,7 @@ class StartChatResponse(BaseModel):
 class SendMessageResponse(BaseModel):
     """Response after sending a message"""
     bot_message: BotMessagePayload
+    user_message_id: Optional[str] = None  # real DB UUID for the user's message — lets the FE swap its optimistic id so edit/skip work
     progress_percentage: float = 0
     status: str = "in_progress"
     is_complete: bool = False
@@ -728,6 +729,10 @@ async def send_message(
     session.last_interaction_at = datetime.utcnow()
     await db.commit()
     await db.refresh(bot_message)
+    try:
+        await db.refresh(user_message)
+    except Exception:
+        pass
 
     # Calculate progress
     answered_nodes = session.context_data.get("answered_node_ids", [])
@@ -768,6 +773,7 @@ async def send_message(
             content=bot_message.content,
             metadata=_build_bot_metadata(bot_response_data) or None
         ),
+        user_message_id=str(user_message.id) if user_message.id else None,
         progress_percentage=progress,
         status=session_status,
         is_complete=is_complete,
