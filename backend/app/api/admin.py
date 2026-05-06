@@ -313,13 +313,16 @@ async def delete_user(
             detail="Cannot delete your own account"
         )
 
-    # AssessmentAssignment.assigned_to_user_id and assigned_by_psychologist_id
-    # were created WITHOUT ondelete=CASCADE, so a raw User delete fails with an
-    # FK violation when the user has assignments. Pre-delete them so the
-    # cascade chain (assignment -> chat_session -> chat_message + magic_link)
-    # runs cleanly via the existing CASCADE FKs on those child tables.
+    # AssessmentAssignment.assigned_to_user_id, assigned_by_psychologist_id and
+    # student_id were all created WITHOUT ondelete=CASCADE, so a raw User delete
+    # fails with an FK violation when the user has any related assignments
+    # (directly, or via students they created which themselves cascade on user
+    # delete). Pre-delete them so the cascade chain
+    # (assignment -> chat_session -> chat_message + magic_link) runs cleanly via
+    # the existing CASCADE FKs on those child tables.
     from sqlalchemy import delete as sql_delete, or_
     from app.models.assignment import AssessmentAssignment
+    from app.models.student import Student as StudentModel
 
     try:
         await db.execute(
@@ -327,6 +330,11 @@ async def delete_user(
                 or_(
                     AssessmentAssignment.assigned_to_user_id == user_id,
                     AssessmentAssignment.assigned_by_psychologist_id == user_id,
+                    AssessmentAssignment.student_id.in_(
+                        select(StudentModel.id).where(
+                            StudentModel.created_by_user_id == user_id
+                        )
+                    ),
                 )
             )
         )
