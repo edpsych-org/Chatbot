@@ -1,5 +1,5 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:eu-west-2:476114133766:task-definition/stage-chatbot-api:1",
+    "taskDefinitionArn": "arn:aws:ecs:eu-west-2:476114133766:task-definition/stage-chatbot-api:39",
     "containerDefinitions": [
         {
             "name": "chatbot-api-cont",
@@ -15,10 +15,8 @@
             ],
             "essential": true,
             "environment": [],
-            "environmentFiles": [],
             "mountPoints": [],
             "volumesFrom": [],
-            "ulimits": [],
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
@@ -36,7 +34,7 @@
     "taskRoleArn": "arn:aws:iam::476114133766:role/ecsTaskExecutionRole",
     "executionRoleArn": "arn:aws:iam::476114133766:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 1,
+    "revision": 39,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -81,10 +79,10 @@
     "requiresCompatibilities": [
         "FARGATE"
     ],
-    "cpu": "1024",
-    "memory": "2048",
-    "registeredAt": "2026-04-20T09:35:16.944Z",
-    "registeredBy": "arn:aws:iam::476114133766:user/Dinesh",
+    "cpu": "256",
+    "memory": "512",
+    "registeredAt": "2026-05-06T09:32:58.065Z",
+    "registeredBy": "arn:aws:iam::476114133766:root",
     "enableFaultInjection": false,
     "tags": []
 }
