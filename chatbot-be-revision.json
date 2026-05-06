@@ -1,5 +1,5 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:eu-west-2:476114133766:task-definition/chatbot-be:38",
+    "taskDefinitionArn": "arn:aws:ecs:eu-west-2:476114133766:task-definition/chatbot-be:56",
     "containerDefinitions": [
         {
             "name": "chatbot-be-cont",
@@ -34,7 +34,7 @@
     "taskRoleArn": "arn:aws:iam::476114133766:role/ecsTaskExecutionRole",
     "executionRoleArn": "arn:aws:iam::476114133766:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 38,
+    "revision": 56,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -79,10 +79,10 @@
     "requiresCompatibilities": [
         "FARGATE"
     ],
-    "cpu": "1024",
-    "memory": "3072",
-    "registeredAt": "2026-04-18T03:04:05.703Z",
-    "registeredBy": "arn:aws:iam::476114133766:user/Dinesh",
+    "cpu": "256",
+    "memory": "512",
+    "registeredAt": "2026-05-06T09:31:55.589Z",
+    "registeredBy": "arn:aws:iam::476114133766:root",
     "enableFaultInjection": false,
     "tags": []
 }
