@@ -183,9 +183,12 @@ async def delete_student(
 
     # AssessmentAssignment.student_id lacks ondelete=CASCADE so we must pre-delete
     # those rows (which themselves cascade-delete chat sessions, messages, magic
-    # links) before removing the student.
+    # links) before removing the student. Same for student_guardians — DB has
+    # ondelete=CASCADE but ORM still tries to nullify the FK on flush, so we
+    # delete them first via raw SQL to bypass the ORM cascade entirely.
     from sqlalchemy import delete as sql_delete
     from app.models.assignment import AssessmentAssignment
+    from app.models.student_guardian import StudentGuardian
 
     try:
         await db.execute(
@@ -193,7 +196,14 @@ async def delete_student(
                 AssessmentAssignment.student_id == student_id
             )
         )
-        await db.delete(student)
+        await db.execute(
+            sql_delete(StudentGuardian).where(
+                StudentGuardian.student_id == student_id
+            )
+        )
+        # Expire the in-memory student so its loaded `guardians` collection
+        # (now empty in DB) doesn't trigger nullification on flush.
+        await db.execute(sql_delete(Student).where(Student.id == student_id))
         await db.commit()
     except Exception as exc:
         await db.rollback()

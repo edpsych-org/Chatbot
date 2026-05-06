@@ -7,7 +7,7 @@ Supports multiple guardians per student and multiple students per guardian
 from sqlalchemy import Column, String, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 import uuid
 
 from app.core.database import Base
@@ -33,8 +33,20 @@ class StudentGuardian(Base):
     created_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
 
     # Relationships
-    student = relationship("Student", backref="guardians")
-    guardian = relationship("User", foreign_keys=[guardian_user_id], backref="students_under_care", passive_deletes=True)
+    # passive_deletes=True on both sides so DB-level ON DELETE CASCADE handles
+    # row removal — otherwise SQLAlchemy nullifies student_id/guardian_user_id
+    # before delete and trips the NOT NULL constraint.
+    student = relationship(
+        "Student",
+        backref=backref("guardians", passive_deletes=True),
+        passive_deletes=True,
+    )
+    guardian = relationship(
+        "User",
+        foreign_keys=[guardian_user_id],
+        backref=backref("students_under_care", passive_deletes=True),
+        passive_deletes=True,
+    )
     created_by = relationship("User", foreign_keys=[created_by_user_id])
 
     # Ensure a guardian can only be linked to a student once
