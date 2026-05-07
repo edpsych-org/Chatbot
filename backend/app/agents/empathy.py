@@ -69,6 +69,25 @@ class EmpathyAgent(BaseAgent):
         )
         self._response_index = {}
 
+    # Phrases that turn empathy acks into chatbot fluff. We strip-check the
+    # final LLM output and fall back to a rotating canned ack if any appears.
+    _BANNED_LLM_PHRASES = (
+        "good choice",
+        "great choice",
+        "good answer",
+        "great answer",
+        "good response",
+        "sounds like",
+        "thank you for",
+        "i understand",
+        "i appreciate",
+        "moving on",
+        "moved to",
+        "next part",
+        "next question",
+        "let's move",
+    )
+
     async def generate_response(
         self,
         user_input: str,
@@ -78,7 +97,17 @@ class EmpathyAgent(BaseAgent):
         context_summary: str = "",
         next_question: str = "",
     ) -> str:
-        """Generate a very short acknowledgment. Always returns something."""
+        """Generate a very short acknowledgment. Always returns something.
+
+        For very short user inputs (<= 2 words — typically MCQ option labels
+        like "Exemplary" or "Above 95%"), skip the LLM entirely and use a
+        rotating canned ack. The LLM has too little context to say anything
+        meaningful and tends to invent filler ("Sounds like a good choice").
+        """
+
+        word_count = len((user_input or "").split())
+        if word_count <= 2:
+            return self._get_fallback(category)
 
         prompt = f"""A parent just answered a question about their child.
 
@@ -86,15 +115,16 @@ Parent said: "{user_input}"
 
 Write ONE short sentence (max 8 words) to acknowledge their answer. Strict rules:
 - Sound like a real person, NOT a chatbot
-- BANNED words/phrases: "consistently", "you mentioned", "thank you for sharing", "I understand", "appreciate", "that's really", "it sounds like", "concerns", "assessment", "AI", "psychology", "valuable", "moved to", "next part", "next question", "moving on", "let's move on", "conversation"
+- BANNED words/phrases: "consistently", "you mentioned", "thank you for sharing", "I understand", "appreciate", "that's really", "it sounds like", "sounds like", "good choice", "great choice", "good answer", "good response", "concerns", "assessment", "AI", "psychology", "valuable", "moved to", "next part", "next question", "moving on", "let's move on", "conversation"
 - NEVER repeat any word the parent just said
 - NEVER ask a question
 - NEVER use the child's name
+- NEVER evaluate the answer ("good", "great", "wise" etc.)
 - Each response must feel completely different from the last
 - Keep it casual and brief — 3-8 words max
 
 Good: "Got it." / "Right, noted." / "Okay, clear." / "Makes sense." / "Fair enough." / "Understood." / "Good to know."
-Bad: "You mentioned that consistently..." / "Thank you for sharing that about..." / "I understand your concerns..."\""""
+Bad: "You mentioned that consistently..." / "Thank you for sharing that about..." / "I understand your concerns..." / "Sounds like a good choice."\""""
 
         response = await self.call_llm(prompt, temperature=0.7)
 
@@ -102,6 +132,9 @@ Bad: "You mentioned that consistently..." / "Thank you for sharing that about...
             response = response.strip().strip('"').strip("'")
             if response.startswith("Response:"):
                 response = response[9:].strip()
+            lowered = response.lower()
+            if any(bad in lowered for bad in self._BANNED_LLM_PHRASES):
+                return self._get_fallback(category)
             return response
 
         return self._get_fallback(category)
