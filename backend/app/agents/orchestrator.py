@@ -40,6 +40,7 @@ class OrchestratorAgent:
         current_category: str = "general",
         next_question: str = "",
         current_question: str = "",
+        attempt: int = 0,
     ) -> dict:
         """
         Process a free-text parent response through the multi-agent pipeline.
@@ -61,6 +62,7 @@ class OrchestratorAgent:
             category=current_category,
             student_name=student_name,
             question_context=current_question,
+            attempt=attempt,
         )
 
         if not validation["is_sufficient"]:

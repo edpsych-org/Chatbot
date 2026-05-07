@@ -1102,6 +1102,11 @@ async def _handle_free_text(
     if current_node:
         current_question_text = current_node.get("question", "") or current_node.get("text_prompt", "")
 
+    # Read prior validation-attempt count for this node so the validator can
+    # vary its re-prompt phrasing instead of repeating the same line.
+    _prior_attempts_map = session.context_data.get("validation_attempts", {})
+    _prior_attempts = _prior_attempts_map.get(session.current_node_id or "unknown", 0)
+
     # Run multi-agent pipeline (validates input first)
     result = await orchestrator.process_free_text(
         user_input=message_input.content,
@@ -1109,6 +1114,7 @@ async def _handle_free_text(
         current_category=current_category,
         next_question=next_question_text,
         current_question=current_question_text,
+        attempt=_prior_attempts,
     )
 
     # Handle validation feedback (input too short/vague/gibberish) - do NOT advance.
