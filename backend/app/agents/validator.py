@@ -89,17 +89,54 @@ CATEGORY_KEYWORDS = {
     },
 }
 
-# Friendly relevance prompts per category. Gender-neutral phrasing — avoid
+# Friendly relevance prompts per category. Multiple variants per category so
+# repeat re-prompts don't show identical text. Gender-neutral phrasing — avoid
 # possessive pronouns so the message reads correctly regardless of student
 # gender (and stays correct if gender is not set).
-RELEVANCE_PROMPTS = {
-    "attention": "I'd love to hear more about {student_name}. Could you share something specific about focusing or paying attention?",
-    "social": "I'd love to hear more about {student_name}. Could you share something specific about interactions with other children?",
-    "emotional": "I'd love to hear more about {student_name}. Could you share something specific about how feelings are handled?",
-    "academic": "I'd love to hear more about {student_name}. Could you share something specific about schoolwork or learning?",
-    "behavioral": "I'd love to hear more about {student_name}. Could you share something specific about behaviour at home or school?",
-    "general": "I'd love to hear more about {student_name}. Could you share something about day-to-day life at home or school?",
+RELEVANCE_PROMPT_VARIANTS = {
+    "attention": [
+        "I'd love to hear more about {student_name}. Could you share something specific about focusing or paying attention?",
+        "Could you give a quick example of how {student_name} concentrates during tasks?",
+        "Anything specific you've noticed about {student_name}'s focus would really help.",
+    ],
+    "social": [
+        "I'd love to hear more about {student_name}. Could you share something specific about interactions with other children?",
+        "Could you describe how {student_name} gets on with peers or classmates?",
+        "Even a brief example of {student_name}'s social interactions would help.",
+    ],
+    "emotional": [
+        "I'd love to hear more about {student_name}. Could you share something specific about how feelings are handled?",
+        "Could you describe how {student_name} typically reacts when upset or frustrated?",
+        "A quick example of {student_name}'s emotional ups and downs would be useful.",
+    ],
+    "academic": [
+        "I'd love to hear more about {student_name}. Could you share something specific about schoolwork or learning?",
+        "Could you describe how {student_name} approaches schoolwork or new lessons?",
+        "Anything specific about {student_name}'s learning at school would help.",
+    ],
+    "behavioral": [
+        "I'd love to hear more about {student_name}. Could you share something specific about behaviour at home or school?",
+        "Could you describe a recent situation where you noticed {student_name}'s behaviour?",
+        "Even a brief example of {student_name}'s behaviour would be helpful.",
+    ],
+    "general": [
+        "I'd love to hear more about {student_name}. Could you share something about day-to-day life at home or school?",
+        "Could you describe a typical day for {student_name}?",
+        "Even a small detail about {student_name} would help us continue.",
+    ],
 }
+
+# Backwards-compat alias — some call sites or tests may still use the old name.
+RELEVANCE_PROMPTS = {k: v[0] for k, v in RELEVANCE_PROMPT_VARIANTS.items()}
+
+
+def _pick_relevance_prompt(category: str, attempt: int = 0) -> str:
+    """Pick a category-appropriate re-prompt that varies with attempt count.
+
+    Falls back to the 'general' variants if the category is unknown.
+    """
+    variants = RELEVANCE_PROMPT_VARIANTS.get(category) or RELEVANCE_PROMPT_VARIANTS["general"]
+    return variants[attempt % len(variants)]
 
 # Follow-up prompts keyed by assessment category
 FOLLOW_UP_PROMPTS = {
@@ -155,6 +192,7 @@ class InputValidatorAgent(BaseAgent):
         category: str = "general",
         student_name: str = "your child",
         question_context: Optional[str] = None,
+        attempt: int = 0,
     ) -> dict:
         """
         Validate input sufficiency.
@@ -207,9 +245,7 @@ class InputValidatorAgent(BaseAgent):
                     text, question_context, student_name
                 )
                 if relevant is False:
-                    prompt = RELEVANCE_PROMPTS.get(
-                        category, RELEVANCE_PROMPTS["general"]
-                    )
+                    prompt = _pick_relevance_prompt(category, attempt)
                     return {
                         "is_sufficient": False,
                         "feedback": prompt.replace("{student_name}", student_name),
@@ -235,7 +271,7 @@ class InputValidatorAgent(BaseAgent):
 
         # 2. Keyword-based irrelevance (zero overlap with child/education topics)
         if self._is_irrelevant(text, category):
-            prompt = RELEVANCE_PROMPTS.get(category, RELEVANCE_PROMPTS["general"])
+            prompt = _pick_relevance_prompt(category, attempt)
             return {
                 "is_sufficient": False,
                 "feedback": prompt.replace("{student_name}", student_name),
@@ -250,7 +286,7 @@ class InputValidatorAgent(BaseAgent):
         if should_llm_check:
             llm_result = await self._llm_relevance_check(text, question_context, student_name)
             if llm_result is not None and not llm_result:
-                prompt = RELEVANCE_PROMPTS.get(category, RELEVANCE_PROMPTS["general"])
+                prompt = _pick_relevance_prompt(category, attempt)
                 return {
                     "is_sufficient": False,
                     "feedback": prompt.replace("{student_name}", student_name),

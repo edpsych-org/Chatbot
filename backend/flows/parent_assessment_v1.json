@@ -93,7 +93,7 @@
     },
     "attention_4": {
       "type": "mcq",
-      "question": "Does {student_name} finish tasks or assignments that they start?",
+      "question": "Does {student_name} finish tasks or assignments that {student_name} starts?",
       "category": "attention",
       "options": [
         {"value": "always", "label": "Yes, always", "next": "attention_5"},
@@ -130,10 +130,10 @@
       "question": "How well does {student_name} keep their things, desk, or workspace organised?",
       "category": "attention",
       "options": [
-        {"value": "very_organized", "label": "Very organized", "next": "attention_7"},
-        {"value": "somewhat", "label": "Somewhat organized", "next": "attention_7"},
-        {"value": "messy", "label": "Often messy or disorganized", "next": "attention_7"},
-        {"value": "very_messy", "label": "Consistently disorganized", "next": "attention_7", "metadata": {"severity": "high"}}
+        {"value": "very_organized", "label": "Very organised", "next": "attention_7"},
+        {"value": "somewhat", "label": "Somewhat organised", "next": "attention_7"},
+        {"value": "messy", "label": "Often messy or disorganised", "next": "attention_7"},
+        {"value": "very_messy", "label": "Consistently disorganised", "next": "attention_7", "metadata": {"severity": "high"}}
       ],
       "allow_text": true,
       "text_prompt": "Or describe their organization habits:",
@@ -144,7 +144,7 @@
     },
     "attention_7": {
       "type": "mcq",
-      "question": "Does {student_name} follow multi-step instructions without needing them repeated?",
+      "question": "Does {student_name} follow instructions without needing repetition?",
       "category": "attention",
       "options": [
         {"value": "always", "label": "Yes, consistently", "next": "attention_8"},
@@ -195,7 +195,7 @@
     },
     "attention_10": {
       "type": "mcq",
-      "question": "Can {student_name} sustain attention during activities they find boring or uninteresting?",
+      "question": "Can {student_name} sustain attention during activities that {student_name} finds boring or uninteresting?",
       "category": "attention",
       "options": [
         {"value": "yes", "label": "Yes, even for boring tasks", "next": "attention_11"},
@@ -1089,7 +1089,7 @@
     },
     "academic_1": {
       "type": "mcq",
-      "question": "How is {student_name} performing in reading/language arts?",
+      "question": "How is {student_name} performing in reading and writing?",
       "category": "academic",
       "options": [
         {"value": "above", "label": "Above grade level", "next": "academic_2"},
@@ -1123,7 +1123,7 @@
     },
     "academic_3": {
       "type": "mcq",
-      "question": "How is {student_name} performing in math?",
+      "question": "How is {student_name} performing in Maths?",
       "category": "academic",
       "options": [
         {"value": "above", "label": "Above grade level", "next": "academic_4"},
@@ -1157,7 +1157,7 @@
     },
     "academic_5": {
       "type": "mcq",
-      "question": "Does {student_name} have difficulty remembering things they have learned?",
+      "question": "Does {student_name} have difficulties remembering things that {student_name} has learned?",
       "category": "academic",
       "options": [
         {"value": "often", "label": "Yes, often forgets material", "next": "academic_6", "metadata": {"severity": "high"}},
@@ -1211,7 +1211,7 @@
       "question": "How does {student_name} perform on tests and exams compared to their knowledge?",
       "category": "academic",
       "options": [
-        {"value": "reflects_well", "label": "Tests reflect their knowledge well", "next": "academic_9"},
+        {"value": "reflects_well", "label": "Tests reflects knowledge well", "next": "academic_9"},
         {"value": "slightly_lower", "label": "Slightly lower than expected", "next": "academic_9"},
         {"value": "much_lower", "label": "Much lower — may have test anxiety", "next": "academic_9", "metadata": {"severity": "medium"}},
         {"value": "inconsistent", "label": "Inconsistent performance", "next": "academic_9"}
@@ -1378,13 +1378,13 @@
     },
     "academic_18": {
       "type": "mcq",
-      "question": "How well does {student_name} organize their school materials, assignments, and projects?",
+      "question": "How well does {student_name} organise school materials, assignments, and projects?",
       "category": "academic",
       "options": [
-        {"value": "very_organized", "label": "Very organized", "next": "academic_19"},
-        {"value": "somewhat", "label": "Somewhat organized", "next": "academic_19"},
-        {"value": "disorganized", "label": "Often disorganized", "next": "academic_19", "metadata": {"severity": "medium"}},
-        {"value": "very_disorganized", "label": "Very disorganized, loses assignments", "next": "academic_19", "metadata": {"severity": "high"}}
+        {"value": "very_organized", "label": "Very organised", "next": "academic_19"},
+        {"value": "somewhat", "label": "Somewhat organised", "next": "academic_19"},
+        {"value": "disorganized", "label": "Often disorganised", "next": "academic_19", "metadata": {"severity": "medium"}},
+        {"value": "very_disorganized", "label": "Very disorganised, loses assignments", "next": "academic_19", "metadata": {"severity": "high"}}
       ],
       "allow_text": true,
       "text_prompt": "Or describe their organisation:",
@@ -1395,7 +1395,7 @@
     },
     "academic_19": {
       "type": "mcq",
-      "question": "Does {student_name} have particular subjects they enjoy or excel at?",
+      "question": "Does {student_name} have particular subjects that {student_name} enjoys or excels in?",
       "category": "academic",
       "options": [
         {"value": "yes_many", "label": "Yes, enjoys many subjects", "next": "academic_20"},
