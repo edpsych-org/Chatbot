@@ -167,16 +167,46 @@ async def update_user(
     if update_data.full_name is not None:
         user.full_name = update_data.full_name
     if update_data.email is not None:
-        user.email = update_data.email
+        new_email = update_data.email.strip().lower()
+        if new_email != (user.email or "").strip().lower():
+            existing = await db.execute(
+                select(User).where(
+                    func.lower(User.email) == new_email,
+                    User.id != user_id,
+                )
+            )
+            if existing.scalar_one_or_none() is not None:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"Another user already uses {new_email}.",
+                )
+        user.email = new_email
     if update_data.phone is not None:
         user.phone = update_data.phone
     if update_data.organization is not None:
         user.organization = update_data.organization
     if update_data.role is not None:
-        user.role = UserRole(update_data.role)
+        try:
+            user.role = UserRole(update_data.role)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid role '{update_data.role}'. Expected one of PARENT, SCHOOL, PSYCHOLOGIST, ADMIN.",
+            )
 
-    await db.commit()
-    await db.refresh(user)
+    try:
+        await db.commit()
+        await db.refresh(user)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        await db.rollback()
+        import logging as _log
+        _log.exception("update_user failed for %s", user_id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update user: {type(exc).__name__}: {exc}",
+        )
 
     return {
         "id": str(user.id),
