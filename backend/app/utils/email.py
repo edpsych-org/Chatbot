@@ -25,6 +25,15 @@ EMAIL_FROM_ADDRESS = settings.EMAIL_FROM_ADDRESS
 # Default magic link expiry — uses settings if explicitly configured.
 DEFAULT_LINK_EXPIRY_HOURS = settings.MAGIC_LINK_EXPIRY_HOURS
 
+
+def _format_expiry(hours: int) -> str:
+    """Human-friendly expiry string. Returns '7 days' for clean day counts, else 'N hours'."""
+    if hours > 0 and hours % 24 == 0:
+        days = hours // 24
+        return f"{days} day" if days == 1 else f"{days} days"
+    return f"{hours} hour" if hours == 1 else f"{hours} hours"
+
+
 # Brand palette — match frontend tailwind tokens
 COLOR_TEAL = "#00acb6"
 COLOR_TEAL_DARK = "#0c888e"
@@ -148,6 +157,8 @@ def send_assessment_assignment_email(
         else "If you have any questions, please contact The Ed Psych Practice."
     )
 
+    expiry_label = _format_expiry(expiry_hours)
+
     due_html = (
         f'<p style="margin:6px 0;"><strong>Due:</strong> {due_date}</p>' if due_date else ""
     )
@@ -209,7 +220,7 @@ def send_assessment_assignment_email(
             </p>
 
             <div class="expiry">
-                ⏰ This invitation link expires in {expiry_hours} hours. If it expires, ask whoever invited you to send a new one.
+                ⏰ This invitation link expires in {expiry_label}. If it expires, ask whoever invited you to send a new one.
             </div>
 
             <p>{contact_phrase}</p>
@@ -247,7 +258,7 @@ Get started here:
 First time? You'll be asked to set a password when you open the link.
 Returning? You'll be signed in automatically.
 
-Note: this link expires in {expiry_hours} hours. If it expires, ask {psychologist_name} for a new one.
+Note: this link expires in {expiry_label}. If it expires, ask {psychologist_name} for a new one.
 
 {contact_phrase}
 
@@ -286,6 +297,7 @@ def send_parent_invitation_email(
     subject = f"Welcome to The Ed Psych Practice — {student_name}"
     role_label = (relationship_type or "Guardian").strip() or "Guardian"
     possessive = _possessive_for(relationship_type)
+    expiry_label = _format_expiry(expiry_hours)
 
     html_body = f"""
     <!DOCTYPE html>
@@ -325,7 +337,7 @@ def send_parent_invitation_email(
                 </div>
 
                 <p style="font-size: 13px; color: {COLOR_MUTED}; margin-top: 14px;">
-                    The link is secure and signs you in automatically. It is valid for {expiry_hours} hours.
+                    The link is secure and signs you in automatically. It is valid for {expiry_label}.
                 </p>
             </div>
 
@@ -356,7 +368,7 @@ def send_parent_invitation_email(
         </div>
         <div class="footer">
             <p>This is an automated message from The Ed Psych Practice.</p>
-            <p>The login link expires in {expiry_hours} hours for your security.</p>
+            <p>The login link expires in {expiry_label} for your security.</p>
             <p style="margin-top: 8px;">© The Ed Psych Practice</p>
         </div>
     </body>
@@ -374,7 +386,7 @@ GET STARTED — NO PASSWORD NEEDED
 Click this secure link to sign in instantly:
 {magic_link}
 
-The link is valid for {expiry_hours} hours.
+The link is valid for {expiry_label}.
 
 WHAT YOU CAN DO:
 - Complete guided conversations about {student_name}
@@ -396,7 +408,7 @@ The Ed Psych Practice
 
 ---
 This is an automated message. Please do not reply to this email.
-The login link expires in {expiry_hours} hours for your security.
+The login link expires in {expiry_label} for your security.
 © The Ed Psych Practice
     """.strip()
 

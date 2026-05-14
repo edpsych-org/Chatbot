@@ -100,7 +100,7 @@ class Settings(BaseSettings):
 
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
-    MAGIC_LINK_EXPIRY_HOURS: int = 48
+    MAGIC_LINK_EXPIRY_HOURS: int = 168  # 7 days — invitation links sent Mon often opened on weekend
 
     # ==================== CORS ====================
     CORS_ORIGINS: str

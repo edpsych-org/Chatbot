@@ -67,13 +67,26 @@
       "question": "How does {student_name} sustain attention during lessons?",
       "category": "attention",
       "options": [
-        {"value": "focused", "label": "Focused, on-task", "next": "task_completion", "metadata": {"severity": "none"}},
-        {"value": "drifts", "label": "Drifts after a few minutes", "next": "task_completion", "metadata": {"severity": "medium"}},
-        {"value": "needs_prompts", "label": "Needs frequent prompts", "next": "task_completion", "metadata": {"severity": "high"}},
-        {"value": "very_distracted", "label": "Very easily distracted", "next": "task_completion", "metadata": {"severity": "high"}}
+        {"value": "focused", "label": "Focused, on-task", "next": "multitask", "metadata": {"severity": "none"}},
+        {"value": "drifts", "label": "Drifts after a few minutes", "next": "multitask", "metadata": {"severity": "medium"}},
+        {"value": "needs_prompts", "label": "Needs frequent prompts", "next": "multitask", "metadata": {"severity": "high"}},
+        {"value": "very_distracted", "label": "Very easily distracted", "next": "multitask", "metadata": {"severity": "high"}}
       ],
       "allow_text": true,
       "text_prompt": "Specific examples from class:"
+    },
+    "multitask": {
+      "type": "mcq",
+      "question": "Can {student_name} sustain attention to two things at once (e.g. listening to you while taking notes)?",
+      "category": "attention",
+      "options": [
+        {"value": "comfortably", "label": "Comfortably — does both well", "next": "task_completion", "metadata": {"severity": "none"}},
+        {"value": "with_effort", "label": "Manages with effort", "next": "task_completion", "metadata": {"severity": "low"}},
+        {"value": "loses_one", "label": "Loses one thread quickly", "next": "task_completion", "metadata": {"severity": "medium"}},
+        {"value": "cannot", "label": "Cannot — one task only", "next": "task_completion", "metadata": {"severity": "high"}}
+      ],
+      "allow_text": true,
+      "text_prompt": "Classroom examples if helpful:"
     },
     "task_completion": {
       "type": "mcq",
