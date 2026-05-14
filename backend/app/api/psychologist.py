@@ -275,7 +275,8 @@ async def assign_assessment_with_secure_link(
         parent_name=parent.full_name or parent.email,
         student_name=student_name,
         psychologist_name=current_user.full_name or "Your Psychologist",
-        assessment_link=magic_link_url
+        assessment_link=magic_link_url,
+        expiry_hours=settings.MAGIC_LINK_EXPIRY_HOURS,
     )
 
     return {
@@ -350,7 +351,8 @@ async def resend_magic_link(
         parent_name=parent.full_name or parent.email,
         student_name=student_name,
         psychologist_name=current_user.full_name or "Your Psychologist",
-        assessment_link=magic_link_url
+        assessment_link=magic_link_url,
+        expiry_hours=settings.MAGIC_LINK_EXPIRY_HOURS,
     )
 
     return {

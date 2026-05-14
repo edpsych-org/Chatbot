@@ -192,7 +192,8 @@ async def create_assignment(
             assessment_link=assessment_link,
             due_date=due_date_str,
             notes=assignment_data.notes,
-            email_service=email_service
+            email_service=email_service,
+            expiry_hours=settings.MAGIC_LINK_EXPIRY_HOURS,
         )
 
         if not email_sent:

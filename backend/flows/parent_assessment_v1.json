@@ -215,33 +215,16 @@
       "question": "Does {student_name} have difficulty filtering out background noise or distractions to focus on what's important?",
       "category": "attention",
       "options": [
-        {"value": "often", "label": "Yes, often", "next": "attention_12", "metadata": {"severity": "high"}},
-        {"value": "sometimes", "label": "Sometimes", "next": "attention_12", "metadata": {"severity": "medium"}},
-        {"value": "rarely", "label": "Rarely", "next": "attention_12"},
-        {"value": "never", "label": "Never", "next": "attention_12"}
+        {"value": "often", "label": "Yes, often", "next": "attention_13", "metadata": {"severity": "high"}},
+        {"value": "sometimes", "label": "Sometimes", "next": "attention_13", "metadata": {"severity": "medium"}},
+        {"value": "rarely", "label": "Rarely", "next": "attention_13"},
+        {"value": "never", "label": "Never", "next": "attention_13"}
       ],
       "allow_text": true,
       "text_prompt": "Or describe what you observe:",
       "metadata": {
         "category": "attention",
         "key_indicator": "selective_attention"
-      }
-    },
-    "attention_12": {
-      "type": "mcq",
-      "question": "Can {student_name} do two things at once, such as listening to a teacher while taking notes?",
-      "category": "attention",
-      "options": [
-        {"value": "easily", "label": "Yes, easily", "next": "attention_13"},
-        {"value": "with_effort", "label": "With some effort", "next": "attention_13"},
-        {"value": "struggles", "label": "Struggles with this", "next": "attention_13", "metadata": {"severity": "medium"}},
-        {"value": "cannot", "label": "Cannot manage multiple tasks", "next": "attention_13", "metadata": {"severity": "high"}}
-      ],
-      "allow_text": true,
-      "text_prompt": "Or describe their multitasking:",
-      "metadata": {
-        "category": "attention",
-        "key_indicator": "divided_attention"
       }
     },
     "attention_13": {
@@ -283,33 +266,16 @@
       "question": "Does {student_name} act or speak without thinking first (impulsively)?",
       "category": "attention",
       "options": [
-        {"value": "often", "label": "Yes, often", "next": "attention_16", "metadata": {"severity": "high"}},
-        {"value": "sometimes", "label": "Sometimes", "next": "attention_16", "metadata": {"severity": "medium"}},
-        {"value": "rarely", "label": "Rarely", "next": "attention_16"},
-        {"value": "never", "label": "Never", "next": "attention_16"}
-      ],
-      "allow_text": true,
-      "text_prompt": "Or describe their impulse control:",
-      "metadata": {
-        "category": "attention",
-        "key_indicator": "impulse_control"
-      }
-    },
-    "attention_16": {
-      "type": "mcq",
-      "question": "Does {student_name} seem to daydream or zone out during class or conversations?",
-      "category": "attention",
-      "options": [
         {"value": "often", "label": "Yes, often", "next": "attention_17", "metadata": {"severity": "high"}},
         {"value": "sometimes", "label": "Sometimes", "next": "attention_17", "metadata": {"severity": "medium"}},
         {"value": "rarely", "label": "Rarely", "next": "attention_17"},
         {"value": "never", "label": "Never", "next": "attention_17"}
       ],
       "allow_text": true,
-      "text_prompt": "Or describe what you notice:",
+      "text_prompt": "Or describe their impulse control:",
       "metadata": {
         "category": "attention",
-        "key_indicator": "daydreaming"
+        "key_indicator": "impulse_control"
       }
     },
     "attention_17": {
@@ -1296,10 +1262,10 @@
       "question": "Can {student_name} complete homework independently without much adult help?",
       "category": "academic",
       "options": [
-        {"value": "fully_independent", "label": "Yes, fully independent", "next": "academic_14"},
-        {"value": "mostly", "label": "Mostly, occasional help needed", "next": "academic_14"},
-        {"value": "significant_help", "label": "Needs significant help", "next": "academic_14", "metadata": {"severity": "medium"}},
-        {"value": "cannot", "label": "Cannot do homework without help", "next": "academic_14", "metadata": {"severity": "high"}}
+        {"value": "fully_independent", "label": "Yes, fully independent", "next": "academic_16"},
+        {"value": "mostly", "label": "Mostly, occasional help needed", "next": "academic_16"},
+        {"value": "significant_help", "label": "Needs significant help", "next": "academic_16", "metadata": {"severity": "medium"}},
+        {"value": "cannot", "label": "Cannot do homework without help", "next": "academic_16", "metadata": {"severity": "high"}}
       ],
       "allow_text": true,
       "text_prompt": "Or describe their homework independence:",
@@ -1308,89 +1274,21 @@
         "key_indicator": "homework_independence"
       }
     },
-    "academic_14": {
-      "type": "mcq",
-      "question": "Does {student_name} participate actively in classroom discussions and activities?",
-      "category": "academic",
-      "options": [
-        {"value": "actively", "label": "Yes, actively participates", "next": "academic_15"},
-        {"value": "when_prompted", "label": "Only when prompted", "next": "academic_15"},
-        {"value": "reluctant", "label": "Reluctant to participate", "next": "academic_15", "metadata": {"severity": "medium"}},
-        {"value": "avoids", "label": "Avoids participation entirely", "next": "academic_15", "metadata": {"severity": "high"}}
-      ],
-      "allow_text": true,
-      "text_prompt": "Or describe their participation:",
-      "metadata": {
-        "category": "academic",
-        "key_indicator": "classroom_participation"
-      }
-    },
-    "academic_15": {
-      "type": "mcq",
-      "question": "Does {student_name} learn at the same pace as their classmates?",
-      "category": "academic",
-      "options": [
-        {"value": "faster", "label": "Faster than peers", "next": "academic_16"},
-        {"value": "same", "label": "About the same pace", "next": "academic_16"},
-        {"value": "slower", "label": "Slower than peers", "next": "academic_16", "metadata": {"severity": "medium"}},
-        {"value": "much_slower", "label": "Much slower, needs extra time", "next": "academic_16", "metadata": {"severity": "high"}}
-      ],
-      "allow_text": true,
-      "text_prompt": "Or describe their learning pace:",
-      "metadata": {
-        "category": "academic",
-        "key_indicator": "learning_pace"
-      }
-    },
     "academic_16": {
       "type": "mcq",
       "question": "How does {student_name} approach problem-solving tasks?",
       "category": "academic",
       "options": [
-        {"value": "strategic", "label": "Uses strategies and thinks it through", "next": "academic_17"},
-        {"value": "trial_error", "label": "Trial and error", "next": "academic_17"},
-        {"value": "gives_up", "label": "Gives up quickly", "next": "academic_17", "metadata": {"severity": "medium"}},
-        {"value": "avoids", "label": "Avoids problem-solving tasks", "next": "academic_17", "metadata": {"severity": "high"}}
+        {"value": "strategic", "label": "Uses strategies and thinks it through", "next": "academic_19"},
+        {"value": "trial_error", "label": "Trial and error", "next": "academic_19"},
+        {"value": "gives_up", "label": "Gives up quickly", "next": "academic_19", "metadata": {"severity": "medium"}},
+        {"value": "avoids", "label": "Avoids problem-solving tasks", "next": "academic_19", "metadata": {"severity": "high"}}
       ],
       "allow_text": true,
       "text_prompt": "Or describe their problem-solving approach:",
       "metadata": {
         "category": "academic",
         "key_indicator": "problem_solving"
-      }
-    },
-    "academic_17": {
-      "type": "mcq",
-      "question": "Does {student_name} show creativity and original thinking in schoolwork?",
-      "category": "academic",
-      "options": [
-        {"value": "very", "label": "Yes, very creative", "next": "academic_18"},
-        {"value": "somewhat", "label": "Somewhat creative", "next": "academic_18"},
-        {"value": "limited", "label": "Limited creativity", "next": "academic_18"},
-        {"value": "not_at_all", "label": "Prefers structure, avoids creativity", "next": "academic_18"}
-      ],
-      "allow_text": true,
-      "text_prompt": "Or describe their creative thinking:",
-      "metadata": {
-        "category": "academic",
-        "key_indicator": "creative_thinking"
-      }
-    },
-    "academic_18": {
-      "type": "mcq",
-      "question": "How well does {student_name} organise school materials, assignments, and projects?",
-      "category": "academic",
-      "options": [
-        {"value": "very_organized", "label": "Very organised", "next": "academic_19"},
-        {"value": "somewhat", "label": "Somewhat organised", "next": "academic_19"},
-        {"value": "disorganized", "label": "Often disorganised", "next": "academic_19", "metadata": {"severity": "medium"}},
-        {"value": "very_disorganized", "label": "Very disorganised, loses assignments", "next": "academic_19", "metadata": {"severity": "high"}}
-      ],
-      "allow_text": true,
-      "text_prompt": "Or describe their organisation:",
-      "metadata": {
-        "category": "academic",
-        "key_indicator": "organizational_skills_school"
       }
     },
     "academic_19": {
