@@ -25,6 +25,15 @@ EMAIL_FROM_ADDRESS = settings.EMAIL_FROM_ADDRESS
 # Default magic link expiry — uses settings if explicitly configured.
 DEFAULT_LINK_EXPIRY_HOURS = settings.MAGIC_LINK_EXPIRY_HOURS
 
+
+def _format_expiry(hours: int) -> str:
+    """Human-friendly expiry string. Returns '7 days' for clean day counts, else 'N hours'."""
+    if hours > 0 and hours % 24 == 0:
+        days = hours // 24
+        return f"{days} day" if days == 1 else f"{days} days"
+    return f"{hours} hour" if hours == 1 else f"{hours} hours"
+
+
 # Brand palette — match frontend tailwind tokens
 COLOR_TEAL = "#00acb6"
 COLOR_TEAL_DARK = "#0c888e"
