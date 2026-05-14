@@ -87,27 +87,27 @@ Six nodes in [backend/flows/parent_assessment_v1.json](../../../backend/flows/pa
 
 | Node | Approx. line | Question text |
 |---|---|---|
-| `attention_5` | 111 | "Can {student_name} do two things at once, such as listening to a teacher while taking notes?" |
-| `attention_11` | 213 | "Does {student_name} seem to daydream or zone out during class or conversations?" |
-| `academic_12` | 1277 | "Does {student_name} participate actively in classroom discussions and activities?" |
-| `academic_14` | 1311 | "Does {student_name} learn at the same pace as their classmates?" |
-| `academic_16` | 1345 | "Does {student_name} show creativity and original thinking in schoolwork?" |
+| `attention_12` | 230 | "Can {student_name} do two things at once, such as listening to a teacher while taking notes?" |
+| `attention_16` | 298 | "Does {student_name} seem to daydream or zone out during class or conversations?" |
+| `academic_14` | 1311 | "Does {student_name} participate actively in classroom discussions and activities?" |
+| `academic_15` | 1328 | "Does {student_name} learn at the same pace as their classmates?" |
+| `academic_17` | 1362 | "Does {student_name} show creativity and original thinking in schoolwork?" |
 | `academic_18` | 1379 | "How well does {student_name} organise school materials, assignments, and projects?" |
 
 ### Change
 
 Delete each of the 6 node objects from the `nodes` map.
 
-**Rewire `next` chain** so the deleted node is bypassed cleanly:
+**Rewire `next` chain** so the deleted nodes are bypassed cleanly. Note: `academic_14`+`academic_15` and `academic_17`+`academic_18` are adjacent deletions, so their predecessors must skip over BOTH:
 
 | Predecessor (option `next` values) | Was | Becomes |
 |---|---|---|
-| `attention_4` options | `attention_5` | `attention_6` |
-| `attention_10` options | `attention_11` | `attention_12` |
-| `academic_11` options | `academic_12` | `academic_13` |
-| `academic_13` options | `academic_14` | `academic_15` |
-| `academic_15` options | `academic_16` | `academic_17` |
-| `academic_17` options | `academic_18` | `academic_19` |
+| `attention_11` options | `attention_12` | `attention_13` |
+| `attention_15` options | `attention_16` | `attention_17` |
+| `academic_13` options | `academic_14` | `academic_16` (skips deleted `academic_15`) |
+| `academic_16` options | `academic_17` | `academic_19` (skips deleted `academic_18`) |
+
+Only 4 predecessor rewires are needed (not 6) because adjacent deletions consolidate. The internal pointers between adjacent deleted nodes (e.g. `academic_14` → `academic_15`) disappear with the deletion.
 
 Predecessor option *labels* and *severity* metadata are unchanged. Only the `next` string changes.
 
