@@ -283,8 +283,9 @@ export default function ChatInput({ onSend, disabled, placeholder, validationFee
             </button>
           )}
 
-          {/* Microphone button */}
-          {speechSupported && (
+          {/* Mic ↔ Send slot — shows Mic when input is empty or actively listening,
+              Send when text is ready to submit. Single slot keeps narrow viewports tidy. */}
+          {(isListening || (speechSupported && !value.trim())) ? (
             <button
               type="button"
               onClick={toggleListening}
@@ -303,32 +304,31 @@ export default function ChatInput({ onSend, disabled, placeholder, validationFee
                 <path d="M6 10.5a.75.75 0 0 1 .75.75v1.5a5.25 5.25 0 1 0 10.5 0v-1.5a.75.75 0 0 1 1.5 0v1.5a6.751 6.751 0 0 1-6 6.709v2.291h3a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1 0-1.5h3v-2.291a6.751 6.751 0 0 1-6-6.709v-1.5A.75.75 0 0 1 6 10.5Z" />
               </svg>
             </button>
-          )}
-
-          {/* Send button */}
-          <button
-            type="submit"
-            disabled={disabled || !value.trim()}
-            aria-label="Send message"
-            className={`h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex items-center justify-center flex-shrink-0
-              rounded-2xl
-              transition-all duration-200
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-1
-              ${value.trim() && !disabled
-                ? 'bg-gradient-to-r from-teal-500 via-teal-600 to-teal-600 hover:from-teal-600 hover:via-teal-700 hover:to-teal-700 text-white shadow-lg shadow-teal-200/40 hover:shadow-xl hover:shadow-teal-200/50 hover:-translate-y-0.5 active:translate-y-0'
-                : 'bg-gray-100 text-gray-300 cursor-not-allowed'
-              }`}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              className="w-5 h-5"
-              aria-hidden="true"
+          ) : (
+            <button
+              type="submit"
+              disabled={disabled || !value.trim()}
+              aria-label="Send message"
+              className={`h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex items-center justify-center flex-shrink-0
+                rounded-2xl
+                transition-all duration-200
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-1
+                ${value.trim() && !disabled
+                  ? 'bg-gradient-to-r from-teal-500 via-teal-600 to-teal-600 hover:from-teal-600 hover:via-teal-700 hover:to-teal-700 text-white shadow-lg shadow-teal-200/40 hover:shadow-xl hover:shadow-teal-200/50 hover:-translate-y-0.5 active:translate-y-0'
+                  : 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                }`}
             >
-              <path d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z" />
-            </svg>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-5 h-5"
+                aria-hidden="true"
+              >
+                <path d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z" />
+              </svg>
+            </button>
+          )}
         </form>
       </div>
     </div>
