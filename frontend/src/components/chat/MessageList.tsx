@@ -37,7 +37,7 @@ export default function MessageList({
 
   return (
     <div
-      className="flex-1 overflow-y-auto px-3 py-5 sm:px-6 sm:py-8 chat-scrollbar chat-bg-pattern relative"
+      className="flex-1 overflow-y-auto px-3 py-3 sm:px-6 sm:py-6 chat-scrollbar chat-bg-pattern relative flex flex-col"
       role="log"
       aria-live="polite"
       aria-label="Chat messages"
@@ -50,7 +50,7 @@ export default function MessageList({
         <div className="floating-dot w-2.5 h-2.5" style={{ left: '30%', bottom: '5%', animationDuration: '22s', animationDelay: '8s' }} />
       </div>
 
-      <div className="max-w-3xl mx-auto space-y-4 relative">
+      <div className="max-w-3xl mx-auto w-full space-y-4 relative mt-auto">
         {messages.map((message, index) => {
           const isLatestUser = message.id === lastUserMessageId;
           return (
