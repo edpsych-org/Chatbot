@@ -1,66 +1,41 @@
 """
 Empathy Agent
-Generates short, natural acknowledgments that feel human — not AI-generated.
+Returns short, predefined transitional acknowledgments. No LLM call —
+the previous LLM path produced inconsistent fluff that didn't match the
+product's "thanks, next question" style, so we use a rotating canned set.
 """
 
 import logging
-from typing import Optional
 from app.agents.base import BaseAgent
 
 logger = logging.getLogger(__name__)
 
-# Short fallback acknowledgments — varied, human-sounding, no AI patterns
+# Short transitional acknowledgments — forward-flowing, no evaluation, no fluff.
+# Same neutral set across every category by design.
+_TRANSITIONAL_ACKS = [
+    "Thanks. Next question:",
+    "Got it. Moving on.",
+    "Noted. Next part:",
+    "Thanks — let's move on.",
+    "Okay, moved to the next one:",
+]
+
 FALLBACK_RESPONSES = {
-    "attention": [
-        "Noted, that's helpful.",
-        "Got it — that gives useful context.",
-        "Right, that makes sense.",
-        "Understood, thanks for that.",
-        "Okay, good to know.",
-    ],
-    "social": [
-        "That paints a clear picture.",
-        "Got it, thanks.",
-        "Okay, understood.",
-        "Right, helpful to know.",
-        "Noted — thanks for sharing that.",
-    ],
-    "emotional": [
-        "That's really helpful, thanks.",
-        "Understood — appreciate that.",
-        "Got it, that's useful context.",
-        "Okay, noted.",
-        "Right, that helps.",
-    ],
-    "academic": [
-        "Got it, thanks for that.",
-        "Helpful — noted.",
-        "Okay, that's clear.",
-        "Understood, thanks.",
-        "Right, good to know.",
-    ],
-    "behavioral": [
-        "Noted, that's useful.",
-        "Got it — thanks.",
-        "Okay, understood.",
-        "Right, that's helpful context.",
-        "Thanks for that.",
-    ],
-    "general": [
-        "Got it, thanks.",
-        "Noted.",
-        "Okay, understood.",
-        "Right, helpful to know.",
-        "Thanks for that.",
-    ],
+    "attention":  _TRANSITIONAL_ACKS,
+    "social":     _TRANSITIONAL_ACKS,
+    "emotional":  _TRANSITIONAL_ACKS,
+    "academic":   _TRANSITIONAL_ACKS,
+    "behavioral": _TRANSITIONAL_ACKS,
+    "general":    _TRANSITIONAL_ACKS,
 }
 
 
 class EmpathyAgent(BaseAgent):
-    """Generates very short, natural acknowledgments to parent input."""
+    """Returns a rotating predefined acknowledgment. No LLM call."""
 
     def __init__(self):
-        # Chat-flow agent → always hit Groq (fast, cheap, fine for short acks)
+        # Kept as BaseAgent subclass so the orchestrator wiring is unchanged,
+        # but call_llm is never invoked here.
         super().__init__(
             name="EmpathyAgent",
             timeout=8.0,
@@ -69,78 +44,21 @@ class EmpathyAgent(BaseAgent):
         )
         self._response_index = {}
 
-    # Phrases that turn empathy acks into chatbot fluff. We strip-check the
-    # final LLM output and fall back to a rotating canned ack if any appears.
-    _BANNED_LLM_PHRASES = (
-        "good choice",
-        "great choice",
-        "good answer",
-        "great answer",
-        "good response",
-        "sounds like",
-        "thank you for",
-        "i understand",
-        "i appreciate",
-        "moving on",
-        "moved to",
-        "next part",
-        "next question",
-        "let's move",
-    )
-
     async def generate_response(
         self,
-        user_input: str,
+        user_input: str = "",
         category: str = "general",
         student_name: str = "your child",
         severity: str = "medium",
         context_summary: str = "",
         next_question: str = "",
     ) -> str:
-        """Generate a very short acknowledgment. Always returns something.
-
-        For very short user inputs (<= 2 words — typically MCQ option labels
-        like "Exemplary" or "Above 95%"), skip the LLM entirely and use a
-        rotating canned ack. The LLM has too little context to say anything
-        meaningful and tends to invent filler ("Sounds like a good choice").
-        """
-
-        word_count = len((user_input or "").split())
-        if word_count <= 2:
-            return self._get_fallback(category)
-
-        prompt = f"""A parent just answered a question about their child.
-
-Parent said: "{user_input}"
-
-Write ONE short sentence (max 8 words) to acknowledge their answer. Strict rules:
-- Sound like a real person, NOT a chatbot
-- BANNED words/phrases: "consistently", "you mentioned", "thank you for sharing", "I understand", "appreciate", "that's really", "it sounds like", "sounds like", "good choice", "great choice", "good answer", "good response", "concerns", "assessment", "AI", "psychology", "valuable", "moved to", "next part", "next question", "moving on", "let's move on", "conversation"
-- NEVER repeat any word the parent just said
-- NEVER ask a question
-- NEVER use the child's name
-- NEVER evaluate the answer ("good", "great", "wise" etc.)
-- Each response must feel completely different from the last
-- Keep it casual and brief — 3-8 words max
-
-Good: "Got it." / "Right, noted." / "Okay, clear." / "Makes sense." / "Fair enough." / "Understood." / "Good to know."
-Bad: "You mentioned that consistently..." / "Thank you for sharing that about..." / "I understand your concerns..." / "Sounds like a good choice."\""""
-
-        response = await self.call_llm(prompt, temperature=0.7)
-
-        if response and 3 < len(response) < 80:
-            response = response.strip().strip('"').strip("'")
-            if response.startswith("Response:"):
-                response = response[9:].strip()
-            lowered = response.lower()
-            if any(bad in lowered for bad in self._BANNED_LLM_PHRASES):
-                return self._get_fallback(category)
-            return response
-
+        """Return the next rotating predefined transitional ack for this category."""
+        del user_input, student_name, severity, context_summary, next_question
         return self._get_fallback(category)
 
     def _get_fallback(self, category: str) -> str:
-        """Get a rotating fallback response."""
+        """Rotating index into the predefined ack list."""
         responses = FALLBACK_RESPONSES.get(category, FALLBACK_RESPONSES["general"])
         idx = self._response_index.get(category, 0)
         response = responses[idx % len(responses)]
