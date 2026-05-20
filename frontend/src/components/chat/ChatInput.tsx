@@ -229,7 +229,7 @@ export default function ChatInput({ onSend, disabled, placeholder, validationFee
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex gap-1.5 sm:gap-2.5 items-end">
+        <form onSubmit={handleSubmit} className="flex gap-1 sm:gap-2.5 items-end w-full min-w-0">
           <div className="flex-1 relative min-w-0">
             <textarea
               ref={textareaRef}
@@ -265,7 +265,7 @@ export default function ChatInput({ onSend, disabled, placeholder, validationFee
             )}
           </div>
 
-          {/* Skip button — only when free-text question allows skipping */}
+          {/* Skip button — icon-only on narrow mobile so Send never gets clipped */}
           {onSkip && (
             <button
               type="button"
@@ -273,13 +273,16 @@ export default function ChatInput({ onSend, disabled, placeholder, validationFee
               disabled={disabled}
               aria-label="Skip this question"
               title="Skip this question"
-              className="h-[42px] sm:h-[46px] px-3 sm:px-4 flex items-center justify-center flex-shrink-0
+              className="h-[42px] w-[42px] sm:h-[46px] sm:w-auto sm:px-4 flex items-center justify-center flex-shrink-0
                 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800
                 text-xs sm:text-sm font-medium border border-gray-200 shadow-sm
                 transition-all duration-200
                 disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Skip
+              <span className="hidden sm:inline">Skip</span>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="w-4 h-4 sm:hidden">
+                <path fillRule="evenodd" d="M10.293 5.293a1 1 0 0 1 1.414 0l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414-1.414L12.586 11H4a1 1 0 1 1 0-2h8.586l-2.293-2.293a1 1 0 0 1 0-1.414Z" clipRule="evenodd" />
+              </svg>
             </button>
           )}
 
