@@ -7,7 +7,7 @@
   "nodes": {
     "welcome": {
       "type": "message",
-      "content": "👋 Hi! I'm here to help assess {student_name}'s learning needs.\n\nThis will take about 10-15 minutes. You can answer by:\n• Clicking the quick reply buttons\n• Typing your own responses\n• Or both!\n\nLet's begin!",
+      "content": "👋 Parents, please complete this questionnaire to provide a holistic overview of your child, including their learning profile as well as their social, emotional, mental health, speech and language and sensory needs.",
       "next": "student_age",
       "metadata": {
         "category": "intro",
