@@ -22,8 +22,12 @@ from app.models.student import Student
 from app.models.student_guardian import StudentGuardian
 from app.models.assignment import AssessmentAssignment, AssignmentStatus
 from app.schemas.user import UserCreate, UserResponse, TokenResponse, UserLogin
-from app.utils.magic_link import verify_magic_link
+from app.utils.magic_link import verify_magic_link, create_password_reset_link
+from app.utils.email import send_password_reset_email
 from pydantic import BaseModel
+import logging
+
+_log = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -438,4 +442,115 @@ async def setup_password(
             "role": user.role
         },
         "assignment_id": assignment_id
+    }
+
+
+# ---------------------------------------------------------------------------
+# Forgot password / reset password
+# ---------------------------------------------------------------------------
+PASSWORD_RESET_EXPIRY_HOURS = 1
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+@router.post("/forgot-password")
+async def forgot_password(
+    data: ForgotPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Send a password reset link to the given email if an active account exists.
+
+    The response intentionally does not reveal whether the email is registered —
+    callers always get the same generic success message so the endpoint can't be
+    used to enumerate accounts.
+    """
+    email = (data.email or "").strip().lower()
+    generic_response = {
+        "message": "If an account exists for that email, a reset link has been sent."
+    }
+
+    if not email:
+        return generic_response
+
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+
+    # Only generate + send for active accounts that have a password set.
+    # Accounts with no password should go through the magic-link / setup-password
+    # flow instead, so we silently no-op here.
+    if not user or not user.is_active or user.password_hash is None:
+        return generic_response
+
+    try:
+        reset_token = await create_password_reset_link(
+            db,
+            user_id=str(user.id),
+            expiry_hours=PASSWORD_RESET_EXPIRY_HOURS,
+        )
+        reset_link = f"{settings.FRONTEND_URL.rstrip('/')}/reset-password/{reset_token.token}"
+        send_password_reset_email(
+            user_email=user.email,
+            user_name=user.full_name or "",
+            reset_link=reset_link,
+            expiry_hours=PASSWORD_RESET_EXPIRY_HOURS,
+        )
+    except Exception as exc:
+        # Don't surface the failure to the caller — log it and return the same
+        # generic response. A 500 here would also leak account existence.
+        _log.error("Password reset link generation/send failed for %s: %s", email, exc)
+
+    return generic_response
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    password: str
+    confirm_password: str
+
+
+@router.post("/reset-password")
+async def reset_password(
+    data: ResetPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Set a new password using a reset token from email."""
+    if data.password != data.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Passwords do not match",
+        )
+    if len(data.password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 8 characters",
+        )
+
+    # Consume the token immediately on success so it can't be replayed.
+    user, magic_link_record = await verify_magic_link(db, data.token, consume=True)
+
+    if not user or not magic_link_record:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired reset link. Please request a new one.",
+        )
+
+    if magic_link_record.purpose != "password_reset":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This link cannot be used to reset a password.",
+        )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is inactive",
+        )
+
+    user.password_hash = get_password_hash(data.password)
+    await db.commit()
+
+    return {
+        "message": "Password reset successfully. You can now sign in with your new password."
     }

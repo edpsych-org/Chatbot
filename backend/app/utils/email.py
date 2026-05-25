@@ -278,6 +278,99 @@ This is an automated message from The Ed Psych Practice. Please do not reply to 
 
 
 # ---------------------------------------------------------------------------
+# Password reset email
+# ---------------------------------------------------------------------------
+def send_password_reset_email(
+    user_email: str,
+    user_name: str,
+    reset_link: str,
+    email_service: Optional[EmailService] = None,
+    expiry_hours: int = 1,
+) -> bool:
+    """Send a password-reset link. The link expires quickly (1h default)."""
+    if email_service is None:
+        email_service = EmailService()
+
+    subject = "Reset your password — The Ed Psych Practice"
+    expiry_label = _format_expiry(expiry_hours)
+    greeting_name = (user_name or "").strip() or "there"
+
+    html_body = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{ font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: {COLOR_INK}; max-width: 600px; margin: 0 auto; padding: 20px; background: #ffffff; }}
+            .header {{ background-color: {COLOR_TEAL}; color: #ffffff; padding: 24px; border-radius: 4px 4px 0 0; text-align: center; }}
+            .header h1 {{ margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 22px; font-weight: 400; }}
+            .content {{ background-color: #ffffff; padding: 28px; border: 1px solid {COLOR_BORDER}; border-top: none; border-radius: 0 0 4px 4px; }}
+            .button {{ display: inline-block; background-color: {COLOR_RED}; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 4px; margin: 18px 0; font-weight: 600; }}
+            .expiry {{ background: #fff8e6; border-left: 3px solid #d4a017; padding: 10px 14px; margin: 16px 0; font-size: 13px; color: #6b5012; border-radius: 3px; }}
+            .footer {{ text-align: center; color: {COLOR_MUTED}; font-size: 11px; margin-top: 24px; padding-top: 16px; border-top: 1px solid {COLOR_BORDER}; }}
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>The Ed Psych Practice</h1>
+            <p style="margin:6px 0 0; font-size: 13px; opacity: 0.9;">Password reset</p>
+        </div>
+        <div class="content">
+            <p>Hi {greeting_name},</p>
+            <p>We received a request to reset the password for the account linked to <strong>{user_email}</strong>.</p>
+            <p>Click the button below to choose a new password:</p>
+            <div style="text-align:center;">
+                <a href="{reset_link}" class="button" style="display:inline-block;background-color:{COLOR_RED};color:#ffffff;padding:12px 28px;text-decoration:none;border-radius:4px;font-weight:600;">Reset password</a>
+            </div>
+            <p style="font-size:13px; color:{COLOR_MUTED};">
+                Or copy this link into your browser:<br>
+                <a href="{reset_link}" style="color:{COLOR_TEAL_DARK}; word-break: break-all;">{reset_link}</a>
+            </p>
+            <div class="expiry">
+                ⏰ This link expires in {expiry_label}. If it expires, request a new one from the login page.
+            </div>
+            <p style="font-size:13px; color:{COLOR_MUTED};">
+                Didn't request this? You can safely ignore this email — your password won't change unless you click the link and set a new one.
+            </p>
+            <p>Best regards,<br>The Ed Psych Practice</p>
+        </div>
+        <div class="footer">
+            <p>This is an automated message from The Ed Psych Practice.</p>
+            <p>Please do not reply to this email.</p>
+        </div>
+    </body>
+    </html>
+    """
+
+    text_body = f"""
+The Ed Psych Practice — Password reset
+
+Hi {greeting_name},
+
+We received a request to reset the password for the account linked to {user_email}.
+
+Reset your password here:
+{reset_link}
+
+This link expires in {expiry_label}. If it expires, request a new one from the login page.
+
+Didn't request this? You can safely ignore this email — your password won't change unless you click the link and set a new one.
+
+Best regards,
+The Ed Psych Practice
+
+---
+This is an automated message from The Ed Psych Practice. Please do not reply to this email.
+    """.strip()
+
+    return email_service.send_email(
+        to_email=user_email,
+        subject=subject,
+        html_body=html_body,
+        text_body=text_body,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Parent invitation email (used by /student-guardians/invite-parent)
 # ---------------------------------------------------------------------------
 def send_parent_invitation_email(
