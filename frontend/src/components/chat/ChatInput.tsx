@@ -7,7 +7,6 @@ interface ChatInputProps {
   disabled: boolean;
   placeholder: string;
   validationFeedback?: string | null;
-  onSkip?: () => void;
 }
 
 // Web Speech API types
@@ -35,7 +34,7 @@ function isMobile(): boolean {
   return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
-export default function ChatInput({ onSend, disabled, placeholder, validationFeedback, onSkip }: ChatInputProps) {
+export default function ChatInput({ onSend, disabled, placeholder, validationFeedback }: ChatInputProps) {
   const [value, setValue] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
@@ -264,27 +263,6 @@ export default function ChatInput({ onSend, disabled, placeholder, validationFee
               </span>
             )}
           </div>
-
-          {/* Skip button — icon-only on narrow mobile so Send never gets clipped */}
-          {onSkip && (
-            <button
-              type="button"
-              onClick={() => { if (!disabled) onSkip(); }}
-              disabled={disabled}
-              aria-label="Skip this question"
-              title="Skip this question"
-              className="h-[42px] w-[42px] sm:h-[46px] sm:w-auto sm:px-4 flex items-center justify-center flex-shrink-0
-                rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800
-                text-xs sm:text-sm font-medium border border-gray-200 shadow-sm
-                transition-all duration-200
-                disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <span className="hidden sm:inline">Skip</span>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="w-4 h-4 sm:hidden">
-                <path fillRule="evenodd" d="M10.293 5.293a1 1 0 0 1 1.414 0l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414-1.414L12.586 11H4a1 1 0 1 1 0-2h8.586l-2.293-2.293a1 1 0 0 1 0-1.414Z" clipRule="evenodd" />
-              </svg>
-            </button>
-          )}
 
           {/* Mic ↔ Send slot — shows Mic when input is empty or actively listening,
               Send when text is ready to submit. Single slot keeps narrow viewports tidy. */}
