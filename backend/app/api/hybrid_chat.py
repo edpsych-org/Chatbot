@@ -837,38 +837,11 @@ async def _handle_mcq_choice(session: ChatSession, message_input: ChatMessageInp
         session.current_step += 1
 
         if final_node:
-            next_category = final_node.get("category", "general")
-
-            # Only show acknowledgment every 5th answer to reduce chattiness
-            answer_count = len(session.context_data.get("answered_node_ids", []))
-            show_feedback = answer_count > 0 and answer_count % 5 == 0
-
+            # Acknowledgments between questions are intentionally disabled:
+            # the next question follows the user's answer with no transitional
+            # filler. Keep this path lean — straight to the next question.
             msg_data = flow_engine.format_bot_message(final_node, student_name, final_id)
-
-            if show_feedback:
-                context_summary = orchestrator._summarize_context(session.context_data)
-                next_q_text = final_node.get("question", "")
-                try:
-                    ai_transition = await orchestrator.generate_transition(
-                        user_choice=user_choice_label,
-                        current_category=current_category,
-                        next_category=next_category,
-                        student_name=student_name,
-                        context_summary=context_summary,
-                        next_question=next_q_text,
-                    )
-                except Exception as e:
-                    logger.warning(f"AI transition failed, skipping ack: {e}")
-                    ai_transition = ""
-
-                if ai_transition:
-                    msg_data["content"] = ai_transition + "\n\n" + msg_data["content"]
-                    msg_data["generation_source"] = "ai_transition"
-                else:
-                    msg_data["generation_source"] = "flow_engine"
-            else:
-                msg_data["generation_source"] = "flow_engine"
-
+            msg_data["generation_source"] = "flow_engine"
             return msg_data
 
     # Fallback: re-present current question
@@ -1174,16 +1147,10 @@ async def _handle_free_text(
             session.current_node_id = final_id
 
             if final_node:
-                # Only show empathetic acknowledgment every 5th answer
-                answer_count = len(session.context_data.get("answered_node_ids", []))
-                show_feedback = answer_count > 0 and answer_count % 5 == 0
-
+                # Acknowledgments between questions are intentionally disabled
+                # (see MCQ path above) — next question rendered alone.
                 msg_data = flow_engine.format_bot_message(final_node, student_name, final_id)
-                if show_feedback and result.get("content"):
-                    msg_data["content"] = result["content"] + "\n\n" + msg_data["content"]
-                    msg_data["generation_source"] = "ai_empathetic"
-                else:
-                    msg_data["generation_source"] = "flow_engine"
+                msg_data["generation_source"] = "flow_engine"
                 return msg_data, None
 
     # No next node (end of flow or standalone text) - just return AI response

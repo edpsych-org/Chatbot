@@ -81,6 +81,46 @@ async def verify_magic_link(
     return user, magic_link
 
 
+async def create_password_reset_link(
+    db: AsyncSession,
+    user_id: str,
+    expiry_hours: int = 1,
+) -> MagicLinkToken:
+    """Create a password-reset token. Invalidates any prior unused
+    password-reset token for this user so an attacker who phished an older
+    email can't race the fresh one.
+    """
+    from sqlalchemy import update as sql_update
+
+    now = datetime.now(timezone.utc)
+
+    await db.execute(
+        sql_update(MagicLinkToken)
+        .where(
+            MagicLinkToken.user_id == user_id,
+            MagicLinkToken.purpose == "password_reset",
+            MagicLinkToken.used_at.is_(None),
+        )
+        .values(used_at=now)
+    )
+
+    token = generate_magic_token()
+    expires_at = now + timedelta(hours=expiry_hours)
+
+    magic_link = MagicLinkToken(
+        user_id=user_id,
+        token=token,
+        expires_at=expires_at,
+        purpose="password_reset",
+    )
+
+    db.add(magic_link)
+    await db.commit()
+    await db.refresh(magic_link)
+
+    return magic_link
+
+
 async def create_invite_magic_link(
     db: AsyncSession,
     user_id: str,
