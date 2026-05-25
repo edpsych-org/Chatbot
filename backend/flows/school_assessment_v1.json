@@ -7,7 +7,7 @@
   "nodes": {
     "welcome": {
       "type": "message",
-      "content": "👋 Hello! You've been invited to share the school's view of {student_name}.\n\nThis will take about 10-15 minutes. You can answer with the quick-reply buttons, type your own reply, or both.\n\nLet's begin.",
+      "content": "👋 School staff, please complete this questionnaire to provide a holistic overview of {student_name}, including their learning profile as well as their social, emotional, mental health, speech and language and sensory needs.",
       "next": "role_in_school",
       "metadata": {"category": "intro", "skip_allowed": false}
     },
