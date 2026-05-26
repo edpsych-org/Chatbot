@@ -93,7 +93,7 @@
     },
     "attention_4": {
       "type": "mcq",
-      "question": "Does {student_name} finish tasks or assignments that {student_name} starts?",
+      "question": "Does {student_name} finish tasks or assignments once started?",
       "category": "attention",
       "options": [
         {"value": "always", "label": "Yes, always", "next": "attention_5"},
@@ -195,7 +195,7 @@
     },
     "attention_10": {
       "type": "mcq",
-      "question": "Can {student_name} sustain attention during activities that {student_name} finds boring or uninteresting?",
+      "question": "Can {student_name} sustain attention during boring or uninteresting activities?",
       "category": "attention",
       "options": [
         {"value": "yes", "label": "Yes, even for boring tasks", "next": "attention_11"},
@@ -740,7 +740,7 @@
     },
     "emotional_3": {
       "type": "mcq",
-      "question": "How is {student_name}'s self-esteem? Do they feel good about themselves?",
+      "question": "How is {student_name}'s self-esteem and sense of self-worth?",
       "category": "emotional",
       "options": [
         {"value": "high", "label": "High self-esteem", "next": "emotional_4"},
