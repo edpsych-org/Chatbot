@@ -147,7 +147,7 @@
     },
     "maths_level": {
       "type": "mcq",
-      "question": "Maths attainment?",
+      "question": "Maths attainment compared with age-expected level?",
       "category": "academic",
       "options": [
         {"value": "above", "label": "Above age-expected", "next": "subject_strength"},
