@@ -1,5 +1,7 @@
 export type ReportType =
   | "background_summary"
+  | "background_summary_parent"
+  | "background_summary_school"
   | "cognitive_report"
   | "unified_insights";
 
@@ -73,6 +75,8 @@ export interface LatestSession {
 
 export interface GroupedReports {
   background_summary: Report[];
+  background_summary_parent: Report[];
+  background_summary_school: Report[];
   cognitive_report: Report[];
   unified_insights: Report[];
   [key: string]: Report[];

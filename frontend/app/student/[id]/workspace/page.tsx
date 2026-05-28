@@ -66,10 +66,21 @@ export default function ReportsWorkspacePage() {
     loadWorkspace();
   }, [loadWorkspace]);
 
-  const backgroundReport = useMemo(
+  const parentBackgroundReport = useMemo(
+    () => workspace?.reports?.background_summary_parent?.[0] ?? null,
+    [workspace]
+  );
+  const schoolBackgroundReport = useMemo(
+    () => workspace?.reports?.background_summary_school?.[0] ?? null,
+    [workspace]
+  );
+  const legacyBackgroundReport = useMemo(
     () => workspace?.reports?.background_summary?.[0] ?? null,
     [workspace]
   );
+  // For Unified Insights gating + .docx download eligibility, treat any of
+  // the three background variants as a valid background report.
+  const backgroundReport = parentBackgroundReport || schoolBackgroundReport || legacyBackgroundReport;
   const cognitiveReport = useMemo(
     () => workspace?.reports?.cognitive_report?.[0] ?? null,
     [workspace]
@@ -85,11 +96,30 @@ export default function ReportsWorkspacePage() {
 
   const assessors = workspace?.assessors ?? [];
   const completionCount = workspace?.completion_count ?? { done: 0, total: 0 };
-  const allAssessorsComplete = Boolean(workspace?.all_assessors_complete);
-  const pendingRoles = assessors
+
+  // Voice-scoped readiness — parent and school cards advance independently.
+  const isParentRole = (r: string) => {
+    const t = (r || "").toLowerCase();
+    return /parent|mother|father|guardian|carer|caregiver|step.?(mother|father)/.test(t);
+  };
+  const isSchoolRole = (r: string) => {
+    const t = (r || "").toLowerCase();
+    return /school|teacher|senco|sendco|tutor|head of (year|learning)/.test(t);
+  };
+
+  const parentAssessors = assessors.filter((a) => isParentRole(a.relationship_type));
+  const schoolAssessors = assessors.filter((a) => isSchoolRole(a.relationship_type));
+
+  const parentVoiceAssigned = parentAssessors.length > 0;
+  const schoolVoiceAssigned = schoolAssessors.length > 0;
+  const parentVoiceReady = parentAssessors.some((a) => a.status === "COMPLETED");
+  const schoolVoiceReady = schoolAssessors.some((a) => a.status === "COMPLETED");
+  const pendingForParent = parentAssessors
     .filter((a) => a.status !== "COMPLETED" && a.status !== "CANCELLED")
-    .map((a) => a.relationship_type || "Guardian");
-  const hasParentData = allAssessorsComplete;
+    .map((a) => a.guardian_name || a.relationship_type || "Parent");
+  const pendingForSchool = schoolAssessors
+    .filter((a) => a.status !== "COMPLETED" && a.status !== "CANCELLED")
+    .map((a) => a.guardian_name || a.relationship_type || "School");
 
   const upsertReport = (incoming: Report) => {
     setWorkspace((prev) => {
@@ -324,15 +354,41 @@ export default function ReportsWorkspacePage() {
             )}
           </section>
 
-          <BackgroundSummaryCard
-            studentId={studentId}
-            existingReport={backgroundReport}
-            hasParentData={hasParentData}
-            allAssessorsComplete={allAssessorsComplete}
-            pendingRoles={pendingRoles}
-            completionCount={completionCount}
-            onReportChange={upsertReport}
-          />
+          {parentVoiceAssigned && (
+            <BackgroundSummaryCard
+              studentId={studentId}
+              existingReport={parentBackgroundReport}
+              voice="parent"
+              voiceReady={parentVoiceReady}
+              voiceAssigned={parentVoiceAssigned}
+              pendingForVoice={pendingForParent}
+              onReportChange={upsertReport}
+            />
+          )}
+
+          {schoolVoiceAssigned && (
+            <BackgroundSummaryCard
+              studentId={studentId}
+              existingReport={schoolBackgroundReport}
+              voice="school"
+              voiceReady={schoolVoiceReady}
+              voiceAssigned={schoolVoiceAssigned}
+              pendingForVoice={pendingForSchool}
+              onReportChange={upsertReport}
+            />
+          )}
+
+          {!parentVoiceAssigned && !schoolVoiceAssigned && (
+            <section className="glass-card p-6 sm:p-8 rounded-2xl shadow-xl">
+              <h2 className="text-xl font-bold text-on-background mb-2">
+                Background Summary
+              </h2>
+              <p className="text-sm text-amber-600">
+                No assessors are assigned to this student yet. Assign at least one
+                parent or school assessor to enable background summary generation.
+              </p>
+            </section>
+          )}
 
           <CognitiveReportCard
             studentId={studentId}
