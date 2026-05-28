@@ -38,6 +38,7 @@ from app.agents.report_agents import (
     IQScoreExtractorAgent,
     CognitiveReportAgent,
     UnifiedInsightsAgent,
+    _classify_role,
 )
 from app.services.pdf_extractor import extract_text_from_pdf
 from app.services.s3_storage import s3_storage
@@ -306,6 +307,8 @@ async def get_workspace(
 
     grouped_reports = {
         "background_summary": [],
+        "background_summary_parent": [],
+        "background_summary_school": [],
         "cognitive_report": [],
         "unified_insights": [],
     }
@@ -482,6 +485,182 @@ async def generate_background_summary(
     await db.refresh(report)
 
     return _serialize_report(report)
+
+
+# ============================================================================
+# BACKGROUND SUMMARY — ROLE-SCOPED GENERATE (PARENT / SCHOOL)
+# ============================================================================
+async def _generate_role_scoped_background(
+    *,
+    student: Student,
+    student_id: uuid_lib.UUID,
+    current_user: User,
+    db: AsyncSession,
+    voice: str,
+    report_type: str,
+) -> dict:
+    """Shared implementation for the two role-scoped background endpoints.
+
+    `voice` is "parent" or "school"; `report_type` is the value stored on
+    PsychologistReport.report_type ("background_summary_parent" /
+    "background_summary_school"). Gating: at least one assessor of the
+    matching voice must be COMPLETED. Pending assessors of the OTHER voice
+    do NOT block this report — that decoupling is the whole point.
+    """
+    rows = await _all_assessor_rows(db, student_id)
+    if not rows:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "No assessment assignments exist for this student. "
+                "An admin must assign the assessment to at least one assessor first."
+            ),
+        )
+
+    matching = [r for r in rows if _classify_role(r.get("relationship_type")) == voice]
+    if not matching:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"No {voice} assessor has been assigned to this student. "
+                f"Assign the assessment to a {voice}-type respondent and try again."
+            ),
+        )
+
+    completed = [r for r in matching if r["assignment_status"] == AssignmentStatus.COMPLETED.value]
+    pending = [r for r in matching if r["assignment_status"] != AssignmentStatus.COMPLETED.value]
+
+    if not completed:
+        pending_names = sorted({p.get("guardian_name") or "Unknown" for p in pending})
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": (
+                    f"Waiting for the {voice} assessment to be completed before this "
+                    f"summary can be generated."
+                ),
+                "voice": voice,
+                "pending_assessors": pending_names,
+            },
+        )
+
+    student_name = f"{student.first_name} {student.last_name}".strip() or "the student"
+
+    merged_context = {
+        "student_info": {
+            "first_name": student.first_name,
+            "last_name": student.last_name,
+            "date_of_birth": student.date_of_birth.isoformat() if student.date_of_birth else None,
+            "year_group": student.year_group,
+            "school_name": student.school_name,
+        },
+        "perspectives": [
+            {
+                "role": p["relationship_type"],
+                "respondent_name": p["guardian_name"],
+                "respondent_user_id": str(p["guardian_user_id"]),
+                "session_id": str(p["session_id"]) if p["session_id"] else None,
+                "context": p["context_data"] or {},
+            }
+            for p in completed
+        ],
+    }
+
+    agent = BackgroundSummaryAgent()
+    started = time.time()
+    try:
+        if voice == "parent":
+            markdown = await agent.generate_parent_summary(merged_context, student_name)
+        else:
+            markdown = await agent.generate_school_summary(merged_context, student_name)
+    except Exception as e:
+        logger.error(f"BackgroundSummaryAgent ({voice}) raised: {e}", exc_info=True)
+        raise HTTPException(status_code=502, detail=f"Agent failed: {str(e)}")
+    generation_ms = int((time.time() - started) * 1000)
+
+    session_ids = [p["session_id"] for p in completed if p["session_id"]]
+    primary_session_id = session_ids[-1] if session_ids else None
+
+    report = PsychologistReport(
+        student_id=student_id,
+        created_by_user_id=current_user.id,
+        report_type=report_type,
+        content_markdown=markdown,
+        source_data={
+            "voice": voice,
+            "session_ids": [str(sid) for sid in session_ids],
+            "perspectives": [
+                {
+                    "role": p["relationship_type"],
+                    "respondent_name": p["guardian_name"],
+                    "respondent_user_id": str(p["guardian_user_id"]),
+                    "session_id": str(p["session_id"]) if p["session_id"] else None,
+                }
+                for p in completed
+            ],
+            "pending_assessors_of_this_voice": [
+                {
+                    "role": p["relationship_type"],
+                    "respondent_name": p["guardian_name"],
+                    "assignment_status": p["assignment_status"],
+                }
+                for p in pending
+            ],
+        },
+        source_chat_session_id=primary_session_id,
+        status="draft",
+        generation_ms=generation_ms,
+    )
+    db.add(report)
+    await db.commit()
+    await db.refresh(report)
+    return _serialize_report(report)
+
+
+@router.post("/students/{student_id}/background-summary-parent/generate")
+async def generate_background_summary_parent(
+    student_id: uuid_lib.UUID,
+    current_user: User = Depends(require_psychologist_or_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Generate the PARENT-only background summary.
+
+    Gates on at least one parent-type assessor being COMPLETED. Pending
+    school assessors do NOT block this endpoint. The agent is forbidden
+    from using school-voice content even if it is present elsewhere.
+    """
+    student = await _get_student_or_404(db, student_id)
+    return await _generate_role_scoped_background(
+        student=student,
+        student_id=student_id,
+        current_user=current_user,
+        db=db,
+        voice="parent",
+        report_type="background_summary_parent",
+    )
+
+
+@router.post("/students/{student_id}/background-summary-school/generate")
+async def generate_background_summary_school(
+    student_id: uuid_lib.UUID,
+    current_user: User = Depends(require_psychologist_or_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Generate the SCHOOL-only background summary.
+
+    Gates on at least one school-type assessor being COMPLETED. Pending
+    parent assessors do NOT block this endpoint. The agent is forbidden
+    from using parent-voice content even if it is present elsewhere.
+    """
+    student = await _get_student_or_404(db, student_id)
+    return await _generate_role_scoped_background(
+        student=student,
+        student_id=student_id,
+        current_user=current_user,
+        db=db,
+        voice="school",
+        report_type="background_summary_school",
+    )
 
 
 # ============================================================================
@@ -757,7 +936,13 @@ async def create_blank_report(
     """Create an empty editable report (used by the 'Start blank' flow)."""
     await _get_student_or_404(db, student_id)
 
-    allowed_types = {"background_summary", "cognitive_report", "unified_insights"}
+    allowed_types = {
+        "background_summary",
+        "background_summary_parent",
+        "background_summary_school",
+        "cognitive_report",
+        "unified_insights",
+    }
     if payload.report_type not in allowed_types:
         raise HTTPException(
             status_code=400,
@@ -849,7 +1034,13 @@ async def download_student_reports_docx(
     stmt = select(PsychologistReport).where(
         PsychologistReport.student_id == student_id,
         PsychologistReport.report_type.in_(
-            ("background_summary", "cognitive_report", "unified_insights")
+            (
+                "background_summary",
+                "background_summary_parent",
+                "background_summary_school",
+                "cognitive_report",
+                "unified_insights",
+            )
         ),
     )
     rows = (await db.execute(stmt)).scalars().all()
@@ -860,11 +1051,24 @@ async def download_student_reports_docx(
         )
 
     by_type = {r.report_type: r for r in rows}
-    section_order = [
-        ("background_summary", "Background"),
-        ("cognitive_report", "Cognitive Report"),
-        ("unified_insights", "Unified Insights"),
-    ]
+    # Prefer the role-scoped pair if either exists; fall back to the
+    # legacy combined background_summary only when no role-scoped row is present.
+    has_role_scoped = bool(
+        by_type.get("background_summary_parent") or by_type.get("background_summary_school")
+    )
+    if has_role_scoped:
+        section_order = [
+            ("background_summary_parent", "Parent Background Summary"),
+            ("background_summary_school", "School Background Summary"),
+            ("cognitive_report", "Cognitive Report"),
+            ("unified_insights", "Unified Insights"),
+        ]
+    else:
+        section_order = [
+            ("background_summary", "Background"),
+            ("cognitive_report", "Cognitive Report"),
+            ("unified_insights", "Unified Insights"),
+        ]
 
     doc = Document()
     full_name = f"{student.first_name} {student.last_name}".strip()
