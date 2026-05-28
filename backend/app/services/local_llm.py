@@ -74,7 +74,7 @@ def _provider_config(provider: str) -> Dict[str, str]:
     return {
         "api_key": settings.OPENAI_API_KEY or "",
         "base_url": settings.OPENAI_BASE_URL or "https://api.openai.com/v1",
-        "model": settings.OPENAI_MODEL or "gpt-4o-mini",
+        "model": settings.OPENAI_MODEL or "gpt-4o",
     }
 
 
