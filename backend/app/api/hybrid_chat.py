@@ -170,6 +170,51 @@ class EditMessageIn(BaseModel):
 
 
 # ============================================================================
+# FLOW SELECTION
+# ============================================================================
+
+def _select_parent_flow(age_str: Optional[str]) -> str:
+    """Pick the per-age-band parent flow id from the child's computed age.
+
+    Bands match the documents the practice supplied:
+      <11     -> parent_assessment_4_11_v1
+      11-13   -> parent_assessment_11_14_v1   (inclusive of Y7-Y9)
+      14-15   -> parent_assessment_14_16_v1   (GCSE)
+      16-17   -> parent_assessment_16_18_v1   (A-Level / Sixth Form / IB)
+      >=18    -> parent_assessment_18plus_v1  (Adult / HE)
+
+    Falls back to the legacy unified parent flow when age is unknown or
+    the per-age flow has not been loaded by the FlowEngine.
+    """
+    fallback = "parent_assessment_v1"
+
+    if age_str is None:
+        return fallback
+    try:
+        age = int(age_str)
+    except (TypeError, ValueError):
+        return fallback
+
+    if age < 11:
+        candidate = "parent_assessment_4_11_v1"
+    elif age < 14:
+        candidate = "parent_assessment_11_14_v1"
+    elif age < 16:
+        candidate = "parent_assessment_14_16_v1"
+    elif age < 18:
+        candidate = "parent_assessment_16_18_v1"
+    else:
+        candidate = "parent_assessment_18plus_v1"
+
+    # If the per-age flow hasn't been deployed yet (older backend release
+    # or a flow file missing from the flows directory), fall back to the
+    # legacy unified flow so the assignment still works.
+    if candidate not in flow_engine.flows:
+        return fallback
+    return candidate
+
+
+# ============================================================================
 # FLOW ENGINE
 # ============================================================================
 
@@ -468,14 +513,6 @@ async def start_chat_session(
     result = await db.execute(select(Student).where(Student.id == assignment.student_id))
     student = result.scalar_one_or_none()
 
-    # Flow selection by recipient role.
-    # SCHOOL → school flow (classroom/playground/teacher-observable questions).
-    # PARENT → parent flow. ADMIN demo → parent flow by default.
-    if current_user.role == UserRole.SCHOOL:
-        flow_type = "school_assessment_v1"
-    else:
-        flow_type = "parent_assessment_v1"
-
     # Derive age from student.date_of_birth (years, floored). Leaves
     # student_age unset if DOB isn't recorded so the flow can still ask.
     computed_age = None
@@ -490,6 +527,17 @@ async def start_chat_session(
         )
         if 0 < years < 120:
             computed_age = str(years)
+
+    # Flow selection.
+    # SCHOOL → school flow (classroom/playground/teacher-observable questions).
+    # PARENT → per-age-band parent flow chosen from the child's DOB.
+    # ADMIN demo → parent flow.
+    # If DOB unknown, fall back to the legacy unified parent flow so the
+    # chatbot still asks the age question and proceeds.
+    if current_user.role == UserRole.SCHOOL:
+        flow_type = "school_assessment_v1"
+    else:
+        flow_type = _select_parent_flow(computed_age)
 
     answered_initial: list[str] = []
     if computed_age:
