@@ -6,6 +6,7 @@ import { API_BASE } from "@/lib/api";
 import BackgroundSummaryCard from "@/src/components/workspace/BackgroundSummaryCard";
 import CognitiveReportCard from "@/src/components/workspace/CognitiveReportCard";
 import UnifiedInsightsCard from "@/src/components/workspace/UnifiedInsightsCard";
+import QuestionnaireResponsesCard from "@/src/components/workspace/QuestionnaireResponsesCard";
 import type {
   CognitiveProfile,
   Report,
@@ -353,6 +354,8 @@ export default function ReportsWorkspacePage() {
               </ul>
             )}
           </section>
+
+          <QuestionnaireResponsesCard studentId={studentId} />
 
           {parentVoiceAssigned && (
             <BackgroundSummaryCard

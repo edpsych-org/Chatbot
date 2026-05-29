@@ -186,9 +186,12 @@ class BackgroundSummaryAgent(BaseAgent):
 
             student_info = context_data.get("student_info", {}) or {}
             raw_data_block = self._build_filtered_perspective_block(scoped, student_info)
-            # Stricter cap than the combined flow — single voice fits comfortably.
+            # Generous cap so the extractor sees the FULL questionnaire payload.
+            # Single voice + per-age flow gets ~60-75 Q&A pairs; at ~200 chars
+            # per pair plus the JSON wrapping, 16k chars accommodates the
+            # whole picture without truncation.
             n_scoped = max(1, len(scoped))
-            max_len = min(10000, 4000 + 2500 * max(0, n_scoped - 1))
+            max_len = min(16000, 8000 + 4000 * max(0, n_scoped - 1))
             raw_data_block = raw_data_block[:max_len]
 
             # ── STAGE 1: Strict extraction (verbatim Q&A only) ──
@@ -203,7 +206,9 @@ class BackgroundSummaryAgent(BaseAgent):
                     f"Unable to extract grounded {voice_label.lower()} responses for "
                     f"{student_name}. Please review the source data and try again."
                 )
-            extracted = extracted[:7000]
+            # Bigger ledger so the synthesizer sees the full picture; the model
+            # used (gpt-4o) handles 12k input tokens here without issue.
+            extracted = extracted[:12000]
 
             if self._resolve_provider() == "groq":
                 logger.info(
@@ -333,8 +338,10 @@ STRICT RULES — these are non-negotiable:
    Never write "social severity is high" or "attention severity is medium" — those are internal scoring fields, not clinical facts. The clinical facts are the specific answers themselves.
 7. Demographic facts that come from the STUDENT INFORMATION block (DOB, age, year group, school name, school city, gender) are platform-confirmed and SHOULD be extracted under DEMOGRAPHICS even though they were not asked via the questionnaire.
 
+Coverage rule: be COMPREHENSIVE. Pull EVERY answered question from the Completed Q&A Pairs and EVERY non-empty assessment_data field into the ledger — sparse coverage produces a thin final report. If a section has many answers, list them all (do not summarise).
+
 Begin the output with the first heading. No preamble, no closing summary."""
-        return await self.call_llm(prompt, max_tokens=2400, temperature=0.1)
+        return await self.call_llm(prompt, max_tokens=4000, temperature=0.1)
 
     async def _run_strict_synthesizer(
         self, extracted: str, student_name: str, first_name: str, voice_label: str,
@@ -439,8 +446,10 @@ Use EXACTLY these headings and structure:
 
 ### Current Situation
 
+DEPTH RULE: aim for 5-8 sentences per non-empty subsection where the ledger supports it — the corpus reports are paragraph-length, not single-sentence. Use every relevant bullet, weaving multiple facts into coherent prose. Short sections only when the ledger genuinely is short.
+
 Begin directly with "## BACKGROUND INFORMATION — {voice_label.upper()} REPORT". No preamble, no concluding paragraph."""
-        return await self.call_llm(prompt, max_tokens=2800, temperature=0.3)
+        return await self.call_llm(prompt, max_tokens=4000, temperature=0.3)
 
     # ------------------------------------------------------------------
     # Legacy combined-perspective pipeline (kept for backward compat)
