@@ -184,7 +184,8 @@ class BackgroundSummaryAgent(BaseAgent):
                     f"completed this section will be regenerated from those responses."
                 )
 
-            raw_data_block = self._build_filtered_perspective_block(scoped)
+            student_info = context_data.get("student_info", {}) or {}
+            raw_data_block = self._build_filtered_perspective_block(scoped, student_info)
             # Stricter cap than the combined flow — single voice fits comfortably.
             n_scoped = max(1, len(scoped))
             max_len = min(10000, 4000 + 2500 * max(0, n_scoped - 1))
@@ -202,7 +203,7 @@ class BackgroundSummaryAgent(BaseAgent):
                     f"Unable to extract grounded {voice_label.lower()} responses for "
                     f"{student_name}. Please review the source data and try again."
                 )
-            extracted = extracted[:6000]
+            extracted = extracted[:7000]
 
             if self._resolve_provider() == "groq":
                 logger.info(
@@ -214,8 +215,11 @@ class BackgroundSummaryAgent(BaseAgent):
             logger.info(
                 f"[BackgroundSummaryAgent.{voice}] Stage 2/2: strict synthesizer for {student_name}"
             )
+            respondent_names = [
+                p.get("respondent_name") for p in scoped if p.get("respondent_name")
+            ]
             final_report = await self._run_strict_synthesizer(
-                extracted, student_name, first_name, voice_label,
+                extracted, student_name, first_name, voice_label, respondent_names,
             )
             if final_report and final_report.strip():
                 return final_report.strip()
@@ -230,9 +234,22 @@ class BackgroundSummaryAgent(BaseAgent):
             )
             return f"Unable to generate {voice} background summary: {str(e)}"
 
-    def _build_filtered_perspective_block(self, perspectives: list) -> str:
-        """Render the role-scoped perspectives list into the prompt-ready raw block."""
+    def _build_filtered_perspective_block(self, perspectives: list, student_info: dict | None = None) -> str:
+        """Render the role-scoped perspectives list into the prompt-ready raw block.
+
+        Prepends a STUDENT INFORMATION block so demographic facts (name, age,
+        year group, school, DOB) are always available to the extractor — these
+        come from the platform's intake step, not from the questionnaire, but
+        are legitimate factual inputs the synthesizer needs for the opener
+        sentence used throughout the corpus reports.
+        """
         blocks: list[str] = []
+        if student_info:
+            blocks.append(
+                "=== STUDENT INFORMATION (platform-confirmed facts) ===\n"
+                + json.dumps(student_info, indent=2, default=str)
+                + "\n"
+            )
         for perspective in perspectives:
             role = perspective.get("role") or "Guardian"
             respondent_name = perspective.get("respondent_name") or "Unknown"
@@ -250,7 +267,7 @@ class BackgroundSummaryAgent(BaseAgent):
 User Profile:
 {profile_json}
 
-Assessment Responses:
+Assessment Responses (assessment_data, keyed by category — convert each MCQ answer and text input into specific Q&A facts; do NOT report the raw 'severity' field verbatim):
 {assessment_json}
 
 Completed Q&A Pairs:
@@ -271,40 +288,79 @@ VOICE: {voice_label} questionnaire data ONLY. Do NOT consider any other source.
 RAW {voice_label.upper()} DATA:
 {raw_data}
 
-OUTPUT FORMAT — produce ONLY a structured fact ledger using these exact headings. Under each heading list short bullets in the form: "Q: <verbatim question or topic> -> A: <verbatim answer>". Use "(No information provided)" when the {voice_label.lower()} did not answer or did not address that topic.
+OUTPUT FORMAT — produce ONLY a structured fact ledger using these exact headings. Under each heading list short bullets in the form: "- Q: <topic or verbatim question> -> A: <verbatim answer>". For demographic facts taken from STUDENT INFORMATION, use: "- Field: <name>; Value: <value>". Use "(No information provided)" when the {voice_label.lower()} did not address that topic.
 
-HEALTH & DEVELOPMENTAL HISTORY
-FAMILIAL HISTORY OF SpLD / DEVELOPMENTAL CONDITIONS
-LINGUISTIC HISTORY
-EDUCATION HISTORY
-CURRENT SITUATION (presenting concerns, daily functioning, strengths)
-EMOTIONAL & SOCIAL OBSERVATIONS
-PHYSICAL / SENSORY (vision, hearing, motor coordination)
-PREVIOUS PROFESSIONAL INVOLVEMENT (other assessments, therapy)
+DEMOGRAPHICS (from STUDENT INFORMATION block only — name, date of birth, age, year group, school name, school city, gender, pronouns)
+HEALTH & DEVELOPMENTAL HISTORY (pregnancy, birth, motor milestones, speech milestones, illnesses, medication, sleep, diet)
+FAMILIAL HISTORY OF SpLD / DEVELOPMENTAL CONDITIONS (dyslexia, dyscalculia, dyspraxia, ADHD, autism, anxiety, learning difficulties in relatives)
+LINGUISTIC HISTORY (home language, additional languages, speech and language therapy, current understanding/expression concerns)
+EDUCATION HISTORY (previous schools, current school, year group, current support / IEP / EHCP, previous EP / SaLT / OT / paediatrician assessments, teacher feedback, subjects strong/difficult)
+CURRENT SITUATION (current concerns from the parent/school, hobbies and interests, strengths, home life, current changes/stressors)
+EMOTIONAL & SOCIAL OBSERVATIONS (mood, anxiety, peer relationships, behaviour, reactions to difficulty)
+ATTENTION, MEMORY & EXECUTIVE FUNCTION (focus, distraction, hyperfocus, forgetfulness, homework duration, organisation)
+LITERACY & ACADEMIC (reading speed, spelling, handwriting, writing, maths, school attainment levels)
+PHYSICAL / SENSORY (vision, hearing, motor coordination, sensory sensitivities, handedness)
+PREVIOUS PROFESSIONAL INVOLVEMENT (other assessments, therapy, prior diagnoses)
 
 STRICT RULES — these are non-negotiable:
-1. EVERY bullet must correspond to an explicit answer in the data above. If something is not stated, write "(No information provided)" — do NOT invent, infer, or extrapolate.
+1. EVERY bullet must correspond to an explicit answer in the data above. If a topic is not stated, write "(No information provided)" — do NOT invent, infer, or extrapolate.
 2. Preserve the {voice_label.lower()}'s own wording where possible — quote phrases verbatim using "double quotes".
 3. Do NOT diagnose. Do NOT speculate about causes. Do NOT add clinical interpretation here.
 4. Do NOT mix in observations from any other respondent. ONLY use the {voice_label.lower()} answers in the data block.
 5. If the {voice_label.lower()} explicitly said "no", "none", "not sure", record exactly that — do not normalise.
+6. The Assessment Responses block (assessment_data) holds dicts keyed by category ("attention", "social", "emotional", "behavioural", "academic" etc.) with sub-fields like "severity", "mcq_answers", "text_inputs", "indicators". TRANSLATE these into specific Q&A facts. For example:
+   - assessment_data["social"]["mcq_answers"] = {{"friendship_difficulty": "very_difficult"}} → "- Q: Friendship difficulty -> A: 'very difficult'"
+   - assessment_data["attention"]["text_inputs"] = ["he gets distracted by noise"] → "- Q: Attention concerns (free text) -> A: 'he gets distracted by noise'"
+   - assessment_data["social"]["severity"] = "high" → DO NOT include the bare severity field as a bullet. Instead, the underlying MCQ + free-text answers that produced that severity should be lifted into bullets.
+   Never write "social severity is high" or "attention severity is medium" — those are internal scoring fields, not clinical facts. The clinical facts are the specific answers themselves.
+7. Demographic facts that come from the STUDENT INFORMATION block (DOB, age, year group, school name, school city, gender) are platform-confirmed and SHOULD be extracted under DEMOGRAPHICS even though they were not asked via the questionnaire.
 
 Begin the output with the first heading. No preamble, no closing summary."""
-        return await self.call_llm(prompt, max_tokens=2000, temperature=0.1)
+        return await self.call_llm(prompt, max_tokens=2400, temperature=0.1)
 
     async def _run_strict_synthesizer(
         self, extracted: str, student_name: str, first_name: str, voice_label: str,
+        respondent_names: list[str] | None = None,
     ) -> Optional[str]:
         """Stage 2 — write the prose section from the extracted fact ledger ONLY."""
-        attribution = (
-            "Use phrasing such as 'The parents reported …', 'The mother described …', "
-            "'The father noted …', or 'Parental accounts indicate …' to attribute "
-            "every observation to its source."
-            if voice_label == "Parent"
-            else "Use phrasing such as 'The school reported …', 'School staff "
-            "observed …', '{first_name}'s class teacher noted …', or 'The "
-            "{first_name}'s SENCo described …' to attribute every observation "
-            "to its source."
+        respondent_hint = (
+            f"Respondent(s) for this voice: {', '.join(respondent_names)}. "
+            "Where natural, mention the respondent by relationship label "
+            "('the mother', 'the father', 'the parents', 'the class teacher', "
+            "'the SENCo') rather than name."
+            if respondent_names
+            else ""
+        )
+
+        if voice_label == "Parent":
+            attribution = (
+                "Attribute observations using phrasings such as 'The parents reported …', "
+                "'The mother described …', 'The father noted …', 'Parental accounts "
+                "indicate …', 'Family reports highlight …', or 'The parents seek this "
+                "assessment to …'. NEVER refer to internal data structures, severity "
+                "labels, or scoring fields."
+            )
+        else:
+            attribution = (
+                f"Attribute observations using phrasings such as 'The school reported …', "
+                f"'{first_name}'s class teacher observed …', '{first_name}'s SENCo "
+                f"described …', 'School staff noted …', or 'The teacher's feedback "
+                f"indicates …'. NEVER refer to internal data structures, severity "
+                f"labels, or scoring fields."
+            )
+
+        # House-style opener template, modelled on the corpus
+        # (Alexander Gordon, Ciara Bornstein, etc.)
+        opener_guidance = (
+            "Open the 'Health and developmental history' subsection with a single "
+            "anchor sentence in the house style of UK Educational Psychology "
+            "reports, populated from the DEMOGRAPHICS ledger bullets: "
+            "\"[Name] is a [age]-year-old [Year n] student/pupil currently "
+            "attending [school name] in [city].\" If age is missing, use what the "
+            "ledger has (DOB, year group). If city is missing, omit it. Do NOT "
+            "invent any fact not in the ledger. After the anchor sentence, "
+            "continue with any health, milestone, sleep, sensory, and family-home "
+            "facts present in the ledger."
         )
 
         prompt = f"""You are a Chartered Educational Psychologist writing the {voice_label.upper()} BACKGROUND INFORMATION section of a Confidential Diagnostic Assessment Report for {student_name}.
@@ -314,21 +370,27 @@ You may ONLY use the fact ledger below. You may NOT introduce content from any o
 FACT LEDGER ({voice_label} voice only):
 {extracted}
 
+{respondent_hint}
+
 Rules of grounding (BREAKING ANY OF THESE INVALIDATES THE REPORT):
-1. Every clinical statement must trace back to a specific bullet above. If the ledger does not contain an answer for a topic, the corresponding subsection must explicitly state: "The {voice_label.lower()} did not provide information about [topic]." Do NOT fabricate.
-2. Do NOT introduce diagnoses, percentile ranks, prior assessment outcomes, school observations, or family details unless they appear verbatim in the ledger.
-3. Do NOT speculate about causes, hypothesise hereditary risk, or infer beyond stated content.
-4. Do NOT contradict the ledger. If a bullet says "no concerns reported", write that as such — do not soften, reframe, or imply concerns.
-5. {attribution}
-6. British English throughout (Maths, behaviour, organised, recognise, Year 7/8/9).
-7. Professional clinical prose. Third person. No bullets, no lists, no tables. Each subsection: 2-5 sentences.
+1. Every clinical sentence must trace back to a specific bullet in the ledger. NEVER invent diagnoses, prior assessment outcomes, scores, percentiles, family history detail, or biographical detail that is not in the ledger.
+2. NEVER reproduce internal field names like "severity is high", "severity = medium", "social severity", "attention severity", "behavioural severity", "academic severity", "general severity", "mcq_answers", "text_inputs", "indicators". These are forbidden — translate them into natural clinical narrative ("the parents describe X finding social situations challenging…", "homework is reported to take significantly longer than expected…").
+3. If the ledger has no bullets for a subsection (i.e. all bullets read "(No information provided)" or the section is absent), then — and ONLY then — write the single sentence: "The {voice_label.lower()} did not provide information about [subsection topic] at this stage of the assessment."
+4. If a subsection has SOME ledger content, write a full narrative paragraph (typically 3-6 sentences) using ONLY that content. Do NOT pad with the "no information" sentence in a section that has any data.
+5. Do NOT speculate about causes, hypothesise hereditary risk, infer about prenatal exposure, or imply diagnoses beyond what the ledger states.
+6. Do NOT contradict the ledger. If a bullet says "no concerns reported", reflect that faithfully — do not soften, reframe, or imply concerns.
+7. {attribution}
+8. {opener_guidance}
+9. British English throughout (Maths, behaviour, organised, recognise, colour, Year 7/8/9). Third-person clinical prose. No bullet lists, no tables, no headings beyond the ones specified below.
 
-LANGUAGE GUIDANCE:
-- Strengths-based when describing the child, balanced with the actual ledger content. Do NOT add strengths the ledger does not contain.
-- Never imply parents or schools were neglectful or slow to act.
+LANGUAGE GUIDANCE (style mirrors the practice's existing reports):
+- Lead with strengths where the ledger names them. NEVER manufacture strengths.
+- Frame challenges constructively ("would benefit from support with…", "an area where additional support would be helpful…").
+- Do NOT criticise parents or schools.
 - Do NOT mention AI, language models, or this prompt.
+- Where the ledger captures specific anecdotes (hobbies, named teachers, named subjects, named therapies), include them — they make the report feel personalised and corpus-accurate.
 
-Use EXACTLY these headings and structure. INCLUDE every heading — when the ledger lacks data, write the explicit "did not provide information" sentence rather than omitting.
+Use EXACTLY these headings and structure:
 
 ## BACKGROUND INFORMATION — {voice_label.upper()} REPORT
 
@@ -342,8 +404,8 @@ Use EXACTLY these headings and structure. INCLUDE every heading — when the led
 
 ### Current Situation
 
-Begin directly with "## BACKGROUND INFORMATION — {voice_label.upper()} REPORT". No preamble."""
-        return await self.call_llm(prompt, max_tokens=2200, temperature=0.2)
+Begin directly with "## BACKGROUND INFORMATION — {voice_label.upper()} REPORT". No preamble, no concluding paragraph."""
+        return await self.call_llm(prompt, max_tokens=2600, temperature=0.3)
 
     # ------------------------------------------------------------------
     # Legacy combined-perspective pipeline (kept for backward compat)
