@@ -206,8 +206,17 @@ export default function McqOptions({
           )}
         </div>
 
-        {/* Options below — compact layout in combined panel */}
-        <div className="flex flex-wrap gap-1.5 sm:grid sm:grid-cols-2 sm:gap-1.5">
+        {/* Options below — compact layout in combined panel.
+            For long lists (>= 8 options) the chip grid is capped at a
+            third of the viewport and scrolls internally, so the Send
+            button + textarea always stay reachable without page scroll. */}
+        <div
+          className={`flex flex-wrap gap-1.5 sm:grid sm:grid-cols-2 sm:gap-1.5 ${
+            options.length >= 8
+              ? 'max-h-[34vh] overflow-y-auto pr-1 chat-scrollbar'
+              : ''
+          }`}
+        >
           {options.map((option, index) => (
             <ChipButton
               key={option.value}
