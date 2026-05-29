@@ -1558,7 +1558,14 @@ async def admin_get_all_students_with_details(
             chat_session = sess_result.scalars().first()
             if chat_session and chat_session.context_data:
                 answered = chat_session.context_data.get("answered_node_ids", [])
-                total_nodes = 102  # parent_assessment_v1 answerable nodes
+                # Read the active flow's answerable-node count so per-age
+                # parent flows + the legacy unified flow each report progress
+                # against their own size.
+                from app.api.hybrid_chat import flow_engine
+                from app.api.assignments import _flow_answerable_node_count
+                total_nodes = _flow_answerable_node_count(
+                    flow_engine, chat_session.flow_type
+                )
                 single_chat_progress = (
                     round((len(answered) / total_nodes) * 100) if total_nodes > 0 else 0
                 )

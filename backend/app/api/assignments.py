@@ -24,6 +24,26 @@ from app.utils.magic_link import create_invite_magic_link
 router = APIRouter(prefix="/assignments", tags=["assignments"])
 
 
+def _flow_answerable_node_count(flow_engine_inst, flow_id: str) -> int:
+    """Return the number of answerable (mcq/text) nodes in a flow.
+
+    "Answerable" means user-interactive — message-only nodes (welcome,
+    section intros, completion) don't count, otherwise the progress bar
+    can never reach 100%. Falls back to a sensible default if the flow
+    isn't loaded.
+    """
+    fallback = 70
+    flow = flow_engine_inst.get_flow(flow_id) if flow_engine_inst else None
+    if not flow:
+        return fallback
+    answerable = 0
+    for node in (flow.get("nodes") or {}).values():
+        ntype = (node or {}).get("type", "")
+        if ntype in ("mcq", "text", "free_text"):
+            answerable += 1
+    return answerable or fallback
+
+
 # Pydantic schemas
 class AssignmentCreate(BaseModel):
     student_id: UUID
@@ -392,7 +412,14 @@ async def get_students_for_assignment(
             chat_session = session_result.scalar_one_or_none()
             if chat_session and chat_session.context_data:
                 answered = chat_session.context_data.get("answered_node_ids", [])
-                total_nodes = 102  # parent_assessment_v1 answerable nodes
+                # Read the actual flow's answerable-node count so per-age
+                # parent flows (parent_assessment_4_11_v1, ..._18plus_v1) and
+                # the legacy parent_assessment_v1 all report progress against
+                # their own size, not a fixed hard-coded value.
+                from app.api.hybrid_chat import flow_engine
+                total_nodes = _flow_answerable_node_count(
+                    flow_engine, chat_session.flow_type
+                )
                 progress_pct = round((len(answered) / total_nodes) * 100) if total_nodes > 0 else 0
                 if chat_session.status == "completed":
                     progress_pct = 100
