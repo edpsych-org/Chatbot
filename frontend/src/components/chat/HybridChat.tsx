@@ -709,6 +709,7 @@ export default function HybridChat({ assignmentId }: HybridChatProps) {
             <McqOptions
               options={currentQuestion.options}
               allowText={Boolean(currentQuestion.allow_text)}
+              multiSelect={Boolean(currentQuestion.multi_select)}
               onSelect={handleMcqSelect}
               onSend={handleCombinedSend}
               disabled={loading}

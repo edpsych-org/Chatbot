@@ -146,7 +146,8 @@
         "category": "background",
         "section": "Section A - Reasons for Assessment",
         "tag": "M"
-      }
+      },
+      "multi_select": true
     },
     "background_3": {
       "type": "mcq",

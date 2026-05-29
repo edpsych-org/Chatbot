@@ -10,6 +10,8 @@ interface McqOptionsProps {
   onSelect: (option: McqOption) => void;
   onSend: (content: string, resolvedOption: string | null) => void;
   resetKey?: string;
+  /** When true the chip list behaves like checkboxes ("tick all that apply"). */
+  multiSelect?: boolean;
   // Optional "feel free to type" nudge rendered above the text box.
   showNudge?: boolean;
   nudgeColor?: number;
@@ -29,18 +31,21 @@ export default function McqOptions({
   onSelect,
   onSend,
   resetKey,
+  multiSelect = false,
   showNudge = false,
   nudgeColor = 0,
   onDismissNudge,
 }: McqOptionsProps) {
   const [text, setText] = useState('');
   const [picked, setPicked] = useState<McqOption | null>(null);
+  const [pickedMulti, setPickedMulti] = useState<McqOption[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Reset local state when the question changes.
   useEffect(() => {
     setText('');
     setPicked(null);
+    setPickedMulti([]);
   }, [resetKey]);
 
   // Combined layout is used for every MCQ question, regardless of the
@@ -52,6 +57,27 @@ export default function McqOptions({
 
   const handleChipClick = (option: McqOption) => {
     if (disabled) return;
+
+    if (multiSelect) {
+      // Toggle this option in the selection set. Keep the textarea synced to
+      // a comma-separated list of selected labels so the user can edit /
+      // append free-text alongside.
+      setPickedMulti((prev) => {
+        const exists = prev.some((p) => p.value === option.value);
+        const next = exists ? prev.filter((p) => p.value !== option.value) : [...prev, option];
+        const joinedLabels = next.map((p) => p.label).join(', ');
+        // Only auto-overwrite the textarea when the user hasn't typed their own
+        // custom content (i.e. the textarea is empty or still mirrors the
+        // previously-joined chip labels).
+        const trimmed = text.trim();
+        const prevJoined = prev.map((p) => p.label).join(', ').trim();
+        const shouldOverwrite = !trimmed || trimmed === prevJoined;
+        if (shouldOverwrite) setText(joinedLabels);
+        return next;
+      });
+      return;
+    }
+
     const trimmed = text.trim();
     const previousLabel = (picked?.label ?? '').trim();
     // Prefill behaviour:
@@ -74,10 +100,21 @@ export default function McqOptions({
     });
   };
 
-  const canSend = (picked !== null) || text.trim().length > 0;
+  const canSend = multiSelect
+    ? (pickedMulti.length > 0 || text.trim().length > 0)
+    : (picked !== null || text.trim().length > 0);
 
   const handleSend = () => {
     if (!canSend || disabled) return;
+    if (multiSelect) {
+      const labels = pickedMulti.map((p) => p.label).join(', ');
+      const values = pickedMulti.map((p) => p.value).join(',');
+      const finalText = text.trim() || labels;
+      onSend(finalText, values || null);
+      setText('');
+      setPickedMulti([]);
+      return;
+    }
     const finalText = text.trim() || picked?.label || '';
     onSend(finalText, picked?.value ?? null);
     // Local reset — parent will also swap resetKey when the new question arrives.
@@ -91,6 +128,11 @@ export default function McqOptions({
       handleSend();
     }
   };
+
+  const isOptionSelected = (opt: McqOption) =>
+    multiSelect
+      ? pickedMulti.some((p) => p.value === opt.value)
+      : picked?.value === opt.value;
 
   const nudge = NUDGE_PALETTE[nudgeColor % NUDGE_PALETTE.length];
 
@@ -130,7 +172,7 @@ export default function McqOptions({
             placeholder={picked ? 'Edit or add more detail…' : 'Pick an option below, or type your own answer…'}
             className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-400 resize-none placeholder:text-gray-400 disabled:opacity-50"
           />
-          {picked && (
+          {!multiSelect && picked && (
             <div className="mt-1.5 text-[0.6875rem] text-teal-700 flex items-center gap-1.5">
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-50 border border-teal-100">
                 Option selected: <strong className="font-semibold">{picked.label}</strong>
@@ -145,6 +187,23 @@ export default function McqOptions({
               </button>
             </div>
           )}
+          {multiSelect && (
+            <div className="mt-1.5 text-[0.6875rem] text-teal-700 flex items-center gap-1.5 flex-wrap">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-50 border border-teal-100 font-medium">
+                Tick all that apply &nbsp;·&nbsp; {pickedMulti.length} selected
+              </span>
+              {pickedMulti.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => { setPickedMulti([]); setText(''); }}
+                  className="underline text-gray-500 hover:text-gray-700"
+                  disabled={disabled}
+                >
+                  clear all
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Options below — compact layout in combined panel */}
@@ -154,7 +213,8 @@ export default function McqOptions({
               key={option.value}
               option={option}
               index={index}
-              selected={picked?.value === option.value}
+              selected={isOptionSelected(option)}
+              multiSelect={multiSelect}
               disabled={disabled}
               compact
               onClick={() => handleChipClick(option)}
@@ -186,6 +246,7 @@ function ChipButton({
   option,
   index,
   selected,
+  multiSelect = false,
   disabled,
   compact = false,
   onClick,
@@ -193,6 +254,7 @@ function ChipButton({
   option: McqOption;
   index: number;
   selected: boolean;
+  multiSelect?: boolean;
   disabled: boolean;
   compact?: boolean;
   onClick: () => void;
@@ -212,8 +274,10 @@ function ChipButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      aria-pressed={selected}
-      aria-label={`Select: ${option.label}`}
+      role={multiSelect ? 'checkbox' : 'radio'}
+      aria-checked={selected}
+      aria-pressed={!multiSelect ? selected : undefined}
+      aria-label={`${multiSelect ? 'Toggle' : 'Select'}: ${option.label}`}
       className={`group flex-1 min-w-[calc(50%-4px)] sm:min-w-0 ${sizeClasses}
         border shadow-sm
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-1
@@ -227,15 +291,30 @@ function ChipButton({
       style={{ animationDelay: `${index * 60}ms` }}
     >
       <span className={`flex items-center ${gap}`}>
-        <span
-          className={`${badgeClasses} border flex items-center justify-center font-bold flex-shrink-0 transition-all duration-200 shadow-sm ${
-            selected
-              ? 'bg-white/20 text-white border-white/40'
-              : 'bg-gradient-to-br from-gray-100 to-gray-50 text-gray-500 border-gray-200/80 group-hover:from-teal-100 group-hover:to-teal-50 group-hover:text-teal-600 group-hover:border-teal-200'
-          }`}
-        >
-          {String.fromCharCode(65 + index)}
-        </span>
+        {multiSelect ? (
+          <span
+            className={`${badgeClasses} border flex items-center justify-center font-bold flex-shrink-0 transition-all duration-200 shadow-sm ${
+              selected
+                ? 'bg-white text-teal-600 border-white'
+                : 'bg-white text-transparent border-gray-300 group-hover:border-teal-400'
+            }`}
+            aria-hidden="true"
+          >
+            <svg viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3">
+              <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 1 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z" />
+            </svg>
+          </span>
+        ) : (
+          <span
+            className={`${badgeClasses} border flex items-center justify-center font-bold flex-shrink-0 transition-all duration-200 shadow-sm ${
+              selected
+                ? 'bg-white/20 text-white border-white/40'
+                : 'bg-gradient-to-br from-gray-100 to-gray-50 text-gray-500 border-gray-200/80 group-hover:from-teal-100 group-hover:to-teal-50 group-hover:text-teal-600 group-hover:border-teal-200'
+            }`}
+          >
+            {String.fromCharCode(65 + index)}
+          </span>
+        )}
         <span className={labelClasses}>{option.label}</span>
       </span>
     </button>
