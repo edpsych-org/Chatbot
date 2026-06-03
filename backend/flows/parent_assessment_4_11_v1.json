@@ -156,7 +156,8 @@
         "category": "background",
         "section": "Section A - Reasons for Assessment",
         "tag": "M"
-      }
+      },
+      "multi_select": true
     },
     "background_3": {
       "type": "mcq",
@@ -409,7 +410,8 @@
         "category": "family",
         "section": "Section B - Family Context",
         "tag": "M"
-      }
+      },
+      "multi_select": true
     },
     "family_4": {
       "type": "mcq",
@@ -2107,7 +2109,8 @@
         "category": "education",
         "section": "Section J - Education",
         "tag": "M"
-      }
+      },
+      "multi_select": true
     },
     "education_14": {
       "type": "text",

@@ -375,6 +375,237 @@ async def get_workspace(
 
 
 # ============================================================================
+# QUESTIONNAIRE RESPONSES — VIEW PARENT / SCHOOL ANSWERS
+# ============================================================================
+@router.get("/students/{student_id}/responses")
+async def get_questionnaire_responses(
+    student_id: uuid_lib.UUID,
+    current_user: User = Depends(require_psychologist_or_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return all chatbot questionnaire responses for a student.
+
+    Output shape (clean for the frontend — NOT a raw JSON dump of the
+    chat session):
+
+        {
+            "student": {"id", "first_name", "last_name", ...},
+            "sessions": [
+                {
+                    "session_id", "status", "flow_type",
+                    "respondent": {"name", "email", "role"},
+                    "started_at", "completed_at",
+                    "sections": [
+                        {
+                            "title": "Reasons for Assessment",
+                            "category": "background",
+                            "items": [
+                                {"node_id", "question", "answer",
+                                 "option_label", "is_skipped", "is_multi"},
+                                ...
+                            ],
+                        }, ...
+                    ],
+                }, ...
+            ],
+        }
+
+    Permission: psychologist OR admin. Admin sees any student; psychologist
+    needs to be in the student's care chain (enforced by existing role gate
+    on the workspace endpoints — same audience).
+    """
+    from app.models.chat import ChatMessage  # local import — avoids circulars
+
+    student = await _get_student_or_404(db, student_id)
+
+    sessions_q = await db.execute(
+        select(ChatSession)
+        .join(AssessmentAssignment, ChatSession.assignment_id == AssessmentAssignment.id)
+        .where(AssessmentAssignment.student_id == student_id)
+        .order_by(desc(ChatSession.started_at))
+    )
+    sessions: List[ChatSession] = list(sessions_q.scalars().all())
+
+    if not sessions:
+        return {
+            "student": {
+                "id": str(student.id),
+                "first_name": student.first_name,
+                "last_name": student.last_name,
+            },
+            "sessions": [],
+        }
+
+    # Bulk load all messages for these sessions, ordered chronologically
+    session_ids = [s.id for s in sessions]
+    msgs_q = await db.execute(
+        select(ChatMessage)
+        .where(ChatMessage.session_id.in_(session_ids))
+        .order_by(ChatMessage.session_id, ChatMessage.timestamp.asc(), ChatMessage.id.asc())
+    )
+    all_msgs = list(msgs_q.scalars().all())
+
+    # Group messages by session
+    msgs_by_session: dict[uuid_lib.UUID, list[ChatMessage]] = {}
+    for m in all_msgs:
+        msgs_by_session.setdefault(m.session_id, []).append(m)
+
+    # Build respondent lookups (assignment -> guardian + role) in one query
+    assignment_ids = [s.assignment_id for s in sessions if s.assignment_id]
+    respondent_by_assignment: dict[uuid_lib.UUID, dict] = {}
+    if assignment_ids:
+        rows_q = await db.execute(
+            select(AssessmentAssignment, User, StudentGuardian)
+            .join(User, AssessmentAssignment.assigned_to_user_id == User.id)
+            .outerjoin(
+                StudentGuardian,
+                and_(
+                    StudentGuardian.student_id == AssessmentAssignment.student_id,
+                    StudentGuardian.guardian_user_id == AssessmentAssignment.assigned_to_user_id,
+                ),
+            )
+            .where(AssessmentAssignment.id.in_(assignment_ids))
+        )
+        for assignment, user, sg in rows_q.all():
+            rel = (sg.relationship_type if sg and sg.relationship_type else None) or (
+                user.role.value.title() if user and user.role else "Guardian"
+            )
+            respondent_by_assignment[assignment.id] = {
+                "name": user.full_name or user.email,
+                "email": user.email,
+                "role": rel,
+            }
+
+    out_sessions: list[dict] = []
+    for sess in sessions:
+        msgs = msgs_by_session.get(sess.id, [])
+
+        # Pair (bot question -> next user answer) and group by category/section
+        pairs: list[dict] = []
+        pending_bot: ChatMessage | None = None
+        for m in msgs:
+            if m.role == "bot" and m.message_type in ("mcq", "text_only", "text"):
+                pending_bot = m
+                continue
+            if m.role == "user" and pending_bot is not None:
+                meta_bot = pending_bot.message_metadata or {}
+                meta_user = m.message_metadata or {}
+                question = pending_bot.content or ""
+                # Strip out the auto-prepended student name "Hi {name}, ..." style
+                question = question.strip()
+                # Determine user-facing answer:
+                option_label = None
+                selected_value = meta_user.get("selected_option") or meta_user.get("choice_value")
+                if selected_value:
+                    # Bot meta carries options list — find label
+                    for opt in (meta_bot.get("options") or []):
+                        if isinstance(opt, dict) and opt.get("value") == selected_value:
+                            option_label = opt.get("label")
+                            break
+                    # Multi-select: comma-separated values
+                    if option_label is None and isinstance(selected_value, str) and "," in selected_value:
+                        labels = []
+                        for tok in selected_value.split(","):
+                            tok = tok.strip()
+                            for opt in (meta_bot.get("options") or []):
+                                if isinstance(opt, dict) and opt.get("value") == tok:
+                                    labels.append(opt.get("label", tok))
+                                    break
+                        if labels:
+                            option_label = ", ".join(labels)
+
+                pairs.append({
+                    "node_id": meta_bot.get("node_id") or meta_bot.get("question_id"),
+                    "category": meta_bot.get("category") or "general",
+                    "section": (meta_bot.get("section") or meta_bot.get("section_title")
+                                or _category_title(meta_bot.get("category") or "general")),
+                    "question": question,
+                    "answer": m.content or "",
+                    "option_label": option_label,
+                    "is_skipped": (m.message_type == "skip") or (m.content or "").strip().lower() == "(skipped)",
+                    "is_multi": bool(meta_bot.get("multi_select")),
+                    "timestamp": m.timestamp.isoformat() if m.timestamp else None,
+                })
+                pending_bot = None
+
+        # Group pairs into sections preserving first-appearance order
+        sections_ordered: list[str] = []
+        items_by_section: dict[str, list[dict]] = {}
+        for p in pairs:
+            title = p["section"] or "Other"
+            if title not in items_by_section:
+                items_by_section[title] = []
+                sections_ordered.append(title)
+            items_by_section[title].append(p)
+
+        respondent = respondent_by_assignment.get(sess.assignment_id) or {
+            "name": "Unknown respondent",
+            "email": None,
+            "role": "Guardian",
+        }
+
+        out_sessions.append({
+            "session_id": str(sess.id),
+            "flow_type": sess.flow_type,
+            "status": sess.status,
+            "respondent": respondent,
+            "started_at": sess.started_at.isoformat() if sess.started_at else None,
+            "completed_at": sess.completed_at.isoformat() if sess.completed_at else None,
+            "sections": [
+                {
+                    "title": title,
+                    "items": items_by_section[title],
+                }
+                for title in sections_ordered
+            ],
+            "totals": {
+                "answered": len(pairs),
+                "skipped": sum(1 for p in pairs if p["is_skipped"]),
+            },
+        })
+
+    return {
+        "student": {
+            "id": str(student.id),
+            "first_name": student.first_name,
+            "last_name": student.last_name,
+            "date_of_birth": student.date_of_birth.isoformat() if student.date_of_birth else None,
+            "year_group": student.year_group,
+            "school_name": student.school_name,
+        },
+        "sessions": out_sessions,
+        "viewer_role": current_user.role.value if current_user and current_user.role else None,
+    }
+
+
+def _category_title(cat: str) -> str:
+    """Map a category slug to a human-readable section title."""
+    mapping = {
+        "background": "Reasons for Assessment",
+        "family": "Family Context",
+        "birth_history": "Pregnancy & Birth",
+        "dev_milestones": "Developmental Milestones",
+        "health": "General Health",
+        "vision_hearing": "Vision & Hearing",
+        "sensory_motor": "Sensory & Motor",
+        "attention": "Attention",
+        "social": "Social",
+        "emotional": "Emotional",
+        "behaviour": "Behaviour",
+        "behavioural": "Behaviour",
+        "academic": "Academic",
+        "education": "Education",
+        "literacy": "Literacy",
+        "independent_learning": "Independent Learning",
+        "strengths": "Strengths & Interests",
+        "closing": "Closing",
+        "intro": "Introduction",
+        "general": "Other",
+    }
+    return mapping.get((cat or "").lower(), (cat or "Other").replace("_", " ").title())
+
+
+# ============================================================================
 # BACKGROUND SUMMARY — GENERATE
 # ============================================================================
 @router.post("/students/{student_id}/background-summary/generate")

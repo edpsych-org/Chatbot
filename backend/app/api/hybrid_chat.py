@@ -214,6 +214,44 @@ def _select_parent_flow(age_str: Optional[str]) -> str:
     return candidate
 
 
+def _select_school_flow(age_str: Optional[str]) -> str:
+    """Pick the per-age-band school flow id from the child's computed age.
+
+    Mirrors _select_parent_flow — same age bands, school-side flows:
+      <11     -> school_assessment_4_11_v1
+      11-13   -> school_assessment_11_14_v1
+      14-15   -> school_assessment_14_16_v1
+      16-17   -> school_assessment_16_18_v1
+      >=18    -> school_assessment_18plus_v1
+
+    Falls back to the legacy school_assessment_v1 when age is unknown or
+    the per-age flow has not been loaded.
+    """
+    fallback = "school_assessment_v1"
+
+    if age_str is None:
+        return fallback
+    try:
+        age = int(age_str)
+    except (TypeError, ValueError):
+        return fallback
+
+    if age < 11:
+        candidate = "school_assessment_4_11_v1"
+    elif age < 14:
+        candidate = "school_assessment_11_14_v1"
+    elif age < 16:
+        candidate = "school_assessment_14_16_v1"
+    elif age < 18:
+        candidate = "school_assessment_16_18_v1"
+    else:
+        candidate = "school_assessment_18plus_v1"
+
+    if candidate not in flow_engine.flows:
+        return fallback
+    return candidate
+
+
 # ============================================================================
 # FLOW ENGINE
 # ============================================================================
@@ -246,7 +284,14 @@ class FlowEngine:
         return None
 
     def get_next_node_id(self, flow_id: str, current_node_id: str, user_choice: Optional[str] = None):
-        """Determine next node based on user choice"""
+        """Determine next node based on user choice.
+
+        For multi-select MCQs the frontend sends a comma-separated value
+        string (e.g. "reading,maths,emotional_regulation"). All options on
+        a multi-select node converge to the same `next` target, so we
+        match against the FIRST token of the value when commas are
+        present.
+        """
         node = self.get_node(flow_id, current_node_id)
         if not node:
             return None
@@ -255,8 +300,10 @@ class FlowEngine:
             return node.get("next")
 
         if node["type"] == "mcq" and user_choice:
+            # Multi-select payload — use the first value to pick the branch.
+            lookup_value = user_choice.split(",", 1)[0].strip() if "," in user_choice else user_choice
             for option in node.get("options", []):
-                if option["value"] == user_choice:
+                if option["value"] == lookup_value:
                     return option.get("next")
             return node.get("next")
 
@@ -324,10 +371,12 @@ class FlowEngine:
             "options": options,
             "allow_text": node.get("allow_text", False),
             "text_prompt": node.get("text_prompt"),
+            "multi_select": bool(node.get("multi_select", False)),
             "metadata": {
                 "node_id": node_id,
                 "category": node.get("category"),
                 "question_id": node_id,
+                "multi_select": bool(node.get("multi_select", False)),
             }
         }
 
@@ -398,6 +447,13 @@ def _build_bot_metadata(bot_response_data: dict) -> dict:
         meta["allow_text"] = bot_response_data["allow_text"]
     if bot_response_data.get("text_prompt"):
         meta["text_prompt"] = bot_response_data["text_prompt"]
+    if bot_response_data.get("multi_select"):
+        meta["multi_select"] = True
+    # Also pull from nested metadata when present (format_bot_message stashes
+    # multi_select under both top-level and metadata for flexibility).
+    inner_meta = bot_response_data.get("metadata") or {}
+    if inner_meta.get("multi_select") and "multi_select" not in meta:
+        meta["multi_select"] = True
     return meta
 
 
@@ -529,13 +585,13 @@ async def start_chat_session(
             computed_age = str(years)
 
     # Flow selection.
-    # SCHOOL → school flow (classroom/playground/teacher-observable questions).
+    # SCHOOL → per-age-band school flow (classroom/playground/teacher-observable).
     # PARENT → per-age-band parent flow chosen from the child's DOB.
     # ADMIN demo → parent flow.
-    # If DOB unknown, fall back to the legacy unified parent flow so the
-    # chatbot still asks the age question and proceeds.
+    # If DOB unknown, fall back to the legacy unified flow so the chatbot
+    # still asks the age question and proceeds.
     if current_user.role == UserRole.SCHOOL:
-        flow_type = "school_assessment_v1"
+        flow_type = _select_school_flow(computed_age)
     else:
         flow_type = _select_parent_flow(computed_age)
 
@@ -1224,7 +1280,13 @@ def _store_mcq_answer(
     elaboration: Optional[str] = None,
 ):
     """Store MCQ answer in assessment data. Optionally attach free-text
-    elaboration the user typed alongside their option."""
+    elaboration the user typed alongside their option.
+
+    For multi-select MCQs the `value` is a comma-separated list (e.g.
+    "reading,maths,emotional_regulation"). It is stored verbatim in
+    mcq_answers[node_id] AND each selected option is also pushed into a
+    selected_labels[node_id] list so downstream agents see clean labels.
+    """
     assessment = session.context_data.get("assessment_data", {})
     if category not in assessment:
         assessment[category] = {"mcq_answers": {}, "text_inputs": [], "indicators": []}
@@ -1233,12 +1295,36 @@ def _store_mcq_answer(
 
     assessment[category].setdefault("mcq_answers", {})[node_id] = value
 
-    # Extract severity from the option metadata in the flow
+    # Look up the source node so we can attach option metadata + labels.
     current_node = flow_engine.get_node(session.flow_type, node_id)
-    if current_node:
+    is_multi = bool(current_node and current_node.get("multi_select"))
+
+    if current_node and value and "," in value and is_multi:
+        # Multi-select — resolve each token to its option dict for label + severity.
+        tokens = [t.strip() for t in value.split(",") if t.strip()]
+        opts_by_value = {opt["value"]: opt for opt in current_node.get("options", [])}
+        selected_labels: list[str] = []
+        severities: list[str] = []
+        for tok in tokens:
+            opt = opts_by_value.get(tok)
+            if not opt:
+                continue
+            selected_labels.append(opt.get("label", tok))
+            meta = opt.get("metadata", {}) or {}
+            if "severity" in meta:
+                severities.append(meta["severity"])
+            elif "level" in meta:
+                severities.append(meta["level"])
+        assessment[category].setdefault("selected_labels", {})[node_id] = selected_labels
+        # Use the strongest severity reported across the selections.
+        if severities:
+            rank = {"high": 4, "medium": 3, "low": 2, "none": 1}
+            best = max(severities, key=lambda s: rank.get(s, 0))
+            assessment[category]["severity"] = best
+    elif current_node:
         for option in current_node.get("options", []):
             if option["value"] == value:
-                meta = option.get("metadata", {})
+                meta = option.get("metadata", {}) or {}
                 if "severity" in meta:
                     assessment[category]["severity"] = meta["severity"]
                 elif "level" in meta:

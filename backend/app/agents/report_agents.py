@@ -186,9 +186,12 @@ class BackgroundSummaryAgent(BaseAgent):
 
             student_info = context_data.get("student_info", {}) or {}
             raw_data_block = self._build_filtered_perspective_block(scoped, student_info)
-            # Stricter cap than the combined flow — single voice fits comfortably.
+            # Generous cap so the extractor sees the FULL questionnaire payload.
+            # Single voice + per-age flow gets ~60-75 Q&A pairs; at ~200 chars
+            # per pair plus the JSON wrapping, 16k chars accommodates the
+            # whole picture without truncation.
             n_scoped = max(1, len(scoped))
-            max_len = min(10000, 4000 + 2500 * max(0, n_scoped - 1))
+            max_len = min(16000, 8000 + 4000 * max(0, n_scoped - 1))
             raw_data_block = raw_data_block[:max_len]
 
             # ── STAGE 1: Strict extraction (verbatim Q&A only) ──
@@ -203,7 +206,9 @@ class BackgroundSummaryAgent(BaseAgent):
                     f"Unable to extract grounded {voice_label.lower()} responses for "
                     f"{student_name}. Please review the source data and try again."
                 )
-            extracted = extracted[:7000]
+            # Bigger ledger so the synthesizer sees the full picture; the model
+            # used (gpt-4o) handles 12k input tokens here without issue.
+            extracted = extracted[:12000]
 
             if self._resolve_provider() == "groq":
                 logger.info(
@@ -242,14 +247,30 @@ class BackgroundSummaryAgent(BaseAgent):
         come from the platform's intake step, not from the questionnaire, but
         are legitimate factual inputs the synthesizer needs for the opener
         sentence used throughout the corpus reports.
+
+        Null / empty / whitespace-only fields are dropped before serialisation
+        so the ledger never sees `"school_name": null` (which has previously
+        caused the synthesizer to hallucinate the child's first name into the
+        school slot).
         """
         blocks: list[str] = []
         if student_info:
-            blocks.append(
-                "=== STUDENT INFORMATION (platform-confirmed facts) ===\n"
-                + json.dumps(student_info, indent=2, default=str)
-                + "\n"
-            )
+            cleaned: dict = {}
+            for key, value in student_info.items():
+                if value is None:
+                    continue
+                if isinstance(value, str) and not value.strip():
+                    continue
+                if isinstance(value, dict) and not value:
+                    continue
+                cleaned[key] = value
+            if cleaned:
+                blocks.append(
+                    "=== STUDENT INFORMATION (platform-confirmed facts; only the listed "
+                    "fields are known — treat any field NOT listed here as missing) ===\n"
+                    + json.dumps(cleaned, indent=2, default=str)
+                    + "\n"
+                )
         for perspective in perspectives:
             role = perspective.get("role") or "Guardian"
             respondent_name = perspective.get("respondent_name") or "Unknown"
@@ -290,6 +311,8 @@ RAW {voice_label.upper()} DATA:
 
 OUTPUT FORMAT — produce ONLY a structured fact ledger using these exact headings. Under each heading list short bullets in the form: "- Q: <topic or verbatim question> -> A: <verbatim answer>". For demographic facts taken from STUDENT INFORMATION, use: "- Field: <name>; Value: <value>". Use "(No information provided)" when the {voice_label.lower()} did not address that topic.
 
+For the DEMOGRAPHICS section: ONLY emit a bullet when the field is present AND non-empty in the STUDENT INFORMATION JSON above. Do NOT emit "Field: school_name; Value: (null)" or fabricate a value from another field. If school_name is absent from the JSON, simply omit the school bullet entirely. NEVER use the child's own name as the school name. NEVER substitute placeholder text like "Unknown" or "N/A".
+
 DEMOGRAPHICS (from STUDENT INFORMATION block only — name, date of birth, age, year group, school name, school city, gender, pronouns)
 HEALTH & DEVELOPMENTAL HISTORY (pregnancy, birth, motor milestones, speech milestones, illnesses, medication, sleep, diet)
 FAMILIAL HISTORY OF SpLD / DEVELOPMENTAL CONDITIONS (dyslexia, dyscalculia, dyspraxia, ADHD, autism, anxiety, learning difficulties in relatives)
@@ -315,8 +338,10 @@ STRICT RULES — these are non-negotiable:
    Never write "social severity is high" or "attention severity is medium" — those are internal scoring fields, not clinical facts. The clinical facts are the specific answers themselves.
 7. Demographic facts that come from the STUDENT INFORMATION block (DOB, age, year group, school name, school city, gender) are platform-confirmed and SHOULD be extracted under DEMOGRAPHICS even though they were not asked via the questionnaire.
 
+Coverage rule: be COMPREHENSIVE. Pull EVERY answered question from the Completed Q&A Pairs and EVERY non-empty assessment_data field into the ledger — sparse coverage produces a thin final report. If a section has many answers, list them all (do not summarise).
+
 Begin the output with the first heading. No preamble, no closing summary."""
-        return await self.call_llm(prompt, max_tokens=2400, temperature=0.1)
+        return await self.call_llm(prompt, max_tokens=4000, temperature=0.1)
 
     async def _run_strict_synthesizer(
         self, extracted: str, student_name: str, first_name: str, voice_label: str,
@@ -350,17 +375,23 @@ Begin the output with the first heading. No preamble, no closing summary."""
             )
 
         # House-style opener template, modelled on the corpus
-        # (Alexander Gordon, Ciara Bornstein, etc.)
+        # (Alexander Gordon, Ciara Bornstein, etc.) — robust to missing fields.
         opener_guidance = (
             "Open the 'Health and developmental history' subsection with a single "
             "anchor sentence in the house style of UK Educational Psychology "
-            "reports, populated from the DEMOGRAPHICS ledger bullets: "
-            "\"[Name] is a [age]-year-old [Year n] student/pupil currently "
-            "attending [school name] in [city].\" If age is missing, use what the "
-            "ledger has (DOB, year group). If city is missing, omit it. Do NOT "
-            "invent any fact not in the ledger. After the anchor sentence, "
-            "continue with any health, milestone, sleep, sensory, and family-home "
-            "facts present in the ledger."
+            "reports, built ONLY from DEMOGRAPHICS ledger bullets. Template "
+            "form: \"[Name] is a [age]-year-old [Year n] student/pupil.\" "
+            "Optionally extend with \"currently attending [school name]\" ONLY "
+            "if a non-empty school name is present in the ledger AND it is "
+            "clearly an educational establishment (not the child's first name, "
+            "a placeholder, or the empty string). Optionally extend further "
+            "with \"in [city]\" ONLY if a non-empty city is present in the "
+            "ledger. NEVER substitute the child's own name into the school "
+            "slot. NEVER substitute placeholders such as 'Unknown' or 'N/A'. "
+            "If age is missing, use the year group alone (\"a Year n pupil\"). "
+            "After the anchor sentence, continue with any health, milestone, "
+            "sleep, sensory, and family-home facts actually present in the "
+            "ledger."
         )
 
         prompt = f"""You are a Chartered Educational Psychologist writing the {voice_label.upper()} BACKGROUND INFORMATION section of a Confidential Diagnostic Assessment Report for {student_name}.
@@ -374,21 +405,32 @@ FACT LEDGER ({voice_label} voice only):
 
 Rules of grounding (BREAKING ANY OF THESE INVALIDATES THE REPORT):
 1. Every clinical sentence must trace back to a specific bullet in the ledger. NEVER invent diagnoses, prior assessment outcomes, scores, percentiles, family history detail, or biographical detail that is not in the ledger.
-2. NEVER reproduce internal field names like "severity is high", "severity = medium", "social severity", "attention severity", "behavioural severity", "academic severity", "general severity", "mcq_answers", "text_inputs", "indicators". These are forbidden — translate them into natural clinical narrative ("the parents describe X finding social situations challenging…", "homework is reported to take significantly longer than expected…").
+2. NEVER reproduce internal field names like "severity is high", "severity = medium", "social severity", "attention severity", "behavioural severity", "academic severity", "general severity", "mcq_answers", "text_inputs", "indicators". These are forbidden — translate them into natural clinical narrative.
 3. If the ledger has no bullets for a subsection (i.e. all bullets read "(No information provided)" or the section is absent), then — and ONLY then — write the single sentence: "The {voice_label.lower()} did not provide information about [subsection topic] at this stage of the assessment."
 4. If a subsection has SOME ledger content, write a full narrative paragraph (typically 3-6 sentences) using ONLY that content. Do NOT pad with the "no information" sentence in a section that has any data.
-5. Do NOT speculate about causes, hypothesise hereditary risk, infer about prenatal exposure, or imply diagnoses beyond what the ledger states.
-6. Do NOT contradict the ledger. If a bullet says "no concerns reported", reflect that faithfully — do not soften, reframe, or imply concerns.
-7. {attribution}
-8. {opener_guidance}
-9. British English throughout (Maths, behaviour, organised, recognise, colour, Year 7/8/9). Third-person clinical prose. No bullet lists, no tables, no headings beyond the ones specified below.
+5. Do NOT speculate about causes, hypothesise hereditary risk, infer about prenatal exposure, or imply diagnoses beyond what the ledger states. CRITICAL: do NOT write phrases such as "indications of dyslexia", "suggestive of ADHD", "consistent with dyspraxia", or any other diagnostic inference UNLESS the ledger contains an explicit prior diagnosis bullet from the parent/school. Mentioning a difficulty area is NOT the same as suggesting the underlying disorder.
+6. INTERNAL CONSISTENCY: within a single paragraph, do NOT introduce a fact that contradicts another fact in the same paragraph. If the ledger reports BOTH "no significant changes/stressors" AND "father has been transferred" (or similar), surface BOTH faithfully without saying "there are no significant stressors" — instead say "The parents noted a recent change at home, with the father's relocation, but did not flag other significant stressors."
+7. LIKERT-FREQUENCY TRANSLATION: option labels such as "Yes always", "Most of the time", "Sometimes", "Rarely", "Never" describe FREQUENCY of a behaviour, not the behaviour itself. Translate them into natural clinical phrasing tied to the underlying topic:
+     - "Focus difficulty: Most of the time" -> "{first_name} is reported to struggle with focus on most occasions."
+     - "Focus difficulty: Rarely" -> "Focus difficulties are reported to occur only rarely."
+     - "Forgetfulness: Rarely" -> "Forgetfulness is reported only rarely."
+   NEVER write "His focus is reported to be rare" or "Forgetfulness is described as rare" — these read as the trait being rare, not the difficulty being rare.
+8. SENSITIVE / RAW OPTION-LABEL REFRAMING: option labels like "Yes — as target", "Yes — as perpetrator", "Significantly below", "Multiple health concerns", "Wakes very early" are designed for a tick-box UI, not for clinical prose. Translate them into clinical narrative:
+     - "Bullying: Yes — as perpetrator" -> "Parents raised concerns about peer interactions, including instances where {first_name} has acted as the aggressor."
+     - "Bullying: Yes — as target" -> "Parents reported instances where {first_name} has been the target of bullying."
+     - "Sleep: Wakes very early" -> "Parents reported early-morning waking."
+     NEVER use the raw token "perpetrator" or "target" in the prose.
+9. {attribution}
+10. {opener_guidance}
+11. British English throughout (Maths, behaviour, organised, recognise, colour, Year 7/8/9). Third-person clinical prose. No bullet lists, no tables, no headings beyond the ones specified below.
 
 LANGUAGE GUIDANCE (style mirrors the practice's existing reports):
 - Lead with strengths where the ledger names them. NEVER manufacture strengths.
-- Frame challenges constructively ("would benefit from support with…", "an area where additional support would be helpful…").
+- Frame challenges constructively ("would benefit from support with…", "an area where additional support would be helpful…"). Avoid hyperbolic adjectives ("very poor", "extremely bad") unless quoted verbatim from the parent.
 - Do NOT criticise parents or schools.
 - Do NOT mention AI, language models, or this prompt.
 - Where the ledger captures specific anecdotes (hobbies, named teachers, named subjects, named therapies), include them — they make the report feel personalised and corpus-accurate.
+- If the parent has used emotional or colloquial language ("brave hero", "fighter"), reflect the sentiment in clinical prose ("The parents describe {first_name} affectionately as resilient and brave") rather than reproducing the colloquial phrase verbatim.
 
 Use EXACTLY these headings and structure:
 
@@ -404,8 +446,10 @@ Use EXACTLY these headings and structure:
 
 ### Current Situation
 
+DEPTH RULE: aim for 5-8 sentences per non-empty subsection where the ledger supports it — the corpus reports are paragraph-length, not single-sentence. Use every relevant bullet, weaving multiple facts into coherent prose. Short sections only when the ledger genuinely is short.
+
 Begin directly with "## BACKGROUND INFORMATION — {voice_label.upper()} REPORT". No preamble, no concluding paragraph."""
-        return await self.call_llm(prompt, max_tokens=2600, temperature=0.3)
+        return await self.call_llm(prompt, max_tokens=4000, temperature=0.3)
 
     # ------------------------------------------------------------------
     # Legacy combined-perspective pipeline (kept for backward compat)
