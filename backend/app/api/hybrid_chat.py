@@ -214,6 +214,44 @@ def _select_parent_flow(age_str: Optional[str]) -> str:
     return candidate
 
 
+def _select_school_flow(age_str: Optional[str]) -> str:
+    """Pick the per-age-band school flow id from the child's computed age.
+
+    Mirrors _select_parent_flow — same age bands, school-side flows:
+      <11     -> school_assessment_4_11_v1
+      11-13   -> school_assessment_11_14_v1
+      14-15   -> school_assessment_14_16_v1
+      16-17   -> school_assessment_16_18_v1
+      >=18    -> school_assessment_18plus_v1
+
+    Falls back to the legacy school_assessment_v1 when age is unknown or
+    the per-age flow has not been loaded.
+    """
+    fallback = "school_assessment_v1"
+
+    if age_str is None:
+        return fallback
+    try:
+        age = int(age_str)
+    except (TypeError, ValueError):
+        return fallback
+
+    if age < 11:
+        candidate = "school_assessment_4_11_v1"
+    elif age < 14:
+        candidate = "school_assessment_11_14_v1"
+    elif age < 16:
+        candidate = "school_assessment_14_16_v1"
+    elif age < 18:
+        candidate = "school_assessment_16_18_v1"
+    else:
+        candidate = "school_assessment_18plus_v1"
+
+    if candidate not in flow_engine.flows:
+        return fallback
+    return candidate
+
+
 # ============================================================================
 # FLOW ENGINE
 # ============================================================================
@@ -547,13 +585,13 @@ async def start_chat_session(
             computed_age = str(years)
 
     # Flow selection.
-    # SCHOOL → school flow (classroom/playground/teacher-observable questions).
+    # SCHOOL → per-age-band school flow (classroom/playground/teacher-observable).
     # PARENT → per-age-band parent flow chosen from the child's DOB.
     # ADMIN demo → parent flow.
-    # If DOB unknown, fall back to the legacy unified parent flow so the
-    # chatbot still asks the age question and proceeds.
+    # If DOB unknown, fall back to the legacy unified flow so the chatbot
+    # still asks the age question and proceeds.
     if current_user.role == UserRole.SCHOOL:
-        flow_type = "school_assessment_v1"
+        flow_type = _select_school_flow(computed_age)
     else:
         flow_type = _select_parent_flow(computed_age)
 
