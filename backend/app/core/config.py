@@ -73,7 +73,7 @@ class Settings(BaseSettings):
     USE_GROQ: bool = False
 
     OPENAI_API_KEY: str = ""
-    OPENAI_MODEL: str = "gpt-4o-mini"
+    OPENAI_MODEL: str = "gpt-4o"
     OPENAI_BASE_URL: str = "https://api.openai.com/v1"
     USE_OPENAI: bool = False
 

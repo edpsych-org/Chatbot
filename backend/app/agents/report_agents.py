@@ -2,13 +2,21 @@
 Report Agents — Multi-agent debate pipeline for the Psychologist Reports Workspace.
 
 Architecture:
-  BackgroundSummaryAgent uses a 3-stage internal pipeline:
-    1. DataAnalystAgent    — extracts every usable data point from raw parent JSON
-    2. ClinicalInterpreter — interprets the data through a clinical developmental lens
-    3. ReportSynthesizer   — writes the final professional report, reconciling the two views
+  BackgroundSummaryAgent supports three modes:
+    - generate_parent_summary(): strict-grounded narrative drawn ONLY from parent
+      perspectives in the merged context. Two-stage pipeline (extract -> write).
+    - generate_school_summary(): strict-grounded narrative drawn ONLY from school
+      perspectives in the merged context. Same two-stage pipeline.
+    - generate(): legacy 3-stage debate-style combined narrative kept for
+      backward compatibility (still wired to the original endpoint).
+
+  The two role-scoped methods use grounding-strict prompts: every clinical
+  claim must map to a verbatim question + answer in the source data, and
+  missing categories must be reported as "No information provided" rather
+  than fabricated.
 
   IQScoreExtractorAgent  : raw PDF/OCR text -> structured scores JSON
-  CognitiveReportAgent   : structured scores -> narrative markdown (also multi-stage)
+  CognitiveReportAgent   : structured scores -> narrative markdown (multi-stage)
   UnifiedInsightsAgent   : background + cognitive markdowns -> bridging narrative
 
 Each agent inherits from BaseAgent and uses OpenAI (or Groq) via call_llm / call_llm_json.
@@ -23,6 +31,34 @@ from app.agents.base import BaseAgent
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+# Role classification used by generate_parent_summary / generate_school_summary
+# to slice the perspectives list. Matches the convention used in
+# app/utils/email.py — keep these two sets in sync if either changes.
+_PARENT_ROLE_TOKENS = {
+    "mother", "father", "parent", "guardian",
+    "step-mother", "step-father", "stepmother", "stepfather",
+    "carer", "caregiver",
+}
+_SCHOOL_ROLE_TOKENS = {
+    "school", "teacher", "class teacher", "form tutor",
+    "senco", "sendco", "sendo",
+    "head of learning support", "head of year",
+    "subject teacher", "teaching assistant",
+}
+
+
+def _classify_role(role: Optional[str]) -> str:
+    """Return 'parent' | 'school' | 'other' for a relationship_type string."""
+    if not role:
+        return "other"
+    rl = role.strip().lower()
+    if rl in _PARENT_ROLE_TOKENS or any(t in rl for t in ("parent", "mother", "father", "guardian", "carer")):
+        return "parent"
+    if rl in _SCHOOL_ROLE_TOKENS or any(t in rl for t in ("school", "teacher", "senco", "tutor")):
+        return "school"
+    return "other"
 
 
 # ============================================================================
@@ -110,6 +146,314 @@ class BackgroundSummaryAgent(BaseAgent):
             logger.error(f"[BackgroundSummaryAgent] pipeline failed: {e}", exc_info=True)
             return f"Unable to generate background summary: {str(e)}"
 
+    # ------------------------------------------------------------------
+    # Role-scoped, strictly-grounded variants
+    # ------------------------------------------------------------------
+    async def generate_parent_summary(self, context_data: dict, student_name: str) -> str:
+        """Generate a Background Summary section drawn ONLY from parent voices.
+
+        Filters context_data["perspectives"] to parent-type roles, then runs a
+        two-stage strict-grounding pipeline that forbids any clinical claim not
+        backed by a verbatim parent answer.
+        """
+        return await self._generate_role_scoped(context_data, student_name, voice="parent")
+
+    async def generate_school_summary(self, context_data: dict, student_name: str) -> str:
+        """Generate a Background Summary section drawn ONLY from school voices.
+
+        Filters context_data["perspectives"] to school-type roles, then runs the
+        same strict-grounding two-stage pipeline.
+        """
+        return await self._generate_role_scoped(context_data, student_name, voice="school")
+
+    async def _generate_role_scoped(
+        self, context_data: dict, student_name: str, *, voice: str,
+    ) -> str:
+        """Shared two-stage strict-grounding pipeline for parent/school summaries."""
+        try:
+            first_name = student_name.split()[0] if student_name else "the child"
+            voice_label = "Parent" if voice == "parent" else "School"
+
+            perspectives = context_data.get("perspectives") or []
+            scoped = [p for p in perspectives if _classify_role(p.get("role")) == voice]
+
+            if not scoped:
+                return (
+                    f"No {voice_label.lower()} questionnaire data is available for "
+                    f"{student_name}. Once the {voice_label.lower()} assessment is "
+                    f"completed this section will be regenerated from those responses."
+                )
+
+            student_info = context_data.get("student_info", {}) or {}
+            raw_data_block = self._build_filtered_perspective_block(scoped, student_info)
+            # Generous cap so the extractor sees the FULL questionnaire payload.
+            # Single voice + per-age flow gets ~60-75 Q&A pairs; at ~200 chars
+            # per pair plus the JSON wrapping, 16k chars accommodates the
+            # whole picture without truncation.
+            n_scoped = max(1, len(scoped))
+            max_len = min(16000, 8000 + 4000 * max(0, n_scoped - 1))
+            raw_data_block = raw_data_block[:max_len]
+
+            # ── STAGE 1: Strict extraction (verbatim Q&A only) ──
+            logger.info(
+                f"[BackgroundSummaryAgent.{voice}] Stage 1/2: strict extractor for {student_name}"
+            )
+            extracted = await self._run_strict_extractor(
+                raw_data_block, student_name, first_name, voice_label,
+            )
+            if not extracted:
+                return (
+                    f"Unable to extract grounded {voice_label.lower()} responses for "
+                    f"{student_name}. Please review the source data and try again."
+                )
+            # Bigger ledger so the synthesizer sees the full picture; the model
+            # used (gpt-4o) handles 12k input tokens here without issue.
+            extracted = extracted[:12000]
+
+            if self._resolve_provider() == "groq":
+                logger.info(
+                    f"[BackgroundSummaryAgent.{voice}] Stage 1 complete, waiting 35s for Groq rate limit..."
+                )
+                await asyncio.sleep(35)
+
+            # ── STAGE 2: Strict synthesis (write only from extracted facts) ──
+            logger.info(
+                f"[BackgroundSummaryAgent.{voice}] Stage 2/2: strict synthesizer for {student_name}"
+            )
+            respondent_names = [
+                p.get("respondent_name") for p in scoped if p.get("respondent_name")
+            ]
+            final_report = await self._run_strict_synthesizer(
+                extracted, student_name, first_name, voice_label, respondent_names,
+            )
+            if final_report and final_report.strip():
+                return final_report.strip()
+            return (
+                f"Unable to generate {voice_label.lower()} background summary: the "
+                f"synthesis stage returned no content. Please try again or start blank."
+            )
+
+        except Exception as e:
+            logger.error(
+                f"[BackgroundSummaryAgent.{voice}] pipeline failed: {e}", exc_info=True,
+            )
+            return f"Unable to generate {voice} background summary: {str(e)}"
+
+    def _build_filtered_perspective_block(self, perspectives: list, student_info: dict | None = None) -> str:
+        """Render the role-scoped perspectives list into the prompt-ready raw block.
+
+        Prepends a STUDENT INFORMATION block so demographic facts (name, age,
+        year group, school, DOB) are always available to the extractor — these
+        come from the platform's intake step, not from the questionnaire, but
+        are legitimate factual inputs the synthesizer needs for the opener
+        sentence used throughout the corpus reports.
+
+        Null / empty / whitespace-only fields are dropped before serialisation
+        so the ledger never sees `"school_name": null` (which has previously
+        caused the synthesizer to hallucinate the child's first name into the
+        school slot).
+        """
+        blocks: list[str] = []
+        if student_info:
+            cleaned: dict = {}
+            for key, value in student_info.items():
+                if value is None:
+                    continue
+                if isinstance(value, str) and not value.strip():
+                    continue
+                if isinstance(value, dict) and not value:
+                    continue
+                cleaned[key] = value
+            if cleaned:
+                blocks.append(
+                    "=== STUDENT INFORMATION (platform-confirmed facts; only the listed "
+                    "fields are known — treat any field NOT listed here as missing) ===\n"
+                    + json.dumps(cleaned, indent=2, default=str)
+                    + "\n"
+                )
+        for perspective in perspectives:
+            role = perspective.get("role") or "Guardian"
+            respondent_name = perspective.get("respondent_name") or "Unknown"
+            ctx = perspective.get("context", {}) or {}
+            user_profile = ctx.get("user_profile", {}) or {}
+            assessment_data = ctx.get("assessment_data", {}) or {}
+            completed_qa_pairs = ctx.get("completed_qa_pairs", []) or []
+
+            profile_json = json.dumps(user_profile, indent=2, default=str)
+            assessment_json = json.dumps(assessment_data, indent=2, default=str)
+            qa_json = json.dumps(completed_qa_pairs, indent=2, default=str)
+
+            blocks.append(
+                f"""=== PERSPECTIVE: {role} ({respondent_name}) ===
+User Profile:
+{profile_json}
+
+Assessment Responses (assessment_data, keyed by category — convert each MCQ answer and text input into specific Q&A facts; do NOT report the raw 'severity' field verbatim):
+{assessment_json}
+
+Completed Q&A Pairs:
+{qa_json}
+"""
+            )
+        return "\n".join(blocks)
+
+    async def _run_strict_extractor(
+        self, raw_data: str, student_name: str, first_name: str, voice_label: str,
+    ) -> Optional[str]:
+        """Stage 1 — pull verbatim Q&A facts only. No interpretation, no inference."""
+        prompt = f"""You are a strict data extractor working within an educational psychology team. Read the raw {voice_label.lower()} questionnaire data below and produce a fact ledger of EVERY explicit answer.
+
+CHILD: {student_name}
+VOICE: {voice_label} questionnaire data ONLY. Do NOT consider any other source.
+
+RAW {voice_label.upper()} DATA:
+{raw_data}
+
+OUTPUT FORMAT — produce ONLY a structured fact ledger using these exact headings. Under each heading list short bullets in the form: "- Q: <topic or verbatim question> -> A: <verbatim answer>". For demographic facts taken from STUDENT INFORMATION, use: "- Field: <name>; Value: <value>". Use "(No information provided)" when the {voice_label.lower()} did not address that topic.
+
+For the DEMOGRAPHICS section: ONLY emit a bullet when the field is present AND non-empty in the STUDENT INFORMATION JSON above. Do NOT emit "Field: school_name; Value: (null)" or fabricate a value from another field. If school_name is absent from the JSON, simply omit the school bullet entirely. NEVER use the child's own name as the school name. NEVER substitute placeholder text like "Unknown" or "N/A".
+
+DEMOGRAPHICS (from STUDENT INFORMATION block only — name, date of birth, age, year group, school name, school city, gender, pronouns)
+HEALTH & DEVELOPMENTAL HISTORY (pregnancy, birth, motor milestones, speech milestones, illnesses, medication, sleep, diet)
+FAMILIAL HISTORY OF SpLD / DEVELOPMENTAL CONDITIONS (dyslexia, dyscalculia, dyspraxia, ADHD, autism, anxiety, learning difficulties in relatives)
+LINGUISTIC HISTORY (home language, additional languages, speech and language therapy, current understanding/expression concerns)
+EDUCATION HISTORY (previous schools, current school, year group, current support / IEP / EHCP, previous EP / SaLT / OT / paediatrician assessments, teacher feedback, subjects strong/difficult)
+CURRENT SITUATION (current concerns from the parent/school, hobbies and interests, strengths, home life, current changes/stressors)
+EMOTIONAL & SOCIAL OBSERVATIONS (mood, anxiety, peer relationships, behaviour, reactions to difficulty)
+ATTENTION, MEMORY & EXECUTIVE FUNCTION (focus, distraction, hyperfocus, forgetfulness, homework duration, organisation)
+LITERACY & ACADEMIC (reading speed, spelling, handwriting, writing, maths, school attainment levels)
+PHYSICAL / SENSORY (vision, hearing, motor coordination, sensory sensitivities, handedness)
+PREVIOUS PROFESSIONAL INVOLVEMENT (other assessments, therapy, prior diagnoses)
+
+STRICT RULES — these are non-negotiable:
+1. EVERY bullet must correspond to an explicit answer in the data above. If a topic is not stated, write "(No information provided)" — do NOT invent, infer, or extrapolate.
+2. Preserve the {voice_label.lower()}'s own wording where possible — quote phrases verbatim using "double quotes".
+3. Do NOT diagnose. Do NOT speculate about causes. Do NOT add clinical interpretation here.
+4. Do NOT mix in observations from any other respondent. ONLY use the {voice_label.lower()} answers in the data block.
+5. If the {voice_label.lower()} explicitly said "no", "none", "not sure", record exactly that — do not normalise.
+6. The Assessment Responses block (assessment_data) holds dicts keyed by category ("attention", "social", "emotional", "behavioural", "academic" etc.) with sub-fields like "severity", "mcq_answers", "text_inputs", "indicators". TRANSLATE these into specific Q&A facts. For example:
+   - assessment_data["social"]["mcq_answers"] = {{"friendship_difficulty": "very_difficult"}} → "- Q: Friendship difficulty -> A: 'very difficult'"
+   - assessment_data["attention"]["text_inputs"] = ["he gets distracted by noise"] → "- Q: Attention concerns (free text) -> A: 'he gets distracted by noise'"
+   - assessment_data["social"]["severity"] = "high" → DO NOT include the bare severity field as a bullet. Instead, the underlying MCQ + free-text answers that produced that severity should be lifted into bullets.
+   Never write "social severity is high" or "attention severity is medium" — those are internal scoring fields, not clinical facts. The clinical facts are the specific answers themselves.
+7. Demographic facts that come from the STUDENT INFORMATION block (DOB, age, year group, school name, school city, gender) are platform-confirmed and SHOULD be extracted under DEMOGRAPHICS even though they were not asked via the questionnaire.
+
+Coverage rule: be COMPREHENSIVE. Pull EVERY answered question from the Completed Q&A Pairs and EVERY non-empty assessment_data field into the ledger — sparse coverage produces a thin final report. If a section has many answers, list them all (do not summarise).
+
+Begin the output with the first heading. No preamble, no closing summary."""
+        return await self.call_llm(prompt, max_tokens=4000, temperature=0.1)
+
+    async def _run_strict_synthesizer(
+        self, extracted: str, student_name: str, first_name: str, voice_label: str,
+        respondent_names: list[str] | None = None,
+    ) -> Optional[str]:
+        """Stage 2 — write the prose section from the extracted fact ledger ONLY."""
+        respondent_hint = (
+            f"Respondent(s) for this voice: {', '.join(respondent_names)}. "
+            "Where natural, mention the respondent by relationship label "
+            "('the mother', 'the father', 'the parents', 'the class teacher', "
+            "'the SENCo') rather than name."
+            if respondent_names
+            else ""
+        )
+
+        if voice_label == "Parent":
+            attribution = (
+                "Attribute observations using phrasings such as 'The parents reported …', "
+                "'The mother described …', 'The father noted …', 'Parental accounts "
+                "indicate …', 'Family reports highlight …', or 'The parents seek this "
+                "assessment to …'. NEVER refer to internal data structures, severity "
+                "labels, or scoring fields."
+            )
+        else:
+            attribution = (
+                f"Attribute observations using phrasings such as 'The school reported …', "
+                f"'{first_name}'s class teacher observed …', '{first_name}'s SENCo "
+                f"described …', 'School staff noted …', or 'The teacher's feedback "
+                f"indicates …'. NEVER refer to internal data structures, severity "
+                f"labels, or scoring fields."
+            )
+
+        # House-style opener template, modelled on the corpus
+        # (Alexander Gordon, Ciara Bornstein, etc.) — robust to missing fields.
+        opener_guidance = (
+            "Open the 'Health and developmental history' subsection with a single "
+            "anchor sentence in the house style of UK Educational Psychology "
+            "reports, built ONLY from DEMOGRAPHICS ledger bullets. Template "
+            "form: \"[Name] is a [age]-year-old [Year n] student/pupil.\" "
+            "Optionally extend with \"currently attending [school name]\" ONLY "
+            "if a non-empty school name is present in the ledger AND it is "
+            "clearly an educational establishment (not the child's first name, "
+            "a placeholder, or the empty string). Optionally extend further "
+            "with \"in [city]\" ONLY if a non-empty city is present in the "
+            "ledger. NEVER substitute the child's own name into the school "
+            "slot. NEVER substitute placeholders such as 'Unknown' or 'N/A'. "
+            "If age is missing, use the year group alone (\"a Year n pupil\"). "
+            "After the anchor sentence, continue with any health, milestone, "
+            "sleep, sensory, and family-home facts actually present in the "
+            "ledger."
+        )
+
+        prompt = f"""You are a Chartered Educational Psychologist writing the {voice_label.upper()} BACKGROUND INFORMATION section of a Confidential Diagnostic Assessment Report for {student_name}.
+
+You may ONLY use the fact ledger below. You may NOT introduce content from any other source. Every sentence in your prose must map directly to a bullet in the ledger.
+
+FACT LEDGER ({voice_label} voice only):
+{extracted}
+
+{respondent_hint}
+
+Rules of grounding (BREAKING ANY OF THESE INVALIDATES THE REPORT):
+1. Every clinical sentence must trace back to a specific bullet in the ledger. NEVER invent diagnoses, prior assessment outcomes, scores, percentiles, family history detail, or biographical detail that is not in the ledger.
+2. NEVER reproduce internal field names like "severity is high", "severity = medium", "social severity", "attention severity", "behavioural severity", "academic severity", "general severity", "mcq_answers", "text_inputs", "indicators". These are forbidden — translate them into natural clinical narrative.
+3. If the ledger has no bullets for a subsection (i.e. all bullets read "(No information provided)" or the section is absent), then — and ONLY then — write the single sentence: "The {voice_label.lower()} did not provide information about [subsection topic] at this stage of the assessment."
+4. If a subsection has SOME ledger content, write a full narrative paragraph (typically 3-6 sentences) using ONLY that content. Do NOT pad with the "no information" sentence in a section that has any data.
+5. Do NOT speculate about causes, hypothesise hereditary risk, infer about prenatal exposure, or imply diagnoses beyond what the ledger states. CRITICAL: do NOT write phrases such as "indications of dyslexia", "suggestive of ADHD", "consistent with dyspraxia", or any other diagnostic inference UNLESS the ledger contains an explicit prior diagnosis bullet from the parent/school. Mentioning a difficulty area is NOT the same as suggesting the underlying disorder.
+6. INTERNAL CONSISTENCY: within a single paragraph, do NOT introduce a fact that contradicts another fact in the same paragraph. If the ledger reports BOTH "no significant changes/stressors" AND "father has been transferred" (or similar), surface BOTH faithfully without saying "there are no significant stressors" — instead say "The parents noted a recent change at home, with the father's relocation, but did not flag other significant stressors."
+7. LIKERT-FREQUENCY TRANSLATION: option labels such as "Yes always", "Most of the time", "Sometimes", "Rarely", "Never" describe FREQUENCY of a behaviour, not the behaviour itself. Translate them into natural clinical phrasing tied to the underlying topic:
+     - "Focus difficulty: Most of the time" -> "{first_name} is reported to struggle with focus on most occasions."
+     - "Focus difficulty: Rarely" -> "Focus difficulties are reported to occur only rarely."
+     - "Forgetfulness: Rarely" -> "Forgetfulness is reported only rarely."
+   NEVER write "His focus is reported to be rare" or "Forgetfulness is described as rare" — these read as the trait being rare, not the difficulty being rare.
+8. SENSITIVE / RAW OPTION-LABEL REFRAMING: option labels like "Yes — as target", "Yes — as perpetrator", "Significantly below", "Multiple health concerns", "Wakes very early" are designed for a tick-box UI, not for clinical prose. Translate them into clinical narrative:
+     - "Bullying: Yes — as perpetrator" -> "Parents raised concerns about peer interactions, including instances where {first_name} has acted as the aggressor."
+     - "Bullying: Yes — as target" -> "Parents reported instances where {first_name} has been the target of bullying."
+     - "Sleep: Wakes very early" -> "Parents reported early-morning waking."
+     NEVER use the raw token "perpetrator" or "target" in the prose.
+9. {attribution}
+10. {opener_guidance}
+11. British English throughout (Maths, behaviour, organised, recognise, colour, Year 7/8/9). Third-person clinical prose. No bullet lists, no tables, no headings beyond the ones specified below.
+
+LANGUAGE GUIDANCE (style mirrors the practice's existing reports):
+- Lead with strengths where the ledger names them. NEVER manufacture strengths.
+- Frame challenges constructively ("would benefit from support with…", "an area where additional support would be helpful…"). Avoid hyperbolic adjectives ("very poor", "extremely bad") unless quoted verbatim from the parent.
+- Do NOT criticise parents or schools.
+- Do NOT mention AI, language models, or this prompt.
+- Where the ledger captures specific anecdotes (hobbies, named teachers, named subjects, named therapies), include them — they make the report feel personalised and corpus-accurate.
+- If the parent has used emotional or colloquial language ("brave hero", "fighter"), reflect the sentiment in clinical prose ("The parents describe {first_name} affectionately as resilient and brave") rather than reproducing the colloquial phrase verbatim.
+
+Use EXACTLY these headings and structure:
+
+## BACKGROUND INFORMATION — {voice_label.upper()} REPORT
+
+### Health and developmental history
+
+### Familial history of SpLD or other developmental conditions
+
+### Linguistic history
+
+### Education history
+
+### Current Situation
+
+DEPTH RULE: aim for 5-8 sentences per non-empty subsection where the ledger supports it — the corpus reports are paragraph-length, not single-sentence. Use every relevant bullet, weaving multiple facts into coherent prose. Short sections only when the ledger genuinely is short.
+
+Begin directly with "## BACKGROUND INFORMATION — {voice_label.upper()} REPORT". No preamble, no concluding paragraph."""
+        return await self.call_llm(prompt, max_tokens=4000, temperature=0.3)
+
+    # ------------------------------------------------------------------
+    # Legacy combined-perspective pipeline (kept for backward compat)
+    # ------------------------------------------------------------------
     def _build_single_perspective_block(self, context_data: dict) -> str:
         """Legacy single-perspective shape: {user_profile, assessment_data, completed_qa_pairs}."""
         user_profile = context_data.get("user_profile", {}) or {}

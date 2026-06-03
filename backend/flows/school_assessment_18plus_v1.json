@@ -1,0 +1,2277 @@
+{
+  "flow_id": "school_assessment_18plus_v1",
+  "flow_name": "School Assessment — Ages 18+ years",
+  "flow_type": "school",
+  "version": "1.0",
+  "start_node": "welcome",
+  "nodes": {
+    "welcome": {
+      "type": "message",
+      "content": "👋 Schools, please complete this questionnaire to provide a holistic overview of {student_name}, including their learning profile as well as their social, emotional, mental health, speech and language and sensory needs.",
+      "next": "context_1",
+      "metadata": {
+        "category": "intro",
+        "skip_allowed": false
+      }
+    },
+    "context_1": {
+      "type": "mcq",
+      "question": "Your role",
+      "category": "context",
+      "options": [
+        {
+          "value": "university_disability_adviser",
+          "label": "University Disability Adviser",
+          "next": "context_2"
+        },
+        {
+          "value": "course_tutor_personal_tutor",
+          "label": "Course Tutor / Personal Tutor",
+          "next": "context_2"
+        },
+        {
+          "value": "specialist_mentor",
+          "label": "Specialist Mentor",
+          "next": "context_2"
+        },
+        {
+          "value": "study_needs_assessor",
+          "label": "Study Needs Assessor",
+          "next": "context_2"
+        },
+        {
+          "value": "employer_line_manager_adult",
+          "label": "Employer / Line Manager (Adult)",
+          "next": "context_2"
+        },
+        {
+          "value": "access_to_work_adviser",
+          "label": "Access to Work Adviser",
+          "next": "context_2"
+        },
+        {
+          "value": "other",
+          "label": "Other",
+          "next": "context_2"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "context",
+        "section": "Section A - Role & Context",
+        "tag": "M"
+      }
+    },
+    "context_2": {
+      "type": "mcq",
+      "question": "Type of institution / context",
+      "category": "context",
+      "options": [
+        {
+          "value": "other_uk_university_undergrad",
+          "label": "Other UK university (undergrad)",
+          "next": "context_3"
+        },
+        {
+          "value": "postgraduate_institution",
+          "label": "Postgraduate institution",
+          "next": "context_3"
+        },
+        {
+          "value": "fe_adult_education",
+          "label": "FE / Adult education",
+          "next": "context_3"
+        },
+        {
+          "value": "workplace_private_sector",
+          "label": "Workplace - private sector",
+          "next": "context_3"
+        },
+        {
+          "value": "workplace_public_sector",
+          "label": "Workplace - public sector",
+          "next": "context_3"
+        },
+        {
+          "value": "workplace_self_employed",
+          "label": "Workplace - self-employed",
+          "next": "context_3"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "context",
+        "section": "Section A - Role & Context",
+        "tag": "M"
+      }
+    },
+    "context_3": {
+      "type": "mcq",
+      "question": "How long has the student / employee been engaged with you?",
+      "category": "context",
+      "options": [
+        {
+          "value": "less_than_6_months",
+          "label": "Less than 6 months",
+          "next": "course_1"
+        },
+        {
+          "value": "n_6_12_months",
+          "label": "6-12 months",
+          "next": "course_1"
+        },
+        {
+          "value": "n_1_2_years",
+          "label": "1-2 years",
+          "next": "course_1"
+        },
+        {
+          "value": "more_than_2_years",
+          "label": "More than 2 years",
+          "next": "course_1"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "context",
+        "section": "Section A - Role & Context",
+        "tag": "M"
+      }
+    },
+    "course_1": {
+      "type": "text",
+      "question": "Current course / job role",
+      "category": "course",
+      "next": "course_2",
+      "text_prompt": "Please type your answer:",
+      "metadata": {
+        "category": "course",
+        "section": "Section B - Course or Role Profile",
+        "tag": "M"
+      }
+    },
+    "course_2": {
+      "type": "text",
+      "question": "Year of study (if Higher Education) or length of service (if employment)",
+      "category": "course",
+      "next": "course_3",
+      "text_prompt": "Please type your answer:",
+      "metadata": {
+        "category": "course",
+        "section": "Section B - Course or Role Profile",
+        "tag": "M"
+      }
+    },
+    "course_3": {
+      "type": "mcq",
+      "question": "Course / job demands - tick all that apply",
+      "category": "course",
+      "options": [
+        {
+          "value": "heavy_reading_volume",
+          "label": "Heavy reading volume",
+          "next": "reason_1"
+        },
+        {
+          "value": "extensive_written_reports",
+          "label": "Extensive written reports",
+          "next": "reason_1"
+        },
+        {
+          "value": "numerical_quantitative",
+          "label": "Numerical / quantitative",
+          "next": "reason_1"
+        },
+        {
+          "value": "presentation_public_speaking",
+          "label": "Presentation / public speaking",
+          "next": "reason_1"
+        },
+        {
+          "value": "group_work_collaboration",
+          "label": "Group work / collaboration",
+          "next": "reason_1"
+        },
+        {
+          "value": "independent_project_work",
+          "label": "Independent project work",
+          "next": "reason_1"
+        },
+        {
+          "value": "customer_facing",
+          "label": "Customer-facing",
+          "next": "reason_1"
+        },
+        {
+          "value": "multi_tasking_time_critical",
+          "label": "Multi-tasking / time-critical",
+          "next": "reason_1"
+        },
+        {
+          "value": "repetitive_procedural",
+          "label": "Repetitive / procedural",
+          "next": "reason_1"
+        },
+        {
+          "value": "practical_lab_based",
+          "label": "Practical / lab-based",
+          "next": "reason_1"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "course",
+        "section": "Section B - Course or Role Profile",
+        "tag": "M"
+      },
+      "multi_select": true
+    },
+    "reason_1": {
+      "type": "mcq",
+      "question": "Main reason for the assessment",
+      "category": "reason",
+      "options": [
+        {
+          "value": "dsa_evidence_preparation",
+          "label": "DSA evidence preparation",
+          "next": "reason_2"
+        },
+        {
+          "value": "study_needs_assessment",
+          "label": "Study Needs Assessment",
+          "next": "reason_2"
+        },
+        {
+          "value": "workplace_reasonable_adjustments_equality_act_2010",
+          "label": "Workplace reasonable adjustments (Equality Act 2010)",
+          "next": "reason_2"
+        },
+        {
+          "value": "access_to_work_scheme_evidence",
+          "label": "Access to Work scheme evidence",
+          "next": "reason_2"
+        },
+        {
+          "value": "first_time_diagnosis_investigation",
+          "label": "First-time diagnosis investigation",
+          "next": "reason_2"
+        },
+        {
+          "value": "updated_assessment_from_earlier_childhood_youth_report",
+          "label": "Updated assessment from earlier childhood/youth report",
+          "next": "reason_2"
+        },
+        {
+          "value": "other",
+          "label": "Other",
+          "next": "reason_2"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "reason",
+        "section": "Section C - Reason for Assessment",
+        "tag": "M"
+      }
+    },
+    "reason_2": {
+      "type": "mcq",
+      "question": "Existing diagnoses on file (tick all that apply)",
+      "category": "reason",
+      "options": [
+        {
+          "value": "none_unconfirmed",
+          "label": "None / unconfirmed",
+          "next": "reason_3",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "dyslexia",
+          "label": "Dyslexia",
+          "next": "reason_3"
+        },
+        {
+          "value": "dyscalculia",
+          "label": "Dyscalculia",
+          "next": "reason_3"
+        },
+        {
+          "value": "dysgraphia",
+          "label": "Dysgraphia",
+          "next": "reason_3"
+        },
+        {
+          "value": "dyspraxia_dcd",
+          "label": "Dyspraxia / DCD",
+          "next": "reason_3"
+        },
+        {
+          "value": "adhd_add",
+          "label": "ADHD / ADD",
+          "next": "reason_3"
+        },
+        {
+          "value": "autism_asperger_s",
+          "label": "Autism / Asperger's",
+          "next": "reason_3"
+        },
+        {
+          "value": "anxiety_disorder",
+          "label": "Anxiety disorder",
+          "next": "reason_3"
+        },
+        {
+          "value": "other",
+          "label": "Other",
+          "next": "reason_3"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "reason",
+        "section": "Section C - Reason for Assessment",
+        "tag": "M"
+      },
+      "multi_select": true
+    },
+    "reason_3": {
+      "type": "mcq",
+      "question": "Has the student / employee been previously assessed by an Educational Psychologist?",
+      "category": "reason",
+      "options": [
+        {
+          "value": "no",
+          "label": "No",
+          "next": "reason_4",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "yes_report_on_file",
+          "label": "Yes - report on file",
+          "next": "reason_4"
+        },
+        {
+          "value": "yes_report_not_on_file",
+          "label": "Yes - report not on file",
+          "next": "reason_4"
+        },
+        {
+          "value": "currently_being_re_assessed",
+          "label": "Currently being re-assessed",
+          "next": "reason_4"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "reason",
+        "section": "Section C - Reason for Assessment",
+        "tag": "M"
+      }
+    },
+    "reason_4": {
+      "type": "mcq",
+      "question": "Other professional involvement (tick all that apply)",
+      "category": "reason",
+      "options": [
+        {
+          "value": "gp",
+          "label": "GP",
+          "next": "obs_he_1"
+        },
+        {
+          "value": "psychiatrist",
+          "label": "Psychiatrist",
+          "next": "obs_he_1"
+        },
+        {
+          "value": "counselling_therapy",
+          "label": "Counselling / Therapy",
+          "next": "obs_he_1"
+        },
+        {
+          "value": "occupational_therapist",
+          "label": "Occupational Therapist",
+          "next": "obs_he_1"
+        },
+        {
+          "value": "specialist_mentor",
+          "label": "Specialist Mentor",
+          "next": "obs_he_1"
+        },
+        {
+          "value": "workplace_occupational_health",
+          "label": "Workplace Occupational Health",
+          "next": "obs_he_1"
+        },
+        {
+          "value": "none_of_the_above",
+          "label": "None of the above",
+          "next": "obs_he_1"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "reason",
+        "section": "Section C - Reason for Assessment",
+        "tag": "M"
+      },
+      "multi_select": true
+    },
+    "obs_he_1": {
+      "type": "mcq",
+      "question": "Engagement with lectures / classes",
+      "category": "observed_he",
+      "options": [
+        {
+          "value": "consistently_engaged",
+          "label": "Consistently engaged",
+          "next": "obs_he_2"
+        },
+        {
+          "value": "engaged_with_some_difficulties",
+          "label": "Engaged with some difficulties",
+          "next": "obs_he_2"
+        },
+        {
+          "value": "often_disengaged_distracted",
+          "label": "Often disengaged / distracted",
+          "next": "obs_he_2"
+        },
+        {
+          "value": "significantly_disengaged",
+          "label": "Significantly disengaged",
+          "next": "obs_he_2",
+          "metadata": {
+            "severity": "high"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "observed_he",
+        "section": "Section D - Observed Performance (Higher Education)",
+        "tag": "C"
+      }
+    },
+    "obs_he_2": {
+      "type": "mcq",
+      "question": "Engagement with reading lists / required materials",
+      "category": "observed_he",
+      "options": [
+        {
+          "value": "reads_everything_thoroughly",
+          "label": "Reads everything thoroughly",
+          "next": "obs_he_3"
+        },
+        {
+          "value": "reads_selectively",
+          "label": "Reads selectively",
+          "next": "obs_he_3"
+        },
+        {
+          "value": "behind_on_reading",
+          "label": "Behind on reading",
+          "next": "obs_he_3"
+        },
+        {
+          "value": "significantly_behind",
+          "label": "Significantly behind",
+          "next": "obs_he_3",
+          "metadata": {
+            "severity": "high"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "observed_he",
+        "section": "Section D - Observed Performance (Higher Education)",
+        "tag": "C"
+      }
+    },
+    "obs_he_3": {
+      "type": "mcq",
+      "question": "Assignment submission - meets deadlines?",
+      "category": "observed_he",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always",
+          "next": "obs_he_4"
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "next": "obs_he_4"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "next": "obs_he_4"
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "next": "obs_he_4"
+        },
+        {
+          "value": "never",
+          "label": "Never",
+          "next": "obs_he_4",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "observed_he",
+        "section": "Section D - Observed Performance (Higher Education)",
+        "tag": "C"
+      }
+    },
+    "obs_he_4": {
+      "type": "mcq",
+      "question": "Quality of written assignments compared with peers",
+      "category": "observed_he",
+      "options": [
+        {
+          "value": "above_average",
+          "label": "Above average",
+          "next": "obs_he_5"
+        },
+        {
+          "value": "average",
+          "label": "Average",
+          "next": "obs_he_5"
+        },
+        {
+          "value": "below_average",
+          "label": "Below average",
+          "next": "obs_he_5"
+        },
+        {
+          "value": "highly_variable",
+          "label": "Highly variable",
+          "next": "obs_he_5"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "observed_he",
+        "section": "Section D - Observed Performance (Higher Education)",
+        "tag": "C"
+      }
+    },
+    "obs_he_5": {
+      "type": "mcq",
+      "question": "Performance in timed exams compared with coursework",
+      "category": "observed_he",
+      "options": [
+        {
+          "value": "better_in_exams",
+          "label": "Better in exams",
+          "next": "obs_he_6"
+        },
+        {
+          "value": "similar",
+          "label": "Similar",
+          "next": "obs_he_6"
+        },
+        {
+          "value": "worse_in_exams_consistent",
+          "label": "Worse in exams (consistent)",
+          "next": "obs_he_6"
+        },
+        {
+          "value": "worse_in_exams_anxiety_related",
+          "label": "Worse in exams (anxiety-related)",
+          "next": "obs_he_6"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "observed_he",
+        "section": "Section D - Observed Performance (Higher Education)",
+        "tag": "C"
+      }
+    },
+    "obs_he_6": {
+      "type": "mcq",
+      "question": "Engagement with seminar discussions / group work",
+      "category": "observed_he",
+      "options": [
+        {
+          "value": "good",
+          "label": "Good",
+          "next": "obs_he_7"
+        },
+        {
+          "value": "average",
+          "label": "Average",
+          "next": "obs_he_7"
+        },
+        {
+          "value": "weak",
+          "label": "Weak",
+          "next": "obs_he_7"
+        },
+        {
+          "value": "not_yet_assessed",
+          "label": "Not yet assessed",
+          "next": "obs_he_7"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "observed_he",
+        "section": "Section D - Observed Performance (Higher Education)",
+        "tag": "C"
+      }
+    },
+    "obs_he_7": {
+      "type": "mcq",
+      "question": "Has the individual approached for mitigating circumstances or extensions?",
+      "category": "observed_he",
+      "options": [
+        {
+          "value": "no",
+          "label": "No",
+          "next": "obs_workplace_1",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "once_or_twice",
+          "label": "Once or twice",
+          "next": "obs_workplace_1"
+        },
+        {
+          "value": "frequently",
+          "label": "Frequently",
+          "next": "obs_workplace_1"
+        },
+        {
+          "value": "has_formal_long_term_accommodation",
+          "label": "Has formal long-term accommodation",
+          "next": "obs_workplace_1"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "observed_he",
+        "section": "Section D - Observed Performance (Higher Education)",
+        "tag": "C"
+      }
+    },
+    "obs_workplace_1": {
+      "type": "mcq",
+      "question": "Quality of written reports / emails compared with peers",
+      "category": "observed_workplace",
+      "options": [
+        {
+          "value": "above_average",
+          "label": "Above average",
+          "next": "obs_workplace_2"
+        },
+        {
+          "value": "average",
+          "label": "Average",
+          "next": "obs_workplace_2"
+        },
+        {
+          "value": "below_average",
+          "label": "Below average",
+          "next": "obs_workplace_2"
+        },
+        {
+          "value": "highly_variable",
+          "label": "Highly variable",
+          "next": "obs_workplace_2"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "observed_workplace",
+        "section": "Section E - Observed Performance (Adult Workplace)",
+        "tag": "C"
+      }
+    },
+    "obs_workplace_2": {
+      "type": "mcq",
+      "question": "Time-management in workplace tasks",
+      "category": "observed_workplace",
+      "options": [
+        {
+          "value": "good",
+          "label": "Good",
+          "next": "obs_workplace_3"
+        },
+        {
+          "value": "average",
+          "label": "Average",
+          "next": "obs_workplace_3"
+        },
+        {
+          "value": "weak",
+          "label": "Weak",
+          "next": "obs_workplace_3"
+        },
+        {
+          "value": "not_yet_assessed",
+          "label": "Not yet assessed",
+          "next": "obs_workplace_3"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "observed_workplace",
+        "section": "Section E - Observed Performance (Adult Workplace)",
+        "tag": "C"
+      }
+    },
+    "obs_workplace_3": {
+      "type": "mcq",
+      "question": "Performance in meetings (listening, contributing, follow-up)",
+      "category": "observed_workplace",
+      "options": [
+        {
+          "value": "good",
+          "label": "Good",
+          "next": "obs_workplace_4"
+        },
+        {
+          "value": "average",
+          "label": "Average",
+          "next": "obs_workplace_4"
+        },
+        {
+          "value": "weak",
+          "label": "Weak",
+          "next": "obs_workplace_4"
+        },
+        {
+          "value": "not_yet_assessed",
+          "label": "Not yet assessed",
+          "next": "obs_workplace_4"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "observed_workplace",
+        "section": "Section E - Observed Performance (Adult Workplace)",
+        "tag": "C"
+      }
+    },
+    "obs_workplace_4": {
+      "type": "mcq",
+      "question": "Multi-tasking ability",
+      "category": "observed_workplace",
+      "options": [
+        {
+          "value": "good",
+          "label": "Good",
+          "next": "obs_workplace_5"
+        },
+        {
+          "value": "average",
+          "label": "Average",
+          "next": "obs_workplace_5"
+        },
+        {
+          "value": "weak",
+          "label": "Weak",
+          "next": "obs_workplace_5"
+        },
+        {
+          "value": "not_yet_assessed",
+          "label": "Not yet assessed",
+          "next": "obs_workplace_5"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "observed_workplace",
+        "section": "Section E - Observed Performance (Adult Workplace)",
+        "tag": "C"
+      }
+    },
+    "obs_workplace_5": {
+      "type": "mcq",
+      "question": "Customer-facing / interpersonal interactions",
+      "category": "observed_workplace",
+      "options": [
+        {
+          "value": "good",
+          "label": "Good",
+          "next": "obs_workplace_6"
+        },
+        {
+          "value": "average",
+          "label": "Average",
+          "next": "obs_workplace_6"
+        },
+        {
+          "value": "weak",
+          "label": "Weak",
+          "next": "obs_workplace_6"
+        },
+        {
+          "value": "not_yet_assessed",
+          "label": "Not yet assessed",
+          "next": "obs_workplace_6"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "observed_workplace",
+        "section": "Section E - Observed Performance (Adult Workplace)",
+        "tag": "C"
+      }
+    },
+    "obs_workplace_6": {
+      "type": "mcq",
+      "question": "Sickness absence or extended leave related to wellbeing",
+      "category": "observed_workplace",
+      "options": [
+        {
+          "value": "none",
+          "label": "None",
+          "next": "obs_workplace_7",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "occasional",
+          "label": "Occasional",
+          "next": "obs_workplace_7"
+        },
+        {
+          "value": "frequent",
+          "label": "Frequent",
+          "next": "obs_workplace_7"
+        },
+        {
+          "value": "currently_on_extended_leave",
+          "label": "Currently on extended leave",
+          "next": "obs_workplace_7",
+          "metadata": {
+            "severity": "high"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "observed_workplace",
+        "section": "Section E - Observed Performance (Adult Workplace)",
+        "tag": "C"
+      }
+    },
+    "obs_workplace_7": {
+      "type": "mcq",
+      "question": "Performance reviews indicate difficulties?",
+      "category": "observed_workplace",
+      "options": [
+        {
+          "value": "no_performance_acceptable",
+          "label": "No - performance acceptable",
+          "next": "cognition_1",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "mixed_feedback",
+          "label": "Mixed feedback",
+          "next": "cognition_1"
+        },
+        {
+          "value": "performance_concerns_documented",
+          "label": "Performance concerns documented",
+          "next": "cognition_1"
+        },
+        {
+          "value": "performance_improvement_plan_in_place",
+          "label": "Performance Improvement Plan in place",
+          "next": "cognition_1",
+          "metadata": {
+            "severity": "high"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "observed_workplace",
+        "section": "Section E - Observed Performance (Adult Workplace)",
+        "tag": "C"
+      }
+    },
+    "cognition_1": {
+      "type": "mcq",
+      "question": "Attention / focus during sessions (lectures / meetings)",
+      "category": "cognition",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always",
+          "next": "cognition_2"
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "next": "cognition_2"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "next": "cognition_2"
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "next": "cognition_2"
+        },
+        {
+          "value": "never",
+          "label": "Never",
+          "next": "cognition_2",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "cognition",
+        "section": "Section F - Cognitive / Attention / Memory observations",
+        "tag": "M"
+      }
+    },
+    "cognition_2": {
+      "type": "mcq",
+      "question": "Memory - need information repeated, lose track of instructions?",
+      "category": "cognition",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always",
+          "next": "cognition_3"
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "next": "cognition_3"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "next": "cognition_3"
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "next": "cognition_3"
+        },
+        {
+          "value": "never",
+          "label": "Never",
+          "next": "cognition_3",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "cognition",
+        "section": "Section F - Cognitive / Attention / Memory observations",
+        "tag": "M"
+      }
+    },
+    "cognition_3": {
+      "type": "mcq",
+      "question": "Processing speed - takes longer than peers for routine work?",
+      "category": "cognition",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always",
+          "next": "cognition_4"
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "next": "cognition_4"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "next": "cognition_4"
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "next": "cognition_4"
+        },
+        {
+          "value": "never",
+          "label": "Never",
+          "next": "cognition_4",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "cognition",
+        "section": "Section F - Cognitive / Attention / Memory observations",
+        "tag": "M"
+      }
+    },
+    "cognition_4": {
+      "type": "mcq",
+      "question": "Reading speed compared with peers",
+      "category": "cognition",
+      "options": [
+        {
+          "value": "much_slower",
+          "label": "Much slower",
+          "next": "cognition_5"
+        },
+        {
+          "value": "slower",
+          "label": "Slower",
+          "next": "cognition_5"
+        },
+        {
+          "value": "similar",
+          "label": "Similar",
+          "next": "cognition_5"
+        },
+        {
+          "value": "faster",
+          "label": "Faster",
+          "next": "cognition_5"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "cognition",
+        "section": "Section F - Cognitive / Attention / Memory observations",
+        "tag": "M"
+      }
+    },
+    "cognition_5": {
+      "type": "mcq",
+      "question": "Organisation skills (planner / digital tools / no system)",
+      "category": "cognition",
+      "options": [
+        {
+          "value": "highly_organised",
+          "label": "Highly organised",
+          "next": "cognition_6"
+        },
+        {
+          "value": "adequately_organised",
+          "label": "Adequately organised",
+          "next": "cognition_6"
+        },
+        {
+          "value": "disorganised",
+          "label": "Disorganised",
+          "next": "cognition_6"
+        },
+        {
+          "value": "significantly_disorganised",
+          "label": "Significantly disorganised",
+          "next": "cognition_6",
+          "metadata": {
+            "severity": "high"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "cognition",
+        "section": "Section F - Cognitive / Attention / Memory observations",
+        "tag": "M"
+      }
+    },
+    "cognition_6": {
+      "type": "mcq",
+      "question": "Asks for help / clarification readily?",
+      "category": "cognition",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always",
+          "next": "behaviour_1"
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "next": "behaviour_1"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "next": "behaviour_1"
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "next": "behaviour_1"
+        },
+        {
+          "value": "never",
+          "label": "Never",
+          "next": "behaviour_1",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "cognition",
+        "section": "Section F - Cognitive / Attention / Memory observations",
+        "tag": "M"
+      }
+    },
+    "behaviour_1": {
+      "type": "mcq",
+      "question": "Signs of anxiety in the educational / workplace setting",
+      "category": "behaviour",
+      "options": [
+        {
+          "value": "none",
+          "label": "None",
+          "next": "behaviour_2",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "mild",
+          "label": "Mild",
+          "next": "behaviour_2"
+        },
+        {
+          "value": "moderate",
+          "label": "Moderate",
+          "next": "behaviour_2"
+        },
+        {
+          "value": "significant",
+          "label": "Significant",
+          "next": "behaviour_2"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "behaviour",
+        "section": "Section G - Behaviour & Emotional Profile",
+        "tag": "M"
+      }
+    },
+    "behaviour_2": {
+      "type": "mcq",
+      "question": "Signs of burnout / sustained fatigue?",
+      "category": "behaviour",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always",
+          "next": "behaviour_3"
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "next": "behaviour_3"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "next": "behaviour_3"
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "next": "behaviour_3"
+        },
+        {
+          "value": "never",
+          "label": "Never",
+          "next": "behaviour_3",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "behaviour",
+        "section": "Section G - Behaviour & Emotional Profile",
+        "tag": "M"
+      }
+    },
+    "behaviour_3": {
+      "type": "mcq",
+      "question": "Signs of social isolation in the setting?",
+      "category": "behaviour",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always",
+          "next": "behaviour_4"
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "next": "behaviour_4"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "next": "behaviour_4"
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "next": "behaviour_4"
+        },
+        {
+          "value": "never",
+          "label": "Never",
+          "next": "behaviour_4",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "behaviour",
+        "section": "Section G - Behaviour & Emotional Profile",
+        "tag": "O"
+      }
+    },
+    "behaviour_4": {
+      "type": "mcq",
+      "question": "Engagement with mental-health support (counselling, OH, EAP)?",
+      "category": "behaviour",
+      "options": [
+        {
+          "value": "no_engagement",
+          "label": "No engagement",
+          "next": "adjustments_1",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "engaged_in_the_past",
+          "label": "Engaged in the past",
+          "next": "adjustments_1"
+        },
+        {
+          "value": "currently_engaged",
+          "label": "Currently engaged",
+          "next": "adjustments_1"
+        },
+        {
+          "value": "referred_on_waiting_list",
+          "label": "Referred / on waiting list",
+          "next": "adjustments_1"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "behaviour",
+        "section": "Section G - Behaviour & Emotional Profile",
+        "tag": "M"
+      }
+    },
+    "adjustments_1": {
+      "type": "mcq",
+      "question": "Adjustments / arrangements currently in place (tick all that apply)",
+      "category": "adjustments",
+      "options": [
+        {
+          "value": "extra_time_in_timed_assessments",
+          "label": "Extra time in timed assessments",
+          "next": "adjustments_2"
+        },
+        {
+          "value": "rest_breaks",
+          "label": "Rest breaks",
+          "next": "adjustments_2"
+        },
+        {
+          "value": "use_of_word_processor_assistive_software",
+          "label": "Use of word processor / assistive software",
+          "next": "adjustments_2"
+        },
+        {
+          "value": "reader_scribe",
+          "label": "Reader / scribe",
+          "next": "adjustments_2"
+        },
+        {
+          "value": "recorded_lectures",
+          "label": "Recorded lectures",
+          "next": "adjustments_2"
+        },
+        {
+          "value": "lecture_meeting_notes_provided",
+          "label": "Lecture / meeting notes provided",
+          "next": "adjustments_2"
+        },
+        {
+          "value": "flexible_deadlines",
+          "label": "Flexible deadlines",
+          "next": "adjustments_2"
+        },
+        {
+          "value": "quiet_workspace",
+          "label": "Quiet workspace",
+          "next": "adjustments_2"
+        },
+        {
+          "value": "reduced_workload",
+          "label": "Reduced workload",
+          "next": "adjustments_2"
+        },
+        {
+          "value": "specialist_mentor_study_skills_tutor",
+          "label": "Specialist Mentor / Study Skills tutor",
+          "next": "adjustments_2"
+        },
+        {
+          "value": "multiple",
+          "label": "Multiple",
+          "next": "adjustments_2"
+        },
+        {
+          "value": "none",
+          "label": "None",
+          "next": "adjustments_2",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "adjustments",
+        "section": "Section H - Existing Adjustments",
+        "tag": "M"
+      },
+      "multi_select": true
+    },
+    "adjustments_2": {
+      "type": "mcq",
+      "question": "DSA-funded equipment / support in place?",
+      "category": "adjustments",
+      "options": [
+        {
+          "value": "yes_assistive_software_bundle",
+          "label": "Yes - assistive software bundle",
+          "next": "adjustments_3"
+        },
+        {
+          "value": "yes_specialist_mentor",
+          "label": "Yes - specialist mentor",
+          "next": "adjustments_3"
+        },
+        {
+          "value": "yes_multiple",
+          "label": "Yes - multiple",
+          "next": "adjustments_3"
+        },
+        {
+          "value": "applied_awaiting_decision",
+          "label": "Applied - awaiting decision",
+          "next": "adjustments_3"
+        },
+        {
+          "value": "not_applied",
+          "label": "Not applied",
+          "next": "adjustments_3"
+        },
+        {
+          "value": "not_applicable_adult_workplace",
+          "label": "Not applicable (Adult / Workplace)",
+          "next": "adjustments_3"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "adjustments",
+        "section": "Section H - Existing Adjustments",
+        "tag": "C"
+      }
+    },
+    "adjustments_3": {
+      "type": "mcq",
+      "question": "Workplace adjustments under Equality Act 2010 in place?",
+      "category": "adjustments",
+      "options": [
+        {
+          "value": "yes_documented_and_active",
+          "label": "Yes - documented and active",
+          "next": "adjustments_4"
+        },
+        {
+          "value": "yes_informal",
+          "label": "Yes - informal",
+          "next": "adjustments_4"
+        },
+        {
+          "value": "requested_but_not_yet_agreed",
+          "label": "Requested but not yet agreed",
+          "next": "adjustments_4"
+        },
+        {
+          "value": "not_requested",
+          "label": "Not requested",
+          "next": "adjustments_4"
+        },
+        {
+          "value": "not_applicable_he_student",
+          "label": "Not applicable (HE student)",
+          "next": "adjustments_4"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "adjustments",
+        "section": "Section H - Existing Adjustments",
+        "tag": "C"
+      }
+    },
+    "adjustments_4": {
+      "type": "mcq",
+      "question": "Access to Work scheme - applied?",
+      "category": "adjustments",
+      "options": [
+        {
+          "value": "yes_granted",
+          "label": "Yes - granted",
+          "next": "impact_1"
+        },
+        {
+          "value": "yes_declined",
+          "label": "Yes - declined",
+          "next": "impact_1"
+        },
+        {
+          "value": "applied_awaiting_decision",
+          "label": "Applied - awaiting decision",
+          "next": "impact_1"
+        },
+        {
+          "value": "not_applied",
+          "label": "Not applied",
+          "next": "impact_1"
+        },
+        {
+          "value": "not_applicable",
+          "label": "Not applicable",
+          "next": "impact_1"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "adjustments",
+        "section": "Section H - Existing Adjustments",
+        "tag": "C"
+      }
+    },
+    "impact_1": {
+      "type": "mcq",
+      "question": "Does the student / employee manage workload independently?",
+      "category": "impact",
+      "options": [
+        {
+          "value": "yes_manages_well",
+          "label": "Yes, manages well",
+          "next": "impact_2"
+        },
+        {
+          "value": "manages_with_some_support",
+          "label": "Manages with some support",
+          "next": "impact_2"
+        },
+        {
+          "value": "often_needs_support",
+          "label": "Often needs support",
+          "next": "impact_2"
+        },
+        {
+          "value": "cannot_manage_without_continuous_support",
+          "label": "Cannot manage without continuous support",
+          "next": "impact_2",
+          "metadata": {
+            "severity": "high"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "impact",
+        "section": "Section I - Impact",
+        "tag": "M"
+      }
+    },
+    "impact_2": {
+      "type": "mcq",
+      "question": "Are recent assessments / performance reviews concerning?",
+      "category": "impact",
+      "options": [
+        {
+          "value": "no_performing_well",
+          "label": "No - performing well",
+          "next": "impact_3"
+        },
+        {
+          "value": "mixed",
+          "label": "Mixed",
+          "next": "impact_3"
+        },
+        {
+          "value": "some_concerns_documented",
+          "label": "Some concerns documented",
+          "next": "impact_3"
+        },
+        {
+          "value": "significant_concerns",
+          "label": "Significant concerns",
+          "next": "impact_3",
+          "metadata": {
+            "severity": "high"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "impact",
+        "section": "Section I - Impact",
+        "tag": "M"
+      }
+    },
+    "impact_3": {
+      "type": "mcq",
+      "question": "Are deadlines / coursework / project milestones consistently met?",
+      "category": "impact",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always",
+          "next": "impact_4"
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "next": "impact_4"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "next": "impact_4"
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "next": "impact_4"
+        },
+        {
+          "value": "never",
+          "label": "Never",
+          "next": "impact_4",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "impact",
+        "section": "Section I - Impact",
+        "tag": "M"
+      }
+    },
+    "impact_4": {
+      "type": "mcq",
+      "question": "Considering / has applied for course change, year out, mitigating circumstances, role change?",
+      "category": "impact",
+      "options": [
+        {
+          "value": "no",
+          "label": "No",
+          "next": "mentoring_1",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "considered",
+          "label": "Considered",
+          "next": "mentoring_1"
+        },
+        {
+          "value": "actively_considering",
+          "label": "Actively considering",
+          "next": "mentoring_1"
+        },
+        {
+          "value": "already_actioned",
+          "label": "Already actioned",
+          "next": "mentoring_1"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "impact",
+        "section": "Section I - Impact",
+        "tag": "M"
+      }
+    },
+    "mentoring_1": {
+      "type": "mcq",
+      "question": "Has the student / employee engaged with a Specialist Mentor or Study Skills tutor?",
+      "category": "mentoring",
+      "options": [
+        {
+          "value": "yes_currently_engaged",
+          "label": "Yes - currently engaged",
+          "next": "mentoring_2"
+        },
+        {
+          "value": "yes_past_engagement",
+          "label": "Yes - past engagement",
+          "next": "mentoring_2"
+        },
+        {
+          "value": "referred_on_waiting_list",
+          "label": "Referred / on waiting list",
+          "next": "mentoring_2"
+        },
+        {
+          "value": "declined_offer",
+          "label": "Declined offer",
+          "next": "mentoring_2"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "next": "mentoring_2",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "mentoring",
+        "section": "Section I2 - Mentoring, Mitigation, and Pattern (additional)",
+        "tag": "C"
+      }
+    },
+    "mentoring_2": {
+      "type": "mcq",
+      "question": "Mitigating circumstances history (HE) / sickness absence history (Workplace)",
+      "category": "mentoring",
+      "options": [
+        {
+          "value": "none_recorded",
+          "label": "None recorded",
+          "next": "mentoring_3"
+        },
+        {
+          "value": "one_instance",
+          "label": "One instance",
+          "next": "mentoring_3"
+        },
+        {
+          "value": "multiple_instances",
+          "label": "Multiple instances",
+          "next": "mentoring_3"
+        },
+        {
+          "value": "pattern_of_recurring_claims",
+          "label": "Pattern of recurring claims",
+          "next": "mentoring_3",
+          "metadata": {
+            "severity": "high"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "mentoring",
+        "section": "Section I2 - Mentoring, Mitigation, and Pattern (additional)",
+        "tag": "M"
+      }
+    },
+    "mentoring_3": {
+      "type": "mcq",
+      "question": "Quality of group / collaborative work with peers",
+      "category": "mentoring",
+      "options": [
+        {
+          "value": "good",
+          "label": "Good",
+          "next": "mentoring_4"
+        },
+        {
+          "value": "average",
+          "label": "Average",
+          "next": "mentoring_4"
+        },
+        {
+          "value": "weak",
+          "label": "Weak",
+          "next": "mentoring_4"
+        },
+        {
+          "value": "not_yet_assessed",
+          "label": "Not yet assessed",
+          "next": "mentoring_4"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "mentoring",
+        "section": "Section I2 - Mentoring, Mitigation, and Pattern (additional)",
+        "tag": "M"
+      }
+    },
+    "mentoring_4": {
+      "type": "mcq",
+      "question": "Independence with project / dissertation / major task work",
+      "category": "mentoring",
+      "options": [
+        {
+          "value": "highly_independent",
+          "label": "Highly independent",
+          "next": "mentoring_5"
+        },
+        {
+          "value": "some_support_needed",
+          "label": "Some support needed",
+          "next": "mentoring_5"
+        },
+        {
+          "value": "significant_support_needed",
+          "label": "Significant support needed",
+          "next": "mentoring_5"
+        },
+        {
+          "value": "continuous_support_required",
+          "label": "Continuous support required",
+          "next": "mentoring_5",
+          "metadata": {
+            "severity": "high"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "mentoring",
+        "section": "Section I2 - Mentoring, Mitigation, and Pattern (additional)",
+        "tag": "C"
+      }
+    },
+    "mentoring_5": {
+      "type": "mcq",
+      "question": "Has the student / employee required deadline extensions this academic year / quarter?",
+      "category": "mentoring",
+      "options": [
+        {
+          "value": "no",
+          "label": "No",
+          "next": "mentoring_6",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "one_or_two",
+          "label": "One or two",
+          "next": "mentoring_6"
+        },
+        {
+          "value": "multiple",
+          "label": "Multiple",
+          "next": "mentoring_6"
+        },
+        {
+          "value": "has_standing_formal_accommodation",
+          "label": "Has standing formal accommodation",
+          "next": "mentoring_6"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "mentoring",
+        "section": "Section I2 - Mentoring, Mitigation, and Pattern (additional)",
+        "tag": "M"
+      }
+    },
+    "mentoring_6": {
+      "type": "mcq",
+      "question": "Engagement with Disability Service / Occupational Health communications",
+      "category": "mentoring",
+      "options": [
+        {
+          "value": "highly_responsive",
+          "label": "Highly responsive",
+          "next": "mentoring_7"
+        },
+        {
+          "value": "adequately_responsive",
+          "label": "Adequately responsive",
+          "next": "mentoring_7"
+        },
+        {
+          "value": "slow_to_respond",
+          "label": "Slow to respond",
+          "next": "mentoring_7"
+        },
+        {
+          "value": "non_responsive",
+          "label": "Non-responsive",
+          "next": "mentoring_7",
+          "metadata": {
+            "severity": "high"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "mentoring",
+        "section": "Section I2 - Mentoring, Mitigation, and Pattern (additional)",
+        "tag": "M"
+      }
+    },
+    "mentoring_7": {
+      "type": "mcq",
+      "question": "Has the employer / institution documented adjustments formally?",
+      "category": "mentoring",
+      "options": [
+        {
+          "value": "yes_written_agreement",
+          "label": "Yes - written agreement",
+          "next": "mentoring_8"
+        },
+        {
+          "value": "yes_informal",
+          "label": "Yes - informal",
+          "next": "mentoring_8"
+        },
+        {
+          "value": "in_progress",
+          "label": "In progress",
+          "next": "mentoring_8"
+        },
+        {
+          "value": "not_documented",
+          "label": "Not documented",
+          "next": "mentoring_8"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "mentoring",
+        "section": "Section I2 - Mentoring, Mitigation, and Pattern (additional)",
+        "tag": "M"
+      }
+    },
+    "mentoring_8": {
+      "type": "mcq",
+      "question": "Frequency of one-to-one tutorial / supervision meetings",
+      "category": "mentoring",
+      "options": [
+        {
+          "value": "weekly",
+          "label": "Weekly",
+          "next": "mentoring_9"
+        },
+        {
+          "value": "fortnightly",
+          "label": "Fortnightly",
+          "next": "mentoring_9"
+        },
+        {
+          "value": "monthly",
+          "label": "Monthly",
+          "next": "mentoring_9"
+        },
+        {
+          "value": "less_than_monthly",
+          "label": "Less than monthly",
+          "next": "mentoring_9"
+        },
+        {
+          "value": "not_applicable",
+          "label": "Not applicable",
+          "next": "mentoring_9"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "mentoring",
+        "section": "Section I2 - Mentoring, Mitigation, and Pattern (additional)",
+        "tag": "O"
+      }
+    },
+    "mentoring_9": {
+      "type": "text",
+      "question": "Specific module / project that has been a particular point of difficulty",
+      "category": "mentoring",
+      "next": "mentoring_10",
+      "text_prompt": "Please type your answer:",
+      "metadata": {
+        "category": "mentoring",
+        "section": "Section I2 - Mentoring, Mitigation, and Pattern (additional)",
+        "tag": "O"
+      }
+    },
+    "mentoring_10": {
+      "type": "text",
+      "question": "Specific area where the student / employee has shown notable strength",
+      "category": "mentoring",
+      "next": "mentoring_11",
+      "text_prompt": "Please type your answer:",
+      "metadata": {
+        "category": "mentoring",
+        "section": "Section I2 - Mentoring, Mitigation, and Pattern (additional)",
+        "tag": "O"
+      }
+    },
+    "mentoring_11": {
+      "type": "mcq",
+      "question": "Has the student / employee raised wellbeing concerns this year?",
+      "category": "mentoring",
+      "options": [
+        {
+          "value": "yes_actively_flagged",
+          "label": "Yes - actively flagged",
+          "next": "mentoring_12"
+        },
+        {
+          "value": "yes_reluctantly",
+          "label": "Yes - reluctantly",
+          "next": "mentoring_12"
+        },
+        {
+          "value": "disclosed_but_downplayed",
+          "label": "Disclosed but downplayed",
+          "next": "mentoring_12"
+        },
+        {
+          "value": "no_disclosure",
+          "label": "No disclosure",
+          "next": "mentoring_12"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "mentoring",
+        "section": "Section I2 - Mentoring, Mitigation, and Pattern (additional)",
+        "tag": "M"
+      }
+    },
+    "mentoring_12": {
+      "type": "mcq",
+      "question": "Has the student / employee declined offered support?",
+      "category": "mentoring",
+      "options": [
+        {
+          "value": "no",
+          "label": "No",
+          "next": "mentoring_13",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "yes_on_one_occasion",
+          "label": "Yes - on one occasion",
+          "next": "mentoring_13"
+        },
+        {
+          "value": "yes_repeatedly",
+          "label": "Yes - repeatedly",
+          "next": "mentoring_13"
+        },
+        {
+          "value": "mixed_picture",
+          "label": "Mixed picture",
+          "next": "mentoring_13"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "mentoring",
+        "section": "Section I2 - Mentoring, Mitigation, and Pattern (additional)",
+        "tag": "O"
+      }
+    },
+    "mentoring_13": {
+      "type": "mcq",
+      "question": "Has the student / employee changed course / role this academic year / quarter?",
+      "category": "mentoring",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "next": "summary_1"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "next": "summary_1",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "don_t_know_not_sure",
+          "label": "Don't know / Not sure",
+          "next": "summary_1"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "mentoring",
+        "section": "Section I2 - Mentoring, Mitigation, and Pattern (additional)",
+        "tag": "M"
+      }
+    },
+    "summary_1": {
+      "type": "text",
+      "question": "Most recent academic / performance feedback (quote where possible)",
+      "category": "summary",
+      "next": "summary_2",
+      "text_prompt": "Please type your answer:",
+      "metadata": {
+        "category": "summary",
+        "section": "Section J - Closing",
+        "tag": "M"
+      }
+    },
+    "summary_2": {
+      "type": "text",
+      "question": "Anything else relevant to the assessment?",
+      "category": "summary",
+      "next": "summary_3",
+      "text_prompt": "Please type your answer:",
+      "metadata": {
+        "category": "summary",
+        "section": "Section J - Closing",
+        "tag": "O"
+      }
+    },
+    "summary_3": {
+      "type": "text",
+      "question": "Person + role completing this form",
+      "category": "summary",
+      "next": "summary_4",
+      "text_prompt": "Please type your answer:",
+      "metadata": {
+        "category": "summary",
+        "section": "Section J - Closing",
+        "tag": "M"
+      }
+    },
+    "summary_4": {
+      "type": "mcq",
+      "question": "How long have you been observing this student / employee in your role?",
+      "category": "summary",
+      "options": [
+        {
+          "value": "less_than_3_months",
+          "label": "Less than 3 months",
+          "next": "summary_5"
+        },
+        {
+          "value": "n_3_6_months",
+          "label": "3-6 months",
+          "next": "summary_5"
+        },
+        {
+          "value": "n_6_12_months",
+          "label": "6-12 months",
+          "next": "summary_5"
+        },
+        {
+          "value": "n_1_2_years",
+          "label": "1-2 years",
+          "next": "summary_5"
+        },
+        {
+          "value": "more_than_2_years",
+          "label": "More than 2 years",
+          "next": "summary_5"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "summary",
+        "section": "Section J - Closing",
+        "tag": "M"
+      }
+    },
+    "summary_5": {
+      "type": "mcq",
+      "question": "Does the student / employee have other staff who could provide a corroborating view?",
+      "category": "summary",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "next": "summary_6"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "next": "summary_6",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "don_t_know_not_sure",
+          "label": "Don't know / Not sure",
+          "next": "summary_6"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "summary",
+        "section": "Section J - Closing",
+        "tag": "O"
+      }
+    },
+    "summary_6": {
+      "type": "mcq",
+      "question": "Are there any cultural / linguistic considerations the assessor should know?",
+      "category": "summary",
+      "options": [
+        {
+          "value": "none",
+          "label": "None",
+          "next": "closing_message",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "english_as_additional_language",
+          "label": "English as Additional Language",
+          "next": "closing_message"
+        },
+        {
+          "value": "heritage_culture_relevant_to_presentation",
+          "label": "Heritage culture relevant to presentation",
+          "next": "closing_message"
+        },
+        {
+          "value": "bilingual_education_background",
+          "label": "Bilingual education background",
+          "next": "closing_message"
+        },
+        {
+          "value": "other",
+          "label": "Other",
+          "next": "closing_message"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "summary",
+        "section": "Section J - Closing",
+        "tag": "O"
+      }
+    },
+    "closing_message": {
+      "type": "message",
+      "content": "Thank you for completing the questionnaire. Your responses have been recorded and will be reviewed by the educational psychology team.",
+      "next": "complete",
+      "metadata": {
+        "category": "closing"
+      }
+    },
+    "complete": {
+      "type": "completion",
+      "content": "Thank you so much for completing this assessment!",
+      "action": "generate_report",
+      "metadata": {
+        "category": "completion"
+      }
+    }
+  }
+}

@@ -1,0 +1,2839 @@
+{
+  "flow_id": "parent_assessment_16_18_v1",
+  "flow_name": "Parent Assessment — Ages 16-18 years",
+  "flow_type": "parent",
+  "version": "1.0",
+  "start_node": "welcome",
+  "nodes": {
+    "welcome": {
+      "type": "message",
+      "content": "👋 Parents, please complete this questionnaire to provide a holistic overview of your child, including their learning profile as well as their social, emotional, mental health, speech and language and sensory needs.",
+      "next": "student_age",
+      "metadata": {
+        "category": "intro",
+        "skip_allowed": false
+      }
+    },
+    "student_age": {
+      "type": "mcq",
+      "question": "How old is your child?",
+      "category": "background",
+      "options": [
+        {
+          "value": "0-4",
+          "label": "0-4 years",
+          "next": "background_1"
+        },
+        {
+          "value": "5-7",
+          "label": "5-7 years",
+          "next": "background_1"
+        },
+        {
+          "value": "8-10",
+          "label": "8-10 years",
+          "next": "background_1"
+        },
+        {
+          "value": "11-13",
+          "label": "11-13 years",
+          "next": "background_1"
+        },
+        {
+          "value": "14-16",
+          "label": "14-16 years",
+          "next": "background_1"
+        },
+        {
+          "value": "17-18",
+          "label": "17-18 years",
+          "next": "background_1"
+        },
+        {
+          "value": "18+",
+          "label": "18+ years",
+          "next": "background_1"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or type the exact age:",
+      "metadata": {
+        "category": "background",
+        "required": true
+      }
+    },
+    "background_1": {
+      "type": "text",
+      "question": "Why are you seeking an assessment now?",
+      "category": "background",
+      "next": "background_2",
+      "text_prompt": "Please type your answer:",
+      "metadata": {
+        "category": "background",
+        "section": "Section A - Reasons for Assessment",
+        "tag": "M"
+      }
+    },
+    "background_2": {
+      "type": "mcq",
+      "question": "Which areas are of concern? (tick all that apply)",
+      "category": "background",
+      "options": [
+        {
+          "value": "reading_volume_at_a_level_ib",
+          "label": "Reading volume at A-Level / IB",
+          "next": "background_3"
+        },
+        {
+          "value": "spelling",
+          "label": "Spelling",
+          "next": "background_3"
+        },
+        {
+          "value": "writing_extended_pieces",
+          "label": "Writing extended pieces",
+          "next": "background_3"
+        },
+        {
+          "value": "maths_fluency_mental_arithmetic",
+          "label": "Maths fluency / mental arithmetic",
+          "next": "background_3"
+        },
+        {
+          "value": "attention_focus_in_lessons",
+          "label": "Attention / Focus in lessons",
+          "next": "background_3"
+        },
+        {
+          "value": "organisation_time_management",
+          "label": "Organisation / time management",
+          "next": "background_3"
+        },
+        {
+          "value": "memory",
+          "label": "Memory",
+          "next": "background_3"
+        },
+        {
+          "value": "exam_anxiety",
+          "label": "Exam anxiety",
+          "next": "background_3"
+        },
+        {
+          "value": "burnout_fatigue",
+          "label": "Burnout / fatigue",
+          "next": "background_3"
+        },
+        {
+          "value": "sleep",
+          "label": "Sleep",
+          "next": "background_3"
+        },
+        {
+          "value": "emotional_regulation",
+          "label": "Emotional regulation",
+          "next": "background_3"
+        },
+        {
+          "value": "social_communication",
+          "label": "Social communication",
+          "next": "background_3"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "background",
+        "section": "Section A - Reasons for Assessment",
+        "tag": "M"
+      },
+      "multi_select": true
+    },
+    "background_3": {
+      "type": "mcq",
+      "question": "Do you need this report for a specific reason?",
+      "category": "background",
+      "options": [
+        {
+          "value": "a_level_ib_exam_access_arrangements",
+          "label": "A-Level / IB exam access arrangements",
+          "next": "background_4"
+        },
+        {
+          "value": "ucas_university_disability_service_evidence",
+          "label": "UCAS / university Disability Service evidence",
+          "next": "background_4"
+        },
+        {
+          "value": "dsa_application_preparation",
+          "label": "DSA application preparation",
+          "next": "background_4"
+        },
+        {
+          "value": "updated_assessment_from_childhood_report",
+          "label": "Updated assessment from childhood report",
+          "next": "background_4"
+        },
+        {
+          "value": "first_time_diagnosis_investigation",
+          "label": "First-time diagnosis investigation",
+          "next": "background_4"
+        },
+        {
+          "value": "other",
+          "label": "Other",
+          "next": "background_4"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "background",
+        "section": "Section A - Reasons for Assessment",
+        "tag": "M"
+      }
+    },
+    "background_4": {
+      "type": "mcq",
+      "question": "Has any prior diagnosis been suggested?",
+      "category": "background",
+      "options": [
+        {
+          "value": "no",
+          "label": "No",
+          "next": "background_5",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "dyslexia",
+          "label": "Dyslexia",
+          "next": "background_5"
+        },
+        {
+          "value": "dyscalculia",
+          "label": "Dyscalculia",
+          "next": "background_5"
+        },
+        {
+          "value": "dyspraxia_dcd",
+          "label": "Dyspraxia / DCD",
+          "next": "background_5"
+        },
+        {
+          "value": "adhd_add",
+          "label": "ADHD / ADD",
+          "next": "background_5"
+        },
+        {
+          "value": "autism_asperger_s",
+          "label": "Autism / Asperger's",
+          "next": "background_5"
+        },
+        {
+          "value": "anxiety",
+          "label": "Anxiety",
+          "next": "background_5"
+        },
+        {
+          "value": "other",
+          "label": "Other",
+          "next": "background_5"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "background",
+        "section": "Section A - Reasons for Assessment",
+        "tag": "O"
+      }
+    },
+    "background_5": {
+      "type": "mcq",
+      "question": "Current course type",
+      "category": "background",
+      "options": [
+        {
+          "value": "a_levels",
+          "label": "A-Levels",
+          "next": "family_1"
+        },
+        {
+          "value": "ib_diploma",
+          "label": "IB Diploma",
+          "next": "family_1"
+        },
+        {
+          "value": "btec",
+          "label": "BTEC",
+          "next": "family_1"
+        },
+        {
+          "value": "gcse_retake",
+          "label": "GCSE retake",
+          "next": "family_1"
+        },
+        {
+          "value": "mixed_a_level_btec",
+          "label": "Mixed (A-Level + BTEC)",
+          "next": "family_1",
+          "metadata": {
+            "severity": "medium"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "background",
+        "section": "Section A - Reasons for Assessment",
+        "tag": "M"
+      }
+    },
+    "family_1": {
+      "type": "mcq",
+      "question": "Who lives at home with the student? (term-time)",
+      "category": "family",
+      "options": [
+        {
+          "value": "both_parents_siblings",
+          "label": "Both parents + siblings",
+          "next": "family_2"
+        },
+        {
+          "value": "one_parent_siblings",
+          "label": "One parent + siblings",
+          "next": "family_2"
+        },
+        {
+          "value": "one_parent_no_siblings",
+          "label": "One parent, no siblings",
+          "next": "family_2"
+        },
+        {
+          "value": "boarding_at_school",
+          "label": "Boarding at school",
+          "next": "family_2"
+        },
+        {
+          "value": "living_away_in_shared_accommodation",
+          "label": "Living away in shared accommodation",
+          "next": "family_2"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "family",
+        "section": "Section B - Family Context",
+        "tag": "M"
+      }
+    },
+    "family_2": {
+      "type": "mcq",
+      "question": "Family history (tick all that apply):",
+      "category": "family",
+      "options": [
+        {
+          "value": "dyslexia",
+          "label": "Dyslexia",
+          "next": "family_3"
+        },
+        {
+          "value": "dyscalculia",
+          "label": "Dyscalculia",
+          "next": "family_3"
+        },
+        {
+          "value": "dyspraxia",
+          "label": "Dyspraxia",
+          "next": "family_3"
+        },
+        {
+          "value": "adhd",
+          "label": "ADHD",
+          "next": "family_3"
+        },
+        {
+          "value": "autism",
+          "label": "Autism",
+          "next": "family_3"
+        },
+        {
+          "value": "anxiety_depression",
+          "label": "Anxiety / depression",
+          "next": "family_3"
+        },
+        {
+          "value": "none_not_known",
+          "label": "None / not known",
+          "next": "family_3",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "family",
+        "section": "Section B - Family Context",
+        "tag": "M"
+      },
+      "multi_select": true
+    },
+    "family_3": {
+      "type": "mcq",
+      "question": "Any significant life events in the last 18 months?",
+      "category": "family",
+      "options": [
+        {
+          "value": "none",
+          "label": "None",
+          "next": "family_4",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "bereavement",
+          "label": "Bereavement",
+          "next": "family_4"
+        },
+        {
+          "value": "parental_separation",
+          "label": "Parental separation",
+          "next": "family_4"
+        },
+        {
+          "value": "relocation",
+          "label": "Relocation",
+          "next": "family_4"
+        },
+        {
+          "value": "health_related",
+          "label": "Health-related",
+          "next": "family_4"
+        },
+        {
+          "value": "multiple",
+          "label": "Multiple",
+          "next": "family_4"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "family",
+        "section": "Section B - Family Context",
+        "tag": "O"
+      }
+    },
+    "family_4": {
+      "type": "mcq",
+      "question": "Languages spoken at home",
+      "category": "family",
+      "options": [
+        {
+          "value": "english_only",
+          "label": "English only",
+          "next": "dev_milestones_1"
+        },
+        {
+          "value": "english_one_other",
+          "label": "English + one other",
+          "next": "dev_milestones_1"
+        },
+        {
+          "value": "english_multiple_others",
+          "label": "English + multiple others",
+          "next": "dev_milestones_1"
+        },
+        {
+          "value": "other_language_only",
+          "label": "Other language only",
+          "next": "dev_milestones_1"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "family",
+        "section": "Section B - Family Context",
+        "tag": "M"
+      }
+    },
+    "dev_milestones_1": {
+      "type": "mcq",
+      "question": "Was your child born at full term?",
+      "category": "dev_milestones",
+      "options": [
+        {
+          "value": "full_term_37_weeks",
+          "label": "Full term (37+ weeks)",
+          "next": "dev_milestones_2",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "premature_37_weeks",
+          "label": "Premature (<37 weeks)",
+          "next": "dev_milestones_2",
+          "metadata": {
+            "severity": "high"
+          }
+        },
+        {
+          "value": "post_term_42_weeks",
+          "label": "Post-term (>42 weeks)",
+          "next": "dev_milestones_2",
+          "metadata": {
+            "severity": "high"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "dev_milestones",
+        "section": "Section C - Developmental Recap (Self/Parent-recalled)",
+        "tag": "M"
+      }
+    },
+    "dev_milestones_2": {
+      "type": "mcq",
+      "question": "Were any complications mentioned about pregnancy or birth?",
+      "category": "dev_milestones",
+      "options": [
+        {
+          "value": "none",
+          "label": "None",
+          "next": "dev_milestones_3",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "minor",
+          "label": "Minor",
+          "next": "dev_milestones_3",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "significant",
+          "label": "Significant",
+          "next": "dev_milestones_3",
+          "metadata": {
+            "severity": "high"
+          }
+        },
+        {
+          "value": "don_t_know",
+          "label": "Don't know",
+          "next": "dev_milestones_3"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "dev_milestones",
+        "section": "Section C - Developmental Recap (Self/Parent-recalled)",
+        "tag": "O"
+      }
+    },
+    "dev_milestones_3": {
+      "type": "mcq",
+      "question": "Did the student achieve early milestones on time, as far as you know?",
+      "category": "dev_milestones",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "next": "dev_milestones_4"
+        },
+        {
+          "value": "some_delays",
+          "label": "Some delays",
+          "next": "dev_milestones_4"
+        },
+        {
+          "value": "significant_delays",
+          "label": "Significant delays",
+          "next": "dev_milestones_4",
+          "metadata": {
+            "severity": "high"
+          }
+        },
+        {
+          "value": "don_t_know",
+          "label": "Don't know",
+          "next": "dev_milestones_4"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "dev_milestones",
+        "section": "Section C - Developmental Recap (Self/Parent-recalled)",
+        "tag": "M"
+      }
+    },
+    "dev_milestones_4": {
+      "type": "mcq",
+      "question": "Was the student late to speak?",
+      "category": "dev_milestones",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "next": "dev_milestones_5"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "next": "dev_milestones_5",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "don_t_know_not_sure",
+          "label": "Don't know / Not sure",
+          "next": "dev_milestones_5"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "dev_milestones",
+        "section": "Section C - Developmental Recap (Self/Parent-recalled)",
+        "tag": "M"
+      }
+    },
+    "dev_milestones_5": {
+      "type": "mcq",
+      "question": "Hearing / vision concerns in childhood?",
+      "category": "dev_milestones",
+      "options": [
+        {
+          "value": "no",
+          "label": "No",
+          "next": "dev_milestones_6",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "yes_fully_resolved",
+          "label": "Yes - fully resolved",
+          "next": "dev_milestones_6"
+        },
+        {
+          "value": "yes_ongoing",
+          "label": "Yes - ongoing",
+          "next": "dev_milestones_6"
+        },
+        {
+          "value": "don_t_know",
+          "label": "Don't know",
+          "next": "dev_milestones_6"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "dev_milestones",
+        "section": "Section C - Developmental Recap (Self/Parent-recalled)",
+        "tag": "M"
+      }
+    },
+    "dev_milestones_6": {
+      "type": "mcq",
+      "question": "Which hand does the student write with?",
+      "category": "dev_milestones",
+      "options": [
+        {
+          "value": "right",
+          "label": "Right",
+          "next": "health_1"
+        },
+        {
+          "value": "left",
+          "label": "Left",
+          "next": "health_1"
+        },
+        {
+          "value": "either",
+          "label": "Either",
+          "next": "health_1"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "dev_milestones",
+        "section": "Section C - Developmental Recap (Self/Parent-recalled)",
+        "tag": "M"
+      }
+    },
+    "health_1": {
+      "type": "mcq",
+      "question": "Currently taking any medication?",
+      "category": "health",
+      "options": [
+        {
+          "value": "no",
+          "label": "No",
+          "next": "health_2",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "yes_adhd_medication",
+          "label": "Yes - ADHD medication",
+          "next": "health_2"
+        },
+        {
+          "value": "yes_antidepressant_anti_anxiety",
+          "label": "Yes - antidepressant / anti-anxiety",
+          "next": "health_2"
+        },
+        {
+          "value": "yes_other_please_specify",
+          "label": "Yes - other (please specify)",
+          "next": "health_2"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "health",
+        "section": "Section D - General Health (current)",
+        "tag": "M"
+      }
+    },
+    "health_2": {
+      "type": "mcq",
+      "question": "Sleep quality",
+      "category": "health",
+      "options": [
+        {
+          "value": "regular_restful",
+          "label": "Regular, restful",
+          "next": "health_3",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "difficulty_falling_asleep",
+          "label": "Difficulty falling asleep",
+          "next": "health_3"
+        },
+        {
+          "value": "frequent_waking",
+          "label": "Frequent waking",
+          "next": "health_3"
+        },
+        {
+          "value": "daytime_fatigue_affects_study",
+          "label": "Daytime fatigue affects study",
+          "next": "health_3"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "health",
+        "section": "Section D - General Health (current)",
+        "tag": "M"
+      }
+    },
+    "health_3": {
+      "type": "mcq",
+      "question": "Any sensory sensitivities affecting study?",
+      "category": "health",
+      "options": [
+        {
+          "value": "none",
+          "label": "None",
+          "next": "education_1",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "mild",
+          "label": "Mild",
+          "next": "education_1",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "moderate",
+          "label": "Moderate",
+          "next": "education_1",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "significant",
+          "label": "Significant",
+          "next": "education_1",
+          "metadata": {
+            "severity": "high"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "health",
+        "section": "Section D - General Health (current)",
+        "tag": "O"
+      }
+    },
+    "education_1": {
+      "type": "mcq",
+      "question": "Has your child changed schools at any point?",
+      "category": "education",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "next": "education_2"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "next": "education_3",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "education",
+        "section": "Educational History",
+        "tag": "M"
+      }
+    },
+    "education_2": {
+      "type": "text",
+      "question": "If yes, please explain the reasons for the move(s).",
+      "category": "education",
+      "next": "education_3",
+      "text_prompt": "Please type your answer:",
+      "metadata": {
+        "category": "education",
+        "section": "Educational History",
+        "tag": "C"
+      }
+    },
+    "education_3": {
+      "type": "mcq",
+      "question": "Were there any periods of absence from school or difficulties attending school?",
+      "category": "education",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "next": "education_4"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "next": "education_5",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "education",
+        "section": "Educational History",
+        "tag": "M"
+      }
+    },
+    "education_4": {
+      "type": "text",
+      "question": "If yes, please explain in more detail.",
+      "category": "education",
+      "next": "education_5",
+      "text_prompt": "Please type your answer:",
+      "metadata": {
+        "category": "education",
+        "section": "Educational History",
+        "tag": "C"
+      }
+    },
+    "education_5": {
+      "type": "mcq",
+      "question": "Has your child ever been excluded, or placed on a reduced timetable?",
+      "category": "education",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "next": "education_6"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "next": "education_7",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "education",
+        "section": "Educational History",
+        "tag": "M"
+      }
+    },
+    "education_6": {
+      "type": "text",
+      "question": "If yes, please explain in more detail.",
+      "category": "education",
+      "next": "education_7",
+      "text_prompt": "Please type your answer:",
+      "metadata": {
+        "category": "education",
+        "section": "Educational History",
+        "tag": "C"
+      }
+    },
+    "education_7": {
+      "type": "mcq",
+      "question": "Any concerns raised at primary school?",
+      "category": "education",
+      "options": [
+        {
+          "value": "no",
+          "label": "No",
+          "next": "education_8",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "yes_minor",
+          "label": "Yes - minor",
+          "next": "education_8",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "yes_significant",
+          "label": "Yes - significant",
+          "next": "education_8",
+          "metadata": {
+            "severity": "high"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "education",
+        "section": "Section E - Education History (chronological)",
+        "tag": "M"
+      }
+    },
+    "education_8": {
+      "type": "mcq",
+      "question": "GCSE results profile",
+      "category": "education",
+      "options": [
+        {
+          "value": "mostly_7_9_a_a",
+          "label": "Mostly 7-9 (A/A*)",
+          "next": "education_9"
+        },
+        {
+          "value": "mostly_6_7_b",
+          "label": "Mostly 6-7 (B+)",
+          "next": "education_9"
+        },
+        {
+          "value": "mostly_5_6_b_c",
+          "label": "Mostly 5-6 (B/C)",
+          "next": "education_9"
+        },
+        {
+          "value": "mostly_4_5_c_d",
+          "label": "Mostly 4-5 (C/D)",
+          "next": "education_9"
+        },
+        {
+          "value": "below_4_in_core_subjects",
+          "label": "Below 4 in core subjects",
+          "next": "education_9"
+        },
+        {
+          "value": "mixed_across_subjects",
+          "label": "Mixed across subjects",
+          "next": "education_9",
+          "metadata": {
+            "severity": "medium"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "education",
+        "section": "Section E - Education History (chronological)",
+        "tag": "M"
+      }
+    },
+    "education_9": {
+      "type": "text",
+      "question": "Current A-Level / IB subjects + predicted grades",
+      "category": "education",
+      "next": "education_10",
+      "text_prompt": "Please type your answer:",
+      "metadata": {
+        "category": "education",
+        "section": "Section E - Education History (chronological)",
+        "tag": "M"
+      }
+    },
+    "education_10": {
+      "type": "mcq",
+      "question": "Mock exam performance vs predicted A-Level grades",
+      "category": "education",
+      "options": [
+        {
+          "value": "matched",
+          "label": "Matched",
+          "next": "education_11",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "below_predicted",
+          "label": "Below predicted",
+          "next": "education_11",
+          "metadata": {
+            "severity": "high"
+          }
+        },
+        {
+          "value": "above_predicted",
+          "label": "Above predicted",
+          "next": "education_11",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "mixed_varies_by_subject",
+          "label": "Mixed - varies by subject",
+          "next": "education_11",
+          "metadata": {
+            "severity": "medium"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "education",
+        "section": "Section E - Education History (chronological)",
+        "tag": "M"
+      }
+    },
+    "education_11": {
+      "type": "mcq",
+      "question": "Have any access arrangements been used at school in the past?",
+      "category": "education",
+      "options": [
+        {
+          "value": "no_none",
+          "label": "No, none",
+          "next": "education_12"
+        },
+        {
+          "value": "25_extra_time",
+          "label": "25% extra time",
+          "next": "education_12"
+        },
+        {
+          "value": "supervised_rest_breaks",
+          "label": "Supervised rest breaks",
+          "next": "education_12"
+        },
+        {
+          "value": "word_processor_laptop",
+          "label": "Word processor / laptop",
+          "next": "education_12"
+        },
+        {
+          "value": "reader_read_write",
+          "label": "Reader / Read&Write",
+          "next": "education_12"
+        },
+        {
+          "value": "scribe_speech_to_text",
+          "label": "Scribe / speech-to-text",
+          "next": "education_12"
+        },
+        {
+          "value": "separate_room",
+          "label": "Separate room",
+          "next": "education_12"
+        },
+        {
+          "value": "multiple",
+          "label": "Multiple",
+          "next": "education_12"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "education",
+        "section": "Section E - Education History (chronological)",
+        "tag": "M"
+      }
+    },
+    "education_12": {
+      "type": "mcq",
+      "question": "Has the student had any previous EP / SpLD / SALT / OT / CAMHS assessment?",
+      "category": "education",
+      "options": [
+        {
+          "value": "no",
+          "label": "No",
+          "next": "education_13",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "yes_uploaded_report",
+          "label": "Yes - uploaded report",
+          "next": "education_13"
+        },
+        {
+          "value": "yes_report_not_available",
+          "label": "Yes - report not available",
+          "next": "education_13"
+        },
+        {
+          "value": "currently_being_assessed",
+          "label": "Currently being assessed",
+          "next": "education_13"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "education",
+        "section": "Section E - Education History (chronological)",
+        "tag": "M"
+      }
+    },
+    "education_13": {
+      "type": "mcq",
+      "question": "Does the student have / has had an EHCP, Statement or IEP?",
+      "category": "education",
+      "options": [
+        {
+          "value": "no",
+          "label": "No",
+          "next": "education_14",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "yes_current",
+          "label": "Yes - current",
+          "next": "education_14"
+        },
+        {
+          "value": "yes_past_discharged",
+          "label": "Yes - past (discharged)",
+          "next": "education_14",
+          "metadata": {
+            "severity": "medium"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "education",
+        "section": "Section E - Education History (chronological)",
+        "tag": "M"
+      }
+    },
+    "education_14": {
+      "type": "text",
+      "question": "If yes, when was the EHCP awarded?",
+      "category": "education",
+      "next": "education_15",
+      "text_prompt": "Please type your answer:",
+      "metadata": {
+        "category": "education",
+        "section": "Section E - Education History (chronological)",
+        "tag": "C"
+      }
+    },
+    "education_15": {
+      "type": "mcq",
+      "question": "Plans after A-Levels / Sixth Form",
+      "category": "education",
+      "options": [
+        {
+          "value": "university_uk",
+          "label": "University - UK",
+          "next": "literacy_1"
+        },
+        {
+          "value": "university_abroad",
+          "label": "University - abroad",
+          "next": "literacy_1"
+        },
+        {
+          "value": "apprenticeship",
+          "label": "Apprenticeship",
+          "next": "literacy_1"
+        },
+        {
+          "value": "gap_year",
+          "label": "Gap year",
+          "next": "literacy_1"
+        },
+        {
+          "value": "employment",
+          "label": "Employment",
+          "next": "literacy_1"
+        },
+        {
+          "value": "undecided",
+          "label": "Undecided",
+          "next": "literacy_1"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "education",
+        "section": "Section E - Education History (chronological)",
+        "tag": "M"
+      }
+    },
+    "literacy_1": {
+      "type": "mcq",
+      "question": "Reading speed compared with peers",
+      "category": "literacy",
+      "options": [
+        {
+          "value": "much_slower",
+          "label": "Much slower",
+          "next": "literacy_2",
+          "metadata": {
+            "severity": "high"
+          }
+        },
+        {
+          "value": "slower",
+          "label": "Slower",
+          "next": "literacy_2",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "similar",
+          "label": "Similar",
+          "next": "literacy_2"
+        },
+        {
+          "value": "faster",
+          "label": "Faster",
+          "next": "literacy_2"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "literacy",
+        "section": "Section F - Self-Report (Literacy / Cognition / Attention)",
+        "tag": "M"
+      }
+    },
+    "literacy_2": {
+      "type": "mcq",
+      "question": "Do you re-read material before it 'goes in'?",
+      "category": "literacy",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always",
+          "next": "literacy_3",
+          "metadata": {
+            "severity": "high"
+          }
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "next": "literacy_3"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "next": "literacy_3",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "next": "literacy_3",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "never",
+          "label": "Never",
+          "next": "literacy_3",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "literacy",
+        "section": "Section F - Self-Report (Literacy / Cognition / Attention)",
+        "tag": "M"
+      }
+    },
+    "literacy_3": {
+      "type": "mcq",
+      "question": "Spelling difficulties - particular words / patterns you find hard?",
+      "category": "literacy",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always",
+          "next": "literacy_4",
+          "metadata": {
+            "severity": "high"
+          }
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "next": "literacy_4"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "next": "literacy_4",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "next": "literacy_4",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "never",
+          "label": "Never",
+          "next": "literacy_4",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "literacy",
+        "section": "Section F - Self-Report (Literacy / Cognition / Attention)",
+        "tag": "M"
+      }
+    },
+    "literacy_4": {
+      "type": "mcq",
+      "question": "Handwriting speed and legibility under pressure",
+      "category": "literacy",
+      "options": [
+        {
+          "value": "fine",
+          "label": "Fine",
+          "next": "literacy_5"
+        },
+        {
+          "value": "slows_under_pressure",
+          "label": "Slows under pressure",
+          "next": "literacy_5"
+        },
+        {
+          "value": "becomes_illegible_under_pressure",
+          "label": "Becomes illegible under pressure",
+          "next": "literacy_5"
+        },
+        {
+          "value": "cannot_keep_up",
+          "label": "Cannot keep up",
+          "next": "literacy_5"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "literacy",
+        "section": "Section F - Self-Report (Literacy / Cognition / Attention)",
+        "tag": "M"
+      }
+    },
+    "literacy_5": {
+      "type": "mcq",
+      "question": "Working memory - lose track of instructions / forget where you were up to?",
+      "category": "literacy",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always",
+          "next": "literacy_6",
+          "metadata": {
+            "severity": "high"
+          }
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "next": "literacy_6"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "next": "literacy_6",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "next": "literacy_6",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "never",
+          "label": "Never",
+          "next": "literacy_6",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "literacy",
+        "section": "Section F - Self-Report (Literacy / Cognition / Attention)",
+        "tag": "M"
+      }
+    },
+    "literacy_6": {
+      "type": "mcq",
+      "question": "Processing speed - feel slower than peers even when you understand the material?",
+      "category": "literacy",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always",
+          "next": "literacy_7",
+          "metadata": {
+            "severity": "high"
+          }
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "next": "literacy_7"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "next": "literacy_7",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "next": "literacy_7",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "never",
+          "label": "Never",
+          "next": "literacy_7",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "literacy",
+        "section": "Section F - Self-Report (Literacy / Cognition / Attention)",
+        "tag": "M"
+      }
+    },
+    "literacy_7": {
+      "type": "mcq",
+      "question": "Attention - distracted by external stimuli or own thoughts in lessons?",
+      "category": "literacy",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always",
+          "next": "literacy_8",
+          "metadata": {
+            "severity": "high"
+          }
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "next": "literacy_8"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "next": "literacy_8",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "next": "literacy_8",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "never",
+          "label": "Never",
+          "next": "literacy_8",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "literacy",
+        "section": "Section F - Self-Report (Literacy / Cognition / Attention)",
+        "tag": "M"
+      }
+    },
+    "literacy_8": {
+      "type": "mcq",
+      "question": "Hyperfocus - intense focus on a topic that's hard to stop?",
+      "category": "literacy",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always",
+          "next": "literacy_9",
+          "metadata": {
+            "severity": "high"
+          }
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "next": "literacy_9"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "next": "literacy_9",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "next": "literacy_9",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "never",
+          "label": "Never",
+          "next": "literacy_9",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "literacy",
+        "section": "Section F - Self-Report (Literacy / Cognition / Attention)",
+        "tag": "O"
+      }
+    },
+    "literacy_9": {
+      "type": "mcq",
+      "question": "Have you tried specific revision techniques?",
+      "category": "literacy",
+      "options": [
+        {
+          "value": "spaced_practice_anki",
+          "label": "Spaced practice / Anki",
+          "next": "independent_learning_1"
+        },
+        {
+          "value": "mind_maps",
+          "label": "Mind maps",
+          "next": "independent_learning_1"
+        },
+        {
+          "value": "pomodoro",
+          "label": "Pomodoro",
+          "next": "independent_learning_1"
+        },
+        {
+          "value": "past_papers",
+          "label": "Past papers",
+          "next": "independent_learning_1"
+        },
+        {
+          "value": "multiple",
+          "label": "Multiple",
+          "next": "independent_learning_1"
+        },
+        {
+          "value": "none_of_the_above",
+          "label": "None of the above",
+          "next": "independent_learning_1",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "literacy",
+        "section": "Section F - Self-Report (Literacy / Cognition / Attention)",
+        "tag": "O"
+      }
+    },
+    "independent_learning_1": {
+      "type": "mcq",
+      "question": "How do you take notes in lessons?",
+      "category": "independent_learning",
+      "options": [
+        {
+          "value": "pen_paper_handwritten",
+          "label": "Pen + paper handwritten",
+          "next": "independent_learning_2"
+        },
+        {
+          "value": "laptop_typed",
+          "label": "Laptop typed",
+          "next": "independent_learning_2"
+        },
+        {
+          "value": "tablet_stylus",
+          "label": "Tablet stylus",
+          "next": "independent_learning_2"
+        },
+        {
+          "value": "record_audio",
+          "label": "Record audio",
+          "next": "independent_learning_2"
+        },
+        {
+          "value": "mix_of_methods",
+          "label": "Mix of methods",
+          "next": "independent_learning_2"
+        },
+        {
+          "value": "rely_on_lecture_slides_textbook",
+          "label": "Rely on lecture slides / textbook",
+          "next": "independent_learning_2"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "independent_learning",
+        "section": "Section G - Independent Learning, Revision, Note-taking",
+        "tag": "M"
+      }
+    },
+    "independent_learning_2": {
+      "type": "mcq",
+      "question": "Do you use assistive technology?",
+      "category": "independent_learning",
+      "options": [
+        {
+          "value": "none",
+          "label": "None",
+          "next": "independent_learning_3",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "text_to_speech",
+          "label": "Text-to-speech",
+          "next": "independent_learning_3"
+        },
+        {
+          "value": "speech_to_text",
+          "label": "Speech-to-text",
+          "next": "independent_learning_3"
+        },
+        {
+          "value": "mind_mapping_software_mindview_inspiration",
+          "label": "Mind-mapping software (MindView, Inspiration)",
+          "next": "independent_learning_3"
+        },
+        {
+          "value": "anki_quizlet",
+          "label": "Anki / Quizlet",
+          "next": "independent_learning_3"
+        },
+        {
+          "value": "notion_todoist",
+          "label": "Notion / Todoist",
+          "next": "independent_learning_3"
+        },
+        {
+          "value": "multiple",
+          "label": "Multiple",
+          "next": "independent_learning_3"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "independent_learning",
+        "section": "Section G - Independent Learning, Revision, Note-taking",
+        "tag": "M"
+      }
+    },
+    "independent_learning_3": {
+      "type": "mcq",
+      "question": "Are you a typist?",
+      "category": "independent_learning",
+      "options": [
+        {
+          "value": "touch_type_fluently",
+          "label": "Touch-type fluently",
+          "next": "independent_learning_4"
+        },
+        {
+          "value": "hunt_and_peck",
+          "label": "Hunt-and-peck",
+          "next": "independent_learning_4"
+        },
+        {
+          "value": "mix_fast_but_not_touch_typing",
+          "label": "Mix - fast but not touch-typing",
+          "next": "independent_learning_4"
+        },
+        {
+          "value": "slow",
+          "label": "Slow",
+          "next": "independent_learning_4"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "independent_learning",
+        "section": "Section G - Independent Learning, Revision, Note-taking",
+        "tag": "M"
+      }
+    },
+    "independent_learning_4": {
+      "type": "mcq",
+      "question": "How do you manage deadlines and workload?",
+      "category": "independent_learning",
+      "options": [
+        {
+          "value": "paper_planner",
+          "label": "Paper planner",
+          "next": "independent_learning_5"
+        },
+        {
+          "value": "digital_app_notion_todoist",
+          "label": "Digital app (Notion, Todoist)",
+          "next": "independent_learning_5"
+        },
+        {
+          "value": "mental_tracking_only",
+          "label": "Mental tracking only",
+          "next": "independent_learning_5"
+        },
+        {
+          "value": "parent_prompted",
+          "label": "Parent-prompted",
+          "next": "independent_learning_5"
+        },
+        {
+          "value": "tutor_prompted",
+          "label": "Tutor-prompted",
+          "next": "independent_learning_5"
+        },
+        {
+          "value": "tend_to_leave_to_last_minute",
+          "label": "Tend to leave to last minute",
+          "next": "independent_learning_5"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "independent_learning",
+        "section": "Section G - Independent Learning, Revision, Note-taking",
+        "tag": "M"
+      }
+    },
+    "independent_learning_5": {
+      "type": "mcq",
+      "question": "Have you experienced burnout / sustained late-night working?",
+      "category": "independent_learning",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always",
+          "next": "education_16",
+          "metadata": {
+            "severity": "high"
+          }
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "next": "education_16"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "next": "education_16",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "next": "education_16",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "never",
+          "label": "Never",
+          "next": "education_16",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "independent_learning",
+        "section": "Section G - Independent Learning, Revision, Note-taking",
+        "tag": "O"
+      }
+    },
+    "education_16": {
+      "type": "mcq",
+      "question": "Does the student currently hold any access arrangements? (tick all that apply)",
+      "category": "education",
+      "options": [
+        {
+          "value": "25_extra_time",
+          "label": "25% extra time",
+          "next": "education_17"
+        },
+        {
+          "value": "50_extra_time",
+          "label": "50% extra time",
+          "next": "education_17"
+        },
+        {
+          "value": "supervised_rest_breaks",
+          "label": "Supervised rest breaks",
+          "next": "education_17"
+        },
+        {
+          "value": "word_processor_laptop",
+          "label": "Word processor / laptop",
+          "next": "education_17"
+        },
+        {
+          "value": "reader_read_write",
+          "label": "Reader / Read&Write",
+          "next": "education_17"
+        },
+        {
+          "value": "scribe",
+          "label": "Scribe",
+          "next": "education_17"
+        },
+        {
+          "value": "separate_smaller_room",
+          "label": "Separate / smaller room",
+          "next": "education_17"
+        },
+        {
+          "value": "prompt",
+          "label": "Prompt",
+          "next": "education_17"
+        },
+        {
+          "value": "food_and_drink_in_exam",
+          "label": "Food and drink in exam",
+          "next": "education_17"
+        },
+        {
+          "value": "none_currently",
+          "label": "None currently",
+          "next": "education_17",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "education",
+        "section": "Section H - Exam Access Arrangements (A-Level)",
+        "tag": "M"
+      },
+      "multi_select": true
+    },
+    "education_17": {
+      "type": "mcq",
+      "question": "If any held, how long have they been the normal way of working?",
+      "category": "education",
+      "options": [
+        {
+          "value": "less_than_6_months",
+          "label": "Less than 6 months",
+          "next": "education_18"
+        },
+        {
+          "value": "6_12_months",
+          "label": "6-12 months",
+          "next": "education_18"
+        },
+        {
+          "value": "1_2_years",
+          "label": "1-2 years",
+          "next": "education_18"
+        },
+        {
+          "value": "more_than_2_years",
+          "label": "More than 2 years",
+          "next": "education_18"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "education",
+        "section": "Section H - Exam Access Arrangements (A-Level)",
+        "tag": "C"
+      }
+    },
+    "education_18": {
+      "type": "mcq",
+      "question": "Requesting new or additional arrangements?",
+      "category": "education",
+      "options": [
+        {
+          "value": "25_extra_time",
+          "label": "25% extra time",
+          "next": "education_19"
+        },
+        {
+          "value": "50_extra_time",
+          "label": "50% extra time",
+          "next": "education_19"
+        },
+        {
+          "value": "word_processor",
+          "label": "Word processor",
+          "next": "education_19"
+        },
+        {
+          "value": "rest_breaks",
+          "label": "Rest breaks",
+          "next": "education_19"
+        },
+        {
+          "value": "separate_room",
+          "label": "Separate room",
+          "next": "education_19"
+        },
+        {
+          "value": "reader_scribe",
+          "label": "Reader / scribe",
+          "next": "education_19"
+        },
+        {
+          "value": "prompt",
+          "label": "Prompt",
+          "next": "education_19"
+        },
+        {
+          "value": "fidget_tool",
+          "label": "Fidget tool",
+          "next": "education_19"
+        },
+        {
+          "value": "none",
+          "label": "None",
+          "next": "education_19",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "education",
+        "section": "Section H - Exam Access Arrangements (A-Level)",
+        "tag": "M"
+      }
+    },
+    "education_19": {
+      "type": "mcq",
+      "question": "Where will the A-Level exams be sat?",
+      "category": "education",
+      "options": [
+        {
+          "value": "current_school_exam_centre",
+          "label": "Current school exam centre",
+          "next": "emotional_1"
+        },
+        {
+          "value": "different_exam_centre",
+          "label": "Different exam centre",
+          "next": "emotional_1"
+        },
+        {
+          "value": "multiple_exam_centres",
+          "label": "Multiple exam centres",
+          "next": "emotional_1"
+        },
+        {
+          "value": "not_yet_decided",
+          "label": "Not yet decided",
+          "next": "emotional_1"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "education",
+        "section": "Section H - Exam Access Arrangements (A-Level)",
+        "tag": "M"
+      }
+    },
+    "emotional_1": {
+      "type": "mcq",
+      "question": "Anxiety, depression or other emotional wellbeing difficulties?",
+      "category": "emotional",
+      "options": [
+        {
+          "value": "no",
+          "label": "No",
+          "next": "emotional_2",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "yes_past",
+          "label": "Yes - past",
+          "next": "emotional_2",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "yes_current",
+          "label": "Yes - current",
+          "next": "emotional_2"
+        },
+        {
+          "value": "diagnosed_disorder_with_prof_support",
+          "label": "Diagnosed disorder (with prof support)",
+          "next": "emotional_2",
+          "metadata": {
+            "severity": "high"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "emotional",
+        "section": "Section I - Emotional Wellbeing",
+        "tag": "M"
+      }
+    },
+    "emotional_2": {
+      "type": "mcq",
+      "question": "Test anxiety - racing thoughts, blanking during exams?",
+      "category": "emotional",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always",
+          "next": "emotional_3",
+          "metadata": {
+            "severity": "high"
+          }
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "next": "emotional_3"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "next": "emotional_3",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "next": "emotional_3",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "never",
+          "label": "Never",
+          "next": "emotional_3",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "emotional",
+        "section": "Section I - Emotional Wellbeing",
+        "tag": "M"
+      }
+    },
+    "emotional_3": {
+      "type": "mcq",
+      "question": "UCAS / future-related stress?",
+      "category": "emotional",
+      "options": [
+        {
+          "value": "manageable",
+          "label": "Manageable",
+          "next": "emotional_4"
+        },
+        {
+          "value": "moderate",
+          "label": "Moderate",
+          "next": "emotional_4",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "significant_affects_daily_life",
+          "label": "Significant - affects daily life",
+          "next": "emotional_4",
+          "metadata": {
+            "severity": "high"
+          }
+        },
+        {
+          "value": "have_not_started_thinking_about_next_stage",
+          "label": "Have not started thinking about next stage",
+          "next": "emotional_4"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "emotional",
+        "section": "Section I - Emotional Wellbeing",
+        "tag": "M"
+      }
+    },
+    "emotional_4": {
+      "type": "mcq",
+      "question": "Eating, weight or body-image concerns?",
+      "category": "emotional",
+      "options": [
+        {
+          "value": "no",
+          "label": "No",
+          "next": "emotional_5",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "yes_past_fully_recovered",
+          "label": "Yes - past, fully recovered",
+          "next": "emotional_5",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "yes_current",
+          "label": "Yes - current",
+          "next": "emotional_5"
+        },
+        {
+          "value": "prefer_not_to_say",
+          "label": "Prefer not to say",
+          "next": "emotional_5"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "emotional",
+        "section": "Section I - Emotional Wellbeing",
+        "tag": "O"
+      }
+    },
+    "emotional_5": {
+      "type": "mcq",
+      "question": "Any safeguarding concerns - self-harm or suicidal thoughts?",
+      "category": "emotional",
+      "options": [
+        {
+          "value": "no",
+          "label": "No",
+          "next": "independent_learning_6",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "past_now_stable",
+          "label": "Past - now stable",
+          "next": "independent_learning_6"
+        },
+        {
+          "value": "currently_under_support",
+          "label": "Currently under support",
+          "next": "independent_learning_6",
+          "metadata": {
+            "severity": "high"
+          }
+        },
+        {
+          "value": "prefer_to_discuss_with_clinician",
+          "label": "Prefer to discuss with clinician",
+          "next": "independent_learning_6"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "emotional",
+        "section": "Section I - Emotional Wellbeing",
+        "tag": "M"
+      }
+    },
+    "independent_learning_6": {
+      "type": "mcq",
+      "question": "Main source of academic support",
+      "category": "independent_learning",
+      "options": [
+        {
+          "value": "parent",
+          "label": "Parent",
+          "next": "independent_learning_7"
+        },
+        {
+          "value": "subject_tutor",
+          "label": "Subject tutor",
+          "next": "independent_learning_7"
+        },
+        {
+          "value": "school_college_mentor",
+          "label": "School / college mentor",
+          "next": "independent_learning_7"
+        },
+        {
+          "value": "online_community",
+          "label": "Online community",
+          "next": "independent_learning_7"
+        },
+        {
+          "value": "none_self_reliant",
+          "label": "None / self-reliant",
+          "next": "independent_learning_7",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "independent_learning",
+        "section": "Section J - Independence & Self-Support",
+        "tag": "M"
+      }
+    },
+    "independent_learning_7": {
+      "type": "mcq",
+      "question": "Currently have a tutor / mentor / coach?",
+      "category": "independent_learning",
+      "options": [
+        {
+          "value": "no",
+          "label": "No",
+          "next": "independent_learning_8",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "yes_one_subject",
+          "label": "Yes - one subject",
+          "next": "independent_learning_8"
+        },
+        {
+          "value": "yes_multiple_subjects",
+          "label": "Yes - multiple subjects",
+          "next": "independent_learning_8"
+        },
+        {
+          "value": "yes_study_skills_coach",
+          "label": "Yes - study-skills coach",
+          "next": "independent_learning_8"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "independent_learning",
+        "section": "Section J - Independence & Self-Support",
+        "tag": "M"
+      }
+    },
+    "independent_learning_8": {
+      "type": "mcq",
+      "question": "Has the student tried specific revision techniques?",
+      "category": "independent_learning",
+      "options": [
+        {
+          "value": "spaced_practice_anki",
+          "label": "Spaced practice / Anki",
+          "next": "independent_learning_9"
+        },
+        {
+          "value": "mind_maps",
+          "label": "Mind maps",
+          "next": "independent_learning_9"
+        },
+        {
+          "value": "pomodoro",
+          "label": "Pomodoro",
+          "next": "independent_learning_9"
+        },
+        {
+          "value": "past_papers",
+          "label": "Past papers",
+          "next": "independent_learning_9"
+        },
+        {
+          "value": "multiple",
+          "label": "Multiple",
+          "next": "independent_learning_9"
+        },
+        {
+          "value": "none_of_the_above",
+          "label": "None of the above",
+          "next": "independent_learning_9",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "independent_learning",
+        "section": "Section J2 - Study Skills & Workload (additional)",
+        "tag": "O"
+      }
+    },
+    "independent_learning_9": {
+      "type": "mcq",
+      "question": "Average sleep duration during term time",
+      "category": "independent_learning",
+      "options": [
+        {
+          "value": "less_than_5_hours",
+          "label": "Less than 5 hours",
+          "next": "independent_learning_10"
+        },
+        {
+          "value": "5_6_hours",
+          "label": "5-6 hours",
+          "next": "independent_learning_10"
+        },
+        {
+          "value": "7_8_hours",
+          "label": "7-8 hours",
+          "next": "independent_learning_10"
+        },
+        {
+          "value": "more_than_8_hours",
+          "label": "More than 8 hours",
+          "next": "independent_learning_10"
+        },
+        {
+          "value": "highly_variable",
+          "label": "Highly variable",
+          "next": "independent_learning_10"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "independent_learning",
+        "section": "Section J2 - Study Skills & Workload (additional)",
+        "tag": "M"
+      }
+    },
+    "independent_learning_10": {
+      "type": "mcq",
+      "question": "Reliance on stimulants (caffeine / energy drinks) to study?",
+      "category": "independent_learning",
+      "options": [
+        {
+          "value": "none_occasional",
+          "label": "None / occasional",
+          "next": "independent_learning_11",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "regular_use",
+          "label": "Regular use",
+          "next": "independent_learning_11"
+        },
+        {
+          "value": "heavy_use",
+          "label": "Heavy use",
+          "next": "independent_learning_11"
+        },
+        {
+          "value": "concerns_would_like_support",
+          "label": "Concerns - would like support",
+          "next": "independent_learning_11",
+          "metadata": {
+            "severity": "high"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "independent_learning",
+        "section": "Section J2 - Study Skills & Workload (additional)",
+        "tag": "O"
+      }
+    },
+    "independent_learning_11": {
+      "type": "mcq",
+      "question": "Does the student have a quiet, dedicated study space at home?",
+      "category": "independent_learning",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "next": "independent_learning_12"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "next": "independent_learning_12",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "don_t_know_not_sure",
+          "label": "Don't know / Not sure",
+          "next": "independent_learning_12"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "independent_learning",
+        "section": "Section J2 - Study Skills & Workload (additional)",
+        "tag": "O"
+      }
+    },
+    "independent_learning_12": {
+      "type": "mcq",
+      "question": "How frequently does the student work late into the night to meet deadlines?",
+      "category": "independent_learning",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always",
+          "next": "independent_learning_13",
+          "metadata": {
+            "severity": "high"
+          }
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "next": "independent_learning_13"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "next": "independent_learning_13",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "next": "independent_learning_13",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "never",
+          "label": "Never",
+          "next": "independent_learning_13",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "independent_learning",
+        "section": "Section J2 - Study Skills & Workload (additional)",
+        "tag": "M"
+      }
+    },
+    "independent_learning_13": {
+      "type": "mcq",
+      "question": "Has the student missed any school days or classes due to wellbeing / stress?",
+      "category": "independent_learning",
+      "options": [
+        {
+          "value": "no",
+          "label": "No",
+          "next": "independent_learning_14",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "occasional_days",
+          "label": "Occasional days",
+          "next": "independent_learning_14"
+        },
+        {
+          "value": "multiple_days",
+          "label": "Multiple days",
+          "next": "independent_learning_14"
+        },
+        {
+          "value": "significant_absences",
+          "label": "Significant absences",
+          "next": "independent_learning_14",
+          "metadata": {
+            "severity": "high"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "independent_learning",
+        "section": "Section J2 - Study Skills & Workload (additional)",
+        "tag": "M"
+      }
+    },
+    "independent_learning_14": {
+      "type": "mcq",
+      "question": "Has the student considered dropping a subject due to difficulty?",
+      "category": "independent_learning",
+      "options": [
+        {
+          "value": "no",
+          "label": "No",
+          "next": "independent_learning_15",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "considered_briefly",
+          "label": "Considered briefly",
+          "next": "independent_learning_15",
+          "metadata": {
+            "severity": "medium"
+          }
+        },
+        {
+          "value": "actively_considering",
+          "label": "Actively considering",
+          "next": "independent_learning_15"
+        },
+        {
+          "value": "already_dropped_a_subject",
+          "label": "Already dropped a subject",
+          "next": "independent_learning_15"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "independent_learning",
+        "section": "Section J2 - Study Skills & Workload (additional)",
+        "tag": "O"
+      }
+    },
+    "independent_learning_15": {
+      "type": "mcq",
+      "question": "Does the student attend extracurricular activities (sport / music / drama / volunteering)?",
+      "category": "independent_learning",
+      "options": [
+        {
+          "value": "yes_multiple",
+          "label": "Yes - multiple",
+          "next": "independent_learning_16"
+        },
+        {
+          "value": "yes_one_or_two",
+          "label": "Yes - one or two",
+          "next": "independent_learning_16"
+        },
+        {
+          "value": "used_to_but_stopped",
+          "label": "Used to but stopped",
+          "next": "independent_learning_16"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "next": "independent_learning_16",
+          "metadata": {
+            "severity": "none"
+          }
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "independent_learning",
+        "section": "Section J2 - Study Skills & Workload (additional)",
+        "tag": "O"
+      }
+    },
+    "independent_learning_16": {
+      "type": "mcq",
+      "question": "Family support for revision and study planning",
+      "category": "independent_learning",
+      "options": [
+        {
+          "value": "highly_involved",
+          "label": "Highly involved",
+          "next": "independent_learning_17"
+        },
+        {
+          "value": "some_involvement",
+          "label": "Some involvement",
+          "next": "independent_learning_17"
+        },
+        {
+          "value": "limited_involvement",
+          "label": "Limited involvement",
+          "next": "independent_learning_17"
+        },
+        {
+          "value": "student_is_fully_independent",
+          "label": "Student is fully independent",
+          "next": "independent_learning_17"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "independent_learning",
+        "section": "Section J2 - Study Skills & Workload (additional)",
+        "tag": "M"
+      }
+    },
+    "independent_learning_17": {
+      "type": "mcq",
+      "question": "Has the student talked to school staff about access arrangements or study support?",
+      "category": "independent_learning",
+      "options": [
+        {
+          "value": "yes_actively_engaged",
+          "label": "Yes - actively engaged",
+          "next": "strengths_1"
+        },
+        {
+          "value": "once_or_twice",
+          "label": "Once or twice",
+          "next": "strengths_1"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "next": "strengths_1",
+          "metadata": {
+            "severity": "none"
+          }
+        },
+        {
+          "value": "don_t_know",
+          "label": "Don't know",
+          "next": "strengths_1"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "independent_learning",
+        "section": "Section J2 - Study Skills & Workload (additional)",
+        "tag": "M"
+      }
+    },
+    "strengths_1": {
+      "type": "text",
+      "question": "Interests and hobbies - what do you do to relax / for enjoyment?",
+      "category": "strengths",
+      "next": "strengths_2",
+      "text_prompt": "Please type your answer:",
+      "metadata": {
+        "category": "strengths",
+        "section": "Section K - Strengths & Closing",
+        "tag": "M"
+      }
+    },
+    "strengths_2": {
+      "type": "text",
+      "question": "What are your strengths, as you see them?",
+      "category": "strengths",
+      "next": "strengths_3",
+      "text_prompt": "Please type your answer:",
+      "metadata": {
+        "category": "strengths",
+        "section": "Section K - Strengths & Closing",
+        "tag": "M"
+      }
+    },
+    "strengths_3": {
+      "type": "text",
+      "question": "Anything else you would like the assessor to know?",
+      "category": "strengths",
+      "next": "closing_message",
+      "text_prompt": "Please type your answer:",
+      "metadata": {
+        "category": "strengths",
+        "section": "Section K - Strengths & Closing",
+        "tag": "M"
+      }
+    },
+    "closing_message": {
+      "type": "message",
+      "content": "Thank you for completing the questionnaire. Your responses have been recorded and will be reviewed by the educational psychology team.",
+      "next": "complete",
+      "metadata": {
+        "category": "closing"
+      }
+    },
+    "complete": {
+      "type": "completion",
+      "content": "Thank you so much for completing this assessment!",
+      "action": "generate_report",
+      "metadata": {
+        "category": "completion"
+      }
+    }
+  }
+}

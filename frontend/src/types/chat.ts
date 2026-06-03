@@ -23,6 +23,7 @@ export interface QuestionMetadata {
   text_prompt?: string;
   validation?: boolean;
   category?: string;
+  multi_select?: boolean;
 }
 
 export interface ChatMessage {

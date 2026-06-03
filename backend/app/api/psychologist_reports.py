@@ -38,6 +38,7 @@ from app.agents.report_agents import (
     IQScoreExtractorAgent,
     CognitiveReportAgent,
     UnifiedInsightsAgent,
+    _classify_role,
 )
 from app.services.pdf_extractor import extract_text_from_pdf
 from app.services.s3_storage import s3_storage
@@ -306,6 +307,8 @@ async def get_workspace(
 
     grouped_reports = {
         "background_summary": [],
+        "background_summary_parent": [],
+        "background_summary_school": [],
         "cognitive_report": [],
         "unified_insights": [],
     }
@@ -369,6 +372,237 @@ async def get_workspace(
             r["assignment_status"] == AssignmentStatus.COMPLETED.value for r in assessor_rows
         ),
     }
+
+
+# ============================================================================
+# QUESTIONNAIRE RESPONSES — VIEW PARENT / SCHOOL ANSWERS
+# ============================================================================
+@router.get("/students/{student_id}/responses")
+async def get_questionnaire_responses(
+    student_id: uuid_lib.UUID,
+    current_user: User = Depends(require_psychologist_or_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return all chatbot questionnaire responses for a student.
+
+    Output shape (clean for the frontend — NOT a raw JSON dump of the
+    chat session):
+
+        {
+            "student": {"id", "first_name", "last_name", ...},
+            "sessions": [
+                {
+                    "session_id", "status", "flow_type",
+                    "respondent": {"name", "email", "role"},
+                    "started_at", "completed_at",
+                    "sections": [
+                        {
+                            "title": "Reasons for Assessment",
+                            "category": "background",
+                            "items": [
+                                {"node_id", "question", "answer",
+                                 "option_label", "is_skipped", "is_multi"},
+                                ...
+                            ],
+                        }, ...
+                    ],
+                }, ...
+            ],
+        }
+
+    Permission: psychologist OR admin. Admin sees any student; psychologist
+    needs to be in the student's care chain (enforced by existing role gate
+    on the workspace endpoints — same audience).
+    """
+    from app.models.chat import ChatMessage  # local import — avoids circulars
+
+    student = await _get_student_or_404(db, student_id)
+
+    sessions_q = await db.execute(
+        select(ChatSession)
+        .join(AssessmentAssignment, ChatSession.assignment_id == AssessmentAssignment.id)
+        .where(AssessmentAssignment.student_id == student_id)
+        .order_by(desc(ChatSession.started_at))
+    )
+    sessions: List[ChatSession] = list(sessions_q.scalars().all())
+
+    if not sessions:
+        return {
+            "student": {
+                "id": str(student.id),
+                "first_name": student.first_name,
+                "last_name": student.last_name,
+            },
+            "sessions": [],
+        }
+
+    # Bulk load all messages for these sessions, ordered chronologically
+    session_ids = [s.id for s in sessions]
+    msgs_q = await db.execute(
+        select(ChatMessage)
+        .where(ChatMessage.session_id.in_(session_ids))
+        .order_by(ChatMessage.session_id, ChatMessage.timestamp.asc(), ChatMessage.id.asc())
+    )
+    all_msgs = list(msgs_q.scalars().all())
+
+    # Group messages by session
+    msgs_by_session: dict[uuid_lib.UUID, list[ChatMessage]] = {}
+    for m in all_msgs:
+        msgs_by_session.setdefault(m.session_id, []).append(m)
+
+    # Build respondent lookups (assignment -> guardian + role) in one query
+    assignment_ids = [s.assignment_id for s in sessions if s.assignment_id]
+    respondent_by_assignment: dict[uuid_lib.UUID, dict] = {}
+    if assignment_ids:
+        rows_q = await db.execute(
+            select(AssessmentAssignment, User, StudentGuardian)
+            .join(User, AssessmentAssignment.assigned_to_user_id == User.id)
+            .outerjoin(
+                StudentGuardian,
+                and_(
+                    StudentGuardian.student_id == AssessmentAssignment.student_id,
+                    StudentGuardian.guardian_user_id == AssessmentAssignment.assigned_to_user_id,
+                ),
+            )
+            .where(AssessmentAssignment.id.in_(assignment_ids))
+        )
+        for assignment, user, sg in rows_q.all():
+            rel = (sg.relationship_type if sg and sg.relationship_type else None) or (
+                user.role.value.title() if user and user.role else "Guardian"
+            )
+            respondent_by_assignment[assignment.id] = {
+                "name": user.full_name or user.email,
+                "email": user.email,
+                "role": rel,
+            }
+
+    out_sessions: list[dict] = []
+    for sess in sessions:
+        msgs = msgs_by_session.get(sess.id, [])
+
+        # Pair (bot question -> next user answer) and group by category/section
+        pairs: list[dict] = []
+        pending_bot: ChatMessage | None = None
+        for m in msgs:
+            if m.role == "bot" and m.message_type in ("mcq", "text_only", "text"):
+                pending_bot = m
+                continue
+            if m.role == "user" and pending_bot is not None:
+                meta_bot = pending_bot.message_metadata or {}
+                meta_user = m.message_metadata or {}
+                question = pending_bot.content or ""
+                # Strip out the auto-prepended student name "Hi {name}, ..." style
+                question = question.strip()
+                # Determine user-facing answer:
+                option_label = None
+                selected_value = meta_user.get("selected_option") or meta_user.get("choice_value")
+                if selected_value:
+                    # Bot meta carries options list — find label
+                    for opt in (meta_bot.get("options") or []):
+                        if isinstance(opt, dict) and opt.get("value") == selected_value:
+                            option_label = opt.get("label")
+                            break
+                    # Multi-select: comma-separated values
+                    if option_label is None and isinstance(selected_value, str) and "," in selected_value:
+                        labels = []
+                        for tok in selected_value.split(","):
+                            tok = tok.strip()
+                            for opt in (meta_bot.get("options") or []):
+                                if isinstance(opt, dict) and opt.get("value") == tok:
+                                    labels.append(opt.get("label", tok))
+                                    break
+                        if labels:
+                            option_label = ", ".join(labels)
+
+                pairs.append({
+                    "node_id": meta_bot.get("node_id") or meta_bot.get("question_id"),
+                    "category": meta_bot.get("category") or "general",
+                    "section": (meta_bot.get("section") or meta_bot.get("section_title")
+                                or _category_title(meta_bot.get("category") or "general")),
+                    "question": question,
+                    "answer": m.content or "",
+                    "option_label": option_label,
+                    "is_skipped": (m.message_type == "skip") or (m.content or "").strip().lower() == "(skipped)",
+                    "is_multi": bool(meta_bot.get("multi_select")),
+                    "timestamp": m.timestamp.isoformat() if m.timestamp else None,
+                })
+                pending_bot = None
+
+        # Group pairs into sections preserving first-appearance order
+        sections_ordered: list[str] = []
+        items_by_section: dict[str, list[dict]] = {}
+        for p in pairs:
+            title = p["section"] or "Other"
+            if title not in items_by_section:
+                items_by_section[title] = []
+                sections_ordered.append(title)
+            items_by_section[title].append(p)
+
+        respondent = respondent_by_assignment.get(sess.assignment_id) or {
+            "name": "Unknown respondent",
+            "email": None,
+            "role": "Guardian",
+        }
+
+        out_sessions.append({
+            "session_id": str(sess.id),
+            "flow_type": sess.flow_type,
+            "status": sess.status,
+            "respondent": respondent,
+            "started_at": sess.started_at.isoformat() if sess.started_at else None,
+            "completed_at": sess.completed_at.isoformat() if sess.completed_at else None,
+            "sections": [
+                {
+                    "title": title,
+                    "items": items_by_section[title],
+                }
+                for title in sections_ordered
+            ],
+            "totals": {
+                "answered": len(pairs),
+                "skipped": sum(1 for p in pairs if p["is_skipped"]),
+            },
+        })
+
+    return {
+        "student": {
+            "id": str(student.id),
+            "first_name": student.first_name,
+            "last_name": student.last_name,
+            "date_of_birth": student.date_of_birth.isoformat() if student.date_of_birth else None,
+            "year_group": student.year_group,
+            "school_name": student.school_name,
+        },
+        "sessions": out_sessions,
+        "viewer_role": current_user.role.value if current_user and current_user.role else None,
+    }
+
+
+def _category_title(cat: str) -> str:
+    """Map a category slug to a human-readable section title."""
+    mapping = {
+        "background": "Reasons for Assessment",
+        "family": "Family Context",
+        "birth_history": "Pregnancy & Birth",
+        "dev_milestones": "Developmental Milestones",
+        "health": "General Health",
+        "vision_hearing": "Vision & Hearing",
+        "sensory_motor": "Sensory & Motor",
+        "attention": "Attention",
+        "social": "Social",
+        "emotional": "Emotional",
+        "behaviour": "Behaviour",
+        "behavioural": "Behaviour",
+        "academic": "Academic",
+        "education": "Education",
+        "literacy": "Literacy",
+        "independent_learning": "Independent Learning",
+        "strengths": "Strengths & Interests",
+        "closing": "Closing",
+        "intro": "Introduction",
+        "general": "Other",
+    }
+    return mapping.get((cat or "").lower(), (cat or "Other").replace("_", " ").title())
 
 
 # ============================================================================
@@ -482,6 +716,182 @@ async def generate_background_summary(
     await db.refresh(report)
 
     return _serialize_report(report)
+
+
+# ============================================================================
+# BACKGROUND SUMMARY — ROLE-SCOPED GENERATE (PARENT / SCHOOL)
+# ============================================================================
+async def _generate_role_scoped_background(
+    *,
+    student: Student,
+    student_id: uuid_lib.UUID,
+    current_user: User,
+    db: AsyncSession,
+    voice: str,
+    report_type: str,
+) -> dict:
+    """Shared implementation for the two role-scoped background endpoints.
+
+    `voice` is "parent" or "school"; `report_type` is the value stored on
+    PsychologistReport.report_type ("background_summary_parent" /
+    "background_summary_school"). Gating: at least one assessor of the
+    matching voice must be COMPLETED. Pending assessors of the OTHER voice
+    do NOT block this report — that decoupling is the whole point.
+    """
+    rows = await _all_assessor_rows(db, student_id)
+    if not rows:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "No assessment assignments exist for this student. "
+                "An admin must assign the assessment to at least one assessor first."
+            ),
+        )
+
+    matching = [r for r in rows if _classify_role(r.get("relationship_type")) == voice]
+    if not matching:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"No {voice} assessor has been assigned to this student. "
+                f"Assign the assessment to a {voice}-type respondent and try again."
+            ),
+        )
+
+    completed = [r for r in matching if r["assignment_status"] == AssignmentStatus.COMPLETED.value]
+    pending = [r for r in matching if r["assignment_status"] != AssignmentStatus.COMPLETED.value]
+
+    if not completed:
+        pending_names = sorted({p.get("guardian_name") or "Unknown" for p in pending})
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": (
+                    f"Waiting for the {voice} assessment to be completed before this "
+                    f"summary can be generated."
+                ),
+                "voice": voice,
+                "pending_assessors": pending_names,
+            },
+        )
+
+    student_name = f"{student.first_name} {student.last_name}".strip() or "the student"
+
+    merged_context = {
+        "student_info": {
+            "first_name": student.first_name,
+            "last_name": student.last_name,
+            "date_of_birth": student.date_of_birth.isoformat() if student.date_of_birth else None,
+            "year_group": student.year_group,
+            "school_name": student.school_name,
+        },
+        "perspectives": [
+            {
+                "role": p["relationship_type"],
+                "respondent_name": p["guardian_name"],
+                "respondent_user_id": str(p["guardian_user_id"]),
+                "session_id": str(p["session_id"]) if p["session_id"] else None,
+                "context": p["context_data"] or {},
+            }
+            for p in completed
+        ],
+    }
+
+    agent = BackgroundSummaryAgent()
+    started = time.time()
+    try:
+        if voice == "parent":
+            markdown = await agent.generate_parent_summary(merged_context, student_name)
+        else:
+            markdown = await agent.generate_school_summary(merged_context, student_name)
+    except Exception as e:
+        logger.error(f"BackgroundSummaryAgent ({voice}) raised: {e}", exc_info=True)
+        raise HTTPException(status_code=502, detail=f"Agent failed: {str(e)}")
+    generation_ms = int((time.time() - started) * 1000)
+
+    session_ids = [p["session_id"] for p in completed if p["session_id"]]
+    primary_session_id = session_ids[-1] if session_ids else None
+
+    report = PsychologistReport(
+        student_id=student_id,
+        created_by_user_id=current_user.id,
+        report_type=report_type,
+        content_markdown=markdown,
+        source_data={
+            "voice": voice,
+            "session_ids": [str(sid) for sid in session_ids],
+            "perspectives": [
+                {
+                    "role": p["relationship_type"],
+                    "respondent_name": p["guardian_name"],
+                    "respondent_user_id": str(p["guardian_user_id"]),
+                    "session_id": str(p["session_id"]) if p["session_id"] else None,
+                }
+                for p in completed
+            ],
+            "pending_assessors_of_this_voice": [
+                {
+                    "role": p["relationship_type"],
+                    "respondent_name": p["guardian_name"],
+                    "assignment_status": p["assignment_status"],
+                }
+                for p in pending
+            ],
+        },
+        source_chat_session_id=primary_session_id,
+        status="draft",
+        generation_ms=generation_ms,
+    )
+    db.add(report)
+    await db.commit()
+    await db.refresh(report)
+    return _serialize_report(report)
+
+
+@router.post("/students/{student_id}/background-summary-parent/generate")
+async def generate_background_summary_parent(
+    student_id: uuid_lib.UUID,
+    current_user: User = Depends(require_psychologist_or_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Generate the PARENT-only background summary.
+
+    Gates on at least one parent-type assessor being COMPLETED. Pending
+    school assessors do NOT block this endpoint. The agent is forbidden
+    from using school-voice content even if it is present elsewhere.
+    """
+    student = await _get_student_or_404(db, student_id)
+    return await _generate_role_scoped_background(
+        student=student,
+        student_id=student_id,
+        current_user=current_user,
+        db=db,
+        voice="parent",
+        report_type="background_summary_parent",
+    )
+
+
+@router.post("/students/{student_id}/background-summary-school/generate")
+async def generate_background_summary_school(
+    student_id: uuid_lib.UUID,
+    current_user: User = Depends(require_psychologist_or_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Generate the SCHOOL-only background summary.
+
+    Gates on at least one school-type assessor being COMPLETED. Pending
+    parent assessors do NOT block this endpoint. The agent is forbidden
+    from using parent-voice content even if it is present elsewhere.
+    """
+    student = await _get_student_or_404(db, student_id)
+    return await _generate_role_scoped_background(
+        student=student,
+        student_id=student_id,
+        current_user=current_user,
+        db=db,
+        voice="school",
+        report_type="background_summary_school",
+    )
 
 
 # ============================================================================
@@ -757,7 +1167,13 @@ async def create_blank_report(
     """Create an empty editable report (used by the 'Start blank' flow)."""
     await _get_student_or_404(db, student_id)
 
-    allowed_types = {"background_summary", "cognitive_report", "unified_insights"}
+    allowed_types = {
+        "background_summary",
+        "background_summary_parent",
+        "background_summary_school",
+        "cognitive_report",
+        "unified_insights",
+    }
     if payload.report_type not in allowed_types:
         raise HTTPException(
             status_code=400,
@@ -849,7 +1265,13 @@ async def download_student_reports_docx(
     stmt = select(PsychologistReport).where(
         PsychologistReport.student_id == student_id,
         PsychologistReport.report_type.in_(
-            ("background_summary", "cognitive_report", "unified_insights")
+            (
+                "background_summary",
+                "background_summary_parent",
+                "background_summary_school",
+                "cognitive_report",
+                "unified_insights",
+            )
         ),
     )
     rows = (await db.execute(stmt)).scalars().all()
@@ -860,11 +1282,24 @@ async def download_student_reports_docx(
         )
 
     by_type = {r.report_type: r for r in rows}
-    section_order = [
-        ("background_summary", "Background"),
-        ("cognitive_report", "Cognitive Report"),
-        ("unified_insights", "Unified Insights"),
-    ]
+    # Prefer the role-scoped pair if either exists; fall back to the
+    # legacy combined background_summary only when no role-scoped row is present.
+    has_role_scoped = bool(
+        by_type.get("background_summary_parent") or by_type.get("background_summary_school")
+    )
+    if has_role_scoped:
+        section_order = [
+            ("background_summary_parent", "Parent Background Summary"),
+            ("background_summary_school", "School Background Summary"),
+            ("cognitive_report", "Cognitive Report"),
+            ("unified_insights", "Unified Insights"),
+        ]
+    else:
+        section_order = [
+            ("background_summary", "Background"),
+            ("cognitive_report", "Cognitive Report"),
+            ("unified_insights", "Unified Insights"),
+        ]
 
     doc = Document()
     full_name = f"{student.first_name} {student.last_name}".strip()
