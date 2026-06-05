@@ -23,10 +23,7 @@ export default function MessageList({
   onEditSubmit,
 }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
+  const lastBotRef = useRef<HTMLDivElement>(null);
 
   const lastUserMessageId = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i--) {
@@ -34,6 +31,29 @@ export default function MessageList({
     }
     return null;
   }, [messages]);
+
+  const lastBotMessageId = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'bot') return messages[i].id;
+    }
+    return null;
+  }, [messages]);
+
+  // When the most-recent message is a BOT question, align its TOP to the top
+  // of the scroll viewport so the full question is readable from the first
+  // line down (long questions were previously scrolled so their top was
+  // pushed above the fold / behind the sticky header). Otherwise (a user
+  // answer just sent, or the typing indicator) keep the conversation pinned
+  // to the bottom.
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    const showFromTop = !isTyping && lastMessage?.role === 'bot' && lastBotRef.current;
+    if (showFromTop && lastBotRef.current) {
+      lastBotRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [messages, isTyping]);
 
   return (
     <div
@@ -53,7 +73,8 @@ export default function MessageList({
       <div className="max-w-3xl mx-auto w-full space-y-4 relative mt-auto">
         {messages.map((message, index) => {
           const isLatestUser = message.id === lastUserMessageId;
-          return (
+          const isLatestBot = message.id === lastBotMessageId;
+          const bubble = (
             <MessageBubble
               key={message.id}
               message={message}
@@ -62,6 +83,17 @@ export default function MessageList({
               onEditSubmit={onEditSubmit}
             />
           );
+          // Wrap the latest bot message in a scroll-target with a top margin
+          // that clears the sticky header so the question's first line is
+          // always visible.
+          if (isLatestBot) {
+            return (
+              <div key={message.id} ref={lastBotRef} style={{ scrollMarginTop: '12px' }}>
+                {bubble}
+              </div>
+            );
+          }
+          return bubble;
         })}
 
         {isTyping && <TypingIndicator />}

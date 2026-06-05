@@ -7,7 +7,7 @@
   "nodes": {
     "welcome": {
       "type": "message",
-      "content": "👋 Parents, please complete this questionnaire to provide a holistic overview of your child, including their learning profile as well as their social, emotional, mental health, speech and language and sensory needs.",
+      "content": "👋 Welcome. Please complete this questionnaire to provide a holistic overview of your child, including their learning profile alongside their social, emotional, mental health, speech and language, and sensory needs.",
       "next": "student_age",
       "metadata": {
         "category": "intro",
@@ -16,7 +16,7 @@
     },
     "student_age": {
       "type": "mcq",
-      "question": "How old is your child?",
+      "question": "How old is {student_name}?",
       "category": "background",
       "options": [
         {
@@ -64,7 +64,7 @@
     },
     "background_1": {
       "type": "text",
-      "question": "Why are you seeking an assessment now? Top three concerns in your own words.",
+      "question": "Why are you seeking an assessment for {student_name} at this time? Please describe your three main concerns in your own words.",
       "category": "background",
       "next": "background_2",
       "text_prompt": "Please type your answer:",
@@ -76,7 +76,7 @@
     },
     "background_2": {
       "type": "mcq",
-      "question": "Which areas are of concern? (tick all that apply)",
+      "question": "Which areas are of concern for {student_name}? (please select all that apply)",
       "category": "background",
       "options": [
         {
@@ -161,7 +161,7 @@
     },
     "background_3": {
       "type": "mcq",
-      "question": "How long have you had these concerns?",
+      "question": "How long have these concerns about {student_name} been present?",
       "category": "background",
       "options": [
         {
@@ -200,7 +200,7 @@
     },
     "background_4": {
       "type": "mcq",
-      "question": "Has anyone (school, GP, family member) suggested a possible diagnosis?",
+      "question": "Has anyone (for example school, GP or a family member) suggested a possible diagnosis for {student_name}?",
       "category": "background",
       "options": [
         {
@@ -252,7 +252,7 @@
     },
     "background_5": {
       "type": "mcq",
-      "question": "Do you need this report for a specific reason?",
+      "question": "Do you require this report for a particular purpose?",
       "category": "background",
       "options": [
         {
@@ -291,7 +291,7 @@
     },
     "family_1": {
       "type": "mcq",
-      "question": "Who lives at home with your child? (term-time)",
+      "question": "Who lives at home with {student_name} during term-time?",
       "category": "family",
       "options": [
         {
@@ -335,7 +335,7 @@
     },
     "family_2": {
       "type": "text",
-      "question": "Are there any special family circumstances we should know about? (illness, bereavement, separation, relocation)",
+      "question": "Are there any particular family circumstances it would be helpful for the assessor to be aware of (for example illness, bereavement, separation or relocation)?",
       "category": "family",
       "next": "family_3",
       "text_prompt": "Please type your answer:",
@@ -347,7 +347,7 @@
     },
     "family_3": {
       "type": "mcq",
-      "question": "Family history (tick all that apply):",
+      "question": "Is there any family history of the following? (please select all that apply)",
       "category": "family",
       "options": [
         {
@@ -415,7 +415,7 @@
     },
     "family_4": {
       "type": "mcq",
-      "question": "Languages spoken at home",
+      "question": "Which languages are spoken in {student_name}'s home?",
       "category": "family",
       "options": [
         {
@@ -449,7 +449,7 @@
     },
     "family_5": {
       "type": "text",
-      "question": "If bilingual, at what age was each language introduced?",
+      "question": "If {student_name} is bilingual, at what age was each language introduced?",
       "category": "family",
       "next": "birth_history_1",
       "text_prompt": "Please type your answer:",
@@ -461,7 +461,7 @@
     },
     "birth_history_1": {
       "type": "mcq",
-      "question": "Was your child born at full term?",
+      "question": "Was {student_name} born at full term?",
       "category": "birth_history",
       "options": [
         {
@@ -499,7 +499,7 @@
     },
     "birth_history_2": {
       "type": "mcq",
-      "question": "Were there any concerns at birth (NICU/SCBU, jaundice, breathing)?",
+      "question": "Were there any concerns at {student_name}'s birth (for example NICU/SCBU admission, jaundice or breathing difficulties)?",
       "category": "birth_history",
       "options": [
         {
@@ -537,7 +537,7 @@
     },
     "dev_milestones_1": {
       "type": "mcq",
-      "question": "Did your child reach early motor milestones (sitting, crawling, walking) within the usual time frames?",
+      "question": "Did {student_name} reach early motor milestones (such as sitting, crawling and walking) within the usual time frames?",
       "category": "dev_milestones",
       "options": [
         {
@@ -577,7 +577,7 @@
     },
     "dev_milestones_2": {
       "type": "mcq",
-      "question": "When did your child say single words and combine them into sentences?",
+      "question": "At what stage did {student_name} begin saying single words and combining them into sentences?",
       "category": "dev_milestones",
       "options": [
         {
@@ -617,7 +617,7 @@
     },
     "dev_milestones_3": {
       "type": "mcq",
-      "question": "Were there any fine motor concerns (pencil grip, cutlery, buttons, laces)?",
+      "question": "Have there been any fine motor concerns for {student_name} (for example pencil grip, using cutlery, fastening buttons or tying laces)?",
       "category": "dev_milestones",
       "options": [
         {
@@ -663,7 +663,7 @@
     },
     "dev_milestones_4": {
       "type": "mcq",
-      "question": "Has your child ever received Speech & Language Therapy?",
+      "question": "Has {student_name} ever received Speech & Language Therapy?",
       "category": "dev_milestones",
       "options": [
         {
@@ -701,7 +701,7 @@
     },
     "dev_milestones_5": {
       "type": "mcq",
-      "question": "Has your child ever received Occupational Therapy?",
+      "question": "Has {student_name} ever received Occupational Therapy?",
       "category": "dev_milestones",
       "options": [
         {
@@ -739,7 +739,7 @@
     },
     "dev_milestones_6": {
       "type": "mcq",
-      "question": "Which hand does your child use for writing?",
+      "question": "Which hand does {student_name} use for writing?",
       "category": "dev_milestones",
       "options": [
         {
@@ -773,7 +773,7 @@
     },
     "health_1": {
       "type": "mcq",
-      "question": "Is your child's health generally good?",
+      "question": "How would you describe {student_name}'s general health?",
       "category": "health",
       "options": [
         {
@@ -810,7 +810,7 @@
     },
     "health_2": {
       "type": "mcq",
-      "question": "Any history of significant illness, injury, hospital admission or operation?",
+      "question": "Does {student_name} have any history of significant illness, injury, hospital admission or operation?",
       "category": "health",
       "options": [
         {
@@ -845,7 +845,7 @@
     },
     "health_3": {
       "type": "mcq",
-      "question": "Is your child taking any regular medication?",
+      "question": "Does {student_name} take any regular medication?",
       "category": "health",
       "options": [
         {
@@ -882,7 +882,7 @@
     },
     "health_4": {
       "type": "mcq",
-      "question": "How would you describe your child's sleep?",
+      "question": "How would you describe {student_name}'s sleep?",
       "category": "health",
       "options": [
         {
@@ -921,7 +921,7 @@
     },
     "health_5": {
       "type": "mcq",
-      "question": "Any specialised diet, food allergies, or selective eating?",
+      "question": "Does {student_name} have any specialised diet, food allergies or selective eating?",
       "category": "health",
       "options": [
         {
@@ -964,7 +964,7 @@
     },
     "vision_hearing_1": {
       "type": "mcq",
-      "question": "Has your child's vision been assessed recently?",
+      "question": "Has {student_name}'s vision been assessed recently?",
       "category": "vision_hearing",
       "options": [
         {
@@ -1009,7 +1009,7 @@
     },
     "vision_hearing_2": {
       "type": "mcq",
-      "question": "Has your child's hearing been assessed in the last 2 years?",
+      "question": "Has {student_name}'s hearing been assessed within the last 2 years?",
       "category": "vision_hearing",
       "options": [
         {
@@ -1046,7 +1046,7 @@
     },
     "sensory_motor_1": {
       "type": "mcq",
-      "question": "Any sensory sensitivities (sound, light, touch, food textures, clothing)?",
+      "question": "Does {student_name} have any sensory sensitivities (for example to sound, light, touch, food textures or clothing)?",
       "category": "sensory_motor",
       "options": [
         {
@@ -1092,7 +1092,7 @@
     },
     "sensory_motor_2": {
       "type": "mcq",
-      "question": "How would you rate current gross motor skills (walking, balance, riding a bike)?",
+      "question": "How would you describe {student_name}'s current gross motor skills (for example walking, balance and riding a bike)?",
       "category": "sensory_motor",
       "options": [
         {
@@ -1129,7 +1129,7 @@
     },
     "attention_1": {
       "type": "mcq",
-      "question": "Is your child forgetful for their age?",
+      "question": "Does {student_name} tend to be forgetful for their age?",
       "category": "attention",
       "options": [
         {
@@ -1183,7 +1183,7 @@
     },
     "attention_2": {
       "type": "mcq",
-      "question": "Does your child have attention and concentration difficulties?",
+      "question": "Does {student_name} experience difficulties with attention and concentration?",
       "category": "attention",
       "options": [
         {
@@ -1237,7 +1237,7 @@
     },
     "attention_3": {
       "type": "mcq",
-      "question": "Can your child hyperfocus on a preferred activity (gaming, sport, music, art)?",
+      "question": "Is {student_name} able to focus intensely on a preferred activity (for example gaming, sport, music or art)?",
       "category": "attention",
       "options": [
         {
@@ -1277,7 +1277,7 @@
     },
     "attention_4": {
       "type": "mcq",
-      "question": "Concerns about impulsivity, fidgeting, or restlessness?",
+      "question": "Are there any concerns about impulsivity, fidgeting or restlessness in {student_name}?",
       "category": "attention",
       "options": [
         {
@@ -1323,7 +1323,7 @@
     },
     "attention_5": {
       "type": "mcq",
-      "question": "Does your child follow multi-step instructions?",
+      "question": "Is {student_name} able to follow multi-step instructions?",
       "category": "attention",
       "options": [
         {
@@ -1377,7 +1377,7 @@
     },
     "social_1": {
       "type": "mcq",
-      "question": "Is your child happy at school?",
+      "question": "Does {student_name} appear happy at school?",
       "category": "social",
       "options": [
         {
@@ -1431,7 +1431,7 @@
     },
     "social_2": {
       "type": "mcq",
-      "question": "Is your child happy at home?",
+      "question": "Does {student_name} appear happy at home?",
       "category": "social",
       "options": [
         {
@@ -1485,7 +1485,7 @@
     },
     "social_3": {
       "type": "mcq",
-      "question": "Friendships:",
+      "question": "Which of the following best describes {student_name}'s friendships?",
       "category": "social",
       "options": [
         {
@@ -1527,7 +1527,7 @@
     },
     "social_4": {
       "type": "mcq",
-      "question": "Any history of bullying?",
+      "question": "Does {student_name} have any history of being involved in bullying?",
       "category": "social",
       "options": [
         {
@@ -1567,7 +1567,7 @@
     },
     "social_5": {
       "type": "mcq",
-      "question": "How does your child react when a task is difficult?",
+      "question": "How does {student_name} typically react when a task is difficult?",
       "category": "social",
       "options": [
         {
@@ -1616,7 +1616,7 @@
     },
     "social_6": {
       "type": "mcq",
-      "question": "Do you notice difficulties with confidence, self-esteem or anxiety around schoolwork?",
+      "question": "Have you noticed any difficulties with {student_name}'s confidence, self-esteem or anxiety in relation to schoolwork?",
       "category": "social",
       "options": [
         {
@@ -1670,7 +1670,7 @@
     },
     "social_7": {
       "type": "mcq",
-      "question": "Has your child ever spoken to a counsellor, therapist, CAMHS or psychiatrist?",
+      "question": "Has {student_name} ever spoken with a counsellor, therapist, CAMHS or psychiatrist?",
       "category": "social",
       "options": [
         {
@@ -1713,7 +1713,7 @@
     },
     "education_1": {
       "type": "mcq",
-      "question": "Has your child attended Nursery/Pre-School?",
+      "question": "Has {student_name} attended Nursery/Pre-School?",
       "category": "education",
       "options": [
         {
@@ -1742,7 +1742,7 @@
     },
     "education_2": {
       "type": "mcq",
-      "question": "Has your child changed schools at any point?",
+      "question": "Has {student_name} changed schools at any point?",
       "category": "education",
       "options": [
         {
@@ -1769,7 +1769,7 @@
     },
     "education_3": {
       "type": "text",
-      "question": "If yes, please explain the reasons for the move(s).",
+      "question": "If so, please explain the reasons for the move(s).",
       "category": "education",
       "next": "education_4",
       "text_prompt": "Please type your answer:",
@@ -1781,7 +1781,7 @@
     },
     "education_4": {
       "type": "mcq",
-      "question": "Were there any periods of absence from school or difficulties attending school?",
+      "question": "Have there been any periods of absence from school, or any difficulties with {student_name} attending school?",
       "category": "education",
       "options": [
         {
@@ -1808,7 +1808,7 @@
     },
     "education_5": {
       "type": "text",
-      "question": "If yes, please explain in more detail.",
+      "question": "If so, please provide further detail.",
       "category": "education",
       "next": "education_6",
       "text_prompt": "Please type your answer:",
@@ -1820,7 +1820,7 @@
     },
     "education_6": {
       "type": "mcq",
-      "question": "Has your child ever been excluded, or placed on a reduced timetable?",
+      "question": "Has {student_name} ever been excluded or placed on a reduced timetable?",
       "category": "education",
       "options": [
         {
@@ -1847,7 +1847,7 @@
     },
     "education_7": {
       "type": "text",
-      "question": "If yes, please explain in more detail.",
+      "question": "If so, please provide further detail.",
       "category": "education",
       "next": "education_8",
       "text_prompt": "Please type your answer:",
@@ -1859,7 +1859,7 @@
     },
     "education_8": {
       "type": "mcq",
-      "question": "Has your child's start in formal education been disrupted (COVID, illness, school refusal, frequent moves)?",
+      "question": "Has {student_name}'s start in formal education been disrupted (for example by COVID, illness, school refusal or frequent moves)?",
       "category": "education",
       "options": [
         {
@@ -1897,7 +1897,7 @@
     },
     "education_9": {
       "type": "mcq",
-      "question": "Does your child currently have an EHCP?",
+      "question": "Does {student_name} currently have an EHCP?",
       "category": "education",
       "options": [
         {
@@ -1943,7 +1943,7 @@
     },
     "education_10": {
       "type": "mcq",
-      "question": "Does your child have an IEP / Provision Plan?",
+      "question": "Does {student_name} have an IEP / Provision Plan?",
       "category": "education",
       "options": [
         {
@@ -1980,7 +1980,7 @@
     },
     "education_11": {
       "type": "mcq",
-      "question": "Does your child receive any additional support at school?",
+      "question": "Does {student_name} receive any additional support at school?",
       "category": "education",
       "options": [
         {
@@ -2027,7 +2027,7 @@
     },
     "education_12": {
       "type": "mcq",
-      "question": "Has your child been previously assessed by an Educational Psychologist?",
+      "question": "Has {student_name} previously been assessed by an Educational Psychologist?",
       "category": "education",
       "options": [
         {
@@ -2056,7 +2056,7 @@
     },
     "education_13": {
       "type": "mcq",
-      "question": "Has your child been assessed by other professionals? (tick all that apply)",
+      "question": "Has {student_name} been assessed by any other professionals? (please select all that apply)",
       "category": "education",
       "options": [
         {
@@ -2114,7 +2114,7 @@
     },
     "education_14": {
       "type": "text",
-      "question": "Which subjects does your child enjoy and do reasonably well in?",
+      "question": "Which subjects does {student_name} enjoy and do reasonably well in?",
       "category": "education",
       "next": "education_15",
       "text_prompt": "Please type your answer:",
@@ -2126,7 +2126,7 @@
     },
     "education_15": {
       "type": "text",
-      "question": "Which subjects does your child find difficult?",
+      "question": "Which subjects does {student_name} find difficult?",
       "category": "education",
       "next": "education_16",
       "text_prompt": "Please type your answer:",
@@ -2138,7 +2138,7 @@
     },
     "education_16": {
       "type": "mcq",
-      "question": "Has your child received any special allowances (extra time, reader) for tests / exams so far?",
+      "question": "Has {student_name} received any special allowances (for example extra time or a reader) for tests or exams so far?",
       "category": "education",
       "options": [
         {
@@ -2187,7 +2187,7 @@
     },
     "education_17": {
       "type": "text",
-      "question": "Please describe your child's attitude towards school",
+      "question": "How would you describe {student_name}'s attitude towards school?",
       "category": "education",
       "next": "education_18",
       "text_prompt": "Please type your answer:",
@@ -2199,7 +2199,7 @@
     },
     "education_18": {
       "type": "mcq",
-      "question": "Will your child be sitting any entrance / scholarship / SATs exam in the near future?",
+      "question": "Will {student_name} be sitting any entrance, scholarship or SATs exam in the near future?",
       "category": "education",
       "options": [
         {
@@ -2236,7 +2236,7 @@
     },
     "literacy_1": {
       "type": "mcq",
-      "question": "Does your child enjoy being read to / reading aloud?",
+      "question": "Does {student_name} enjoy being read to or reading aloud?",
       "category": "literacy",
       "options": [
         {
@@ -2290,7 +2290,7 @@
     },
     "literacy_2": {
       "type": "mcq",
-      "question": "Concerns about reading speed compared with peers?",
+      "question": "Are there any concerns about {student_name}'s reading speed compared with peers?",
       "category": "literacy",
       "options": [
         {
@@ -2330,7 +2330,7 @@
     },
     "literacy_3": {
       "type": "text",
-      "question": "Concerns about spelling? (Please give 2-3 examples of frequent misspellings)",
+      "question": "Are there any concerns about {student_name}'s spelling? (Please give 2-3 examples of frequent misspellings)",
       "category": "literacy",
       "next": "literacy_4",
       "text_prompt": "Please type your answer:",
@@ -2342,7 +2342,7 @@
     },
     "literacy_4": {
       "type": "mcq",
-      "question": "Does handwriting tire your child or slow them down?",
+      "question": "Does handwriting tire {student_name} or slow them down?",
       "category": "literacy",
       "options": [
         {
@@ -2396,7 +2396,7 @@
     },
     "independent_learning_1": {
       "type": "mcq",
-      "question": "Does your child use a computer / tablet at home for school work?",
+      "question": "Does {student_name} use a computer or tablet at home for schoolwork?",
       "category": "independent_learning",
       "options": [
         {
@@ -2434,7 +2434,7 @@
     },
     "independent_learning_2": {
       "type": "mcq",
-      "question": "Has your child been introduced to touch-typing?",
+      "question": "Has {student_name} been introduced to touch-typing?",
       "category": "independent_learning",
       "options": [
         {
@@ -2471,7 +2471,7 @@
     },
     "independent_learning_3": {
       "type": "mcq",
-      "question": "Does your child currently use any assistive technology (reading pen, audiobooks, speech-to-text)?",
+      "question": "Does {student_name} currently use any assistive technology (for example a reading pen, audiobooks or speech-to-text)?",
       "category": "independent_learning",
       "options": [
         {
@@ -2518,7 +2518,7 @@
     },
     "independent_learning_4": {
       "type": "mcq",
-      "question": "Is your child receiving any private tutoring, therapy, or coaching outside school?",
+      "question": "Is {student_name} receiving any private tutoring, therapy or coaching outside school?",
       "category": "independent_learning",
       "options": [
         {
@@ -2560,7 +2560,7 @@
     },
     "strengths_1": {
       "type": "text",
-      "question": "What does your child love doing? (hobbies, sports, clubs, passions)",
+      "question": "What does {student_name} love doing? (for example hobbies, sports, clubs and passions)",
       "category": "strengths",
       "next": "strengths_2",
       "text_prompt": "Please type your answer:",
@@ -2572,7 +2572,7 @@
     },
     "strengths_2": {
       "type": "text",
-      "question": "What are your child's strengths, as you see them?",
+      "question": "What are {student_name}'s strengths, as you see them?",
       "category": "strengths",
       "next": "strengths_3",
       "text_prompt": "Please type your answer:",
@@ -2584,7 +2584,7 @@
     },
     "strengths_3": {
       "type": "text",
-      "question": "In three words, how would you describe your child?",
+      "question": "In three words, how would you describe {student_name}?",
       "category": "strengths",
       "next": "closing_1",
       "text_prompt": "Please type your answer:",
@@ -2596,7 +2596,7 @@
     },
     "closing_1": {
       "type": "text",
-      "question": "Is there anything else you would like the psychologist to know that has not been covered?",
+      "question": "Is there anything else you would like the psychologist to know about {student_name} that has not been covered?",
       "category": "closing",
       "next": "closing_2",
       "text_prompt": "Please type your answer:",
