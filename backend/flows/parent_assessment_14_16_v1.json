@@ -1234,7 +1234,7 @@
     },
     "literacy_3": {
       "type": "mcq",
-      "question": "Concerns about spelling?",
+      "question": "Are there any concerns about spelling?",
       "category": "literacy",
       "options": [
         {
@@ -1288,7 +1288,7 @@
     },
     "literacy_4": {
       "type": "mcq",
-      "question": "Concerns about handwriting legibility / speed under pressure?",
+      "question": "Are there any concerns about handwriting legibility / speed under pressure?",
       "category": "literacy",
       "options": [
         {
@@ -1342,7 +1342,7 @@
     },
     "literacy_5": {
       "type": "mcq",
-      "question": "Concerns about numeracy / mental arithmetic?",
+      "question": "Are there any concerns about numeracy / mental arithmetic?",
       "category": "literacy",
       "options": [
         {
@@ -1541,7 +1541,7 @@
     },
     "literacy_9": {
       "type": "mcq",
-      "question": "Concerns about attention, daydreaming, lateness, organisation?",
+      "question": "Are there any concerns about attention, daydreaming, lateness, organisation?",
       "category": "literacy",
       "options": [
         {

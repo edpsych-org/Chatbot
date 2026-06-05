@@ -1887,7 +1887,7 @@
     },
     "attention_7": {
       "type": "mcq",
-      "question": "Concerns about impulsivity, fidgeting or restlessness?",
+      "question": "Are there any concerns about impulsivity, fidgeting or restlessness?",
       "category": "attention",
       "options": [
         {

@@ -1277,7 +1277,7 @@
     },
     "attention_4": {
       "type": "mcq",
-      "question": "Concerns about impulsivity, fidgeting, or restlessness?",
+      "question": "Are there any concerns about impulsivity, fidgeting, or restlessness?",
       "category": "attention",
       "options": [
         {
@@ -2290,7 +2290,7 @@
     },
     "literacy_2": {
       "type": "mcq",
-      "question": "Concerns about reading speed compared with peers?",
+      "question": "Are there any concerns about reading speed compared with peers?",
       "category": "literacy",
       "options": [
         {
@@ -2330,7 +2330,7 @@
     },
     "literacy_3": {
       "type": "text",
-      "question": "Concerns about spelling? (Please give 2-3 examples of frequent misspellings)",
+      "question": "Are there any concerns about spelling? (Please give 2-3 examples of frequent misspellings)",
       "category": "literacy",
       "next": "literacy_4",
       "text_prompt": "Please type your answer:",
