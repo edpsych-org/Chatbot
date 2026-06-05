@@ -7,7 +7,7 @@
   "nodes": {
     "welcome": {
       "type": "message",
-      "content": "👋 Parents, please complete this questionnaire to provide a holistic overview of your child, including their learning profile as well as their social, emotional, mental health, speech and language and sensory needs.",
+      "content": "👋 Parents, please complete this questionnaire to provide a holistic overview of {student_name}, including their learning profile as well as their social, emotional, mental health, speech and language and sensory needs.",
       "next": "student_age",
       "metadata": {
         "category": "intro",
@@ -16,7 +16,7 @@
     },
     "student_age": {
       "type": "mcq",
-      "question": "How old is your child?",
+      "question": "How old is {student_name}?",
       "category": "background",
       "options": [
         {
@@ -64,7 +64,7 @@
     },
     "background_1": {
       "type": "text",
-      "question": "Why are you seeking an assessment now?",
+      "question": "Why are you seeking an assessment for {student_name} at this time?",
       "category": "background",
       "next": "background_2",
       "text_prompt": "Please type your answer:",
@@ -76,7 +76,7 @@
     },
     "background_2": {
       "type": "mcq",
-      "question": "Which areas are of concern? (tick all that apply)",
+      "question": "Which of the following areas are of concern for {student_name}? (Please select all that apply.)",
       "category": "background",
       "options": [
         {
@@ -151,7 +151,7 @@
     },
     "background_3": {
       "type": "mcq",
-      "question": "Do you need this report for a specific reason?",
+      "question": "Do you require this report for {student_name} for a specific purpose?",
       "category": "background",
       "options": [
         {
@@ -200,7 +200,7 @@
     },
     "background_4": {
       "type": "mcq",
-      "question": "Current status",
+      "question": "Which of the following best describes {student_name}'s current status?",
       "category": "background",
       "options": [
         {
@@ -244,7 +244,7 @@
     },
     "background_5": {
       "type": "mcq",
-      "question": "Has any prior diagnosis been suggested?",
+      "question": "Has any previous diagnosis been suggested for {student_name}?",
       "category": "background",
       "options": [
         {
@@ -281,7 +281,7 @@
     },
     "family_1": {
       "type": "mcq",
-      "question": "Family composition / who do you live with during term time?",
+      "question": "Who does {student_name} typically live with during term time?",
       "category": "family",
       "options": [
         {
@@ -320,7 +320,7 @@
     },
     "family_2": {
       "type": "mcq",
-      "question": "Family history of SpLD / ADHD / ASD / anxiety / depression",
+      "question": "Is there any family history of Specific Learning Difficulties (SpLD), ADHD, ASD, anxiety or depression within {student_name}'s family?",
       "category": "family",
       "options": [
         {
@@ -357,7 +357,7 @@
     },
     "family_3": {
       "type": "mcq",
-      "question": "Any significant life events in the last 18 months?",
+      "question": "Has {student_name} experienced any significant life events within the last 18 months?",
       "category": "family",
       "options": [
         {
@@ -404,7 +404,7 @@
     },
     "family_4": {
       "type": "mcq",
-      "question": "Languages spoken at home",
+      "question": "Which languages are spoken in {student_name}'s home?",
       "category": "family",
       "options": [
         {
@@ -438,7 +438,7 @@
     },
     "dev_milestones_1": {
       "type": "mcq",
-      "question": "Did you achieve early milestones (walking, talking) on time, as far as you know?",
+      "question": "As far as you are aware, did {student_name} achieve early developmental milestones (such as walking and talking) within the expected timeframe?",
       "category": "dev_milestones",
       "options": [
         {
@@ -475,7 +475,7 @@
     },
     "dev_milestones_2": {
       "type": "mcq",
-      "question": "Hearing / vision concerns in childhood (grommets, glasses)?",
+      "question": "Did {student_name} have any hearing or vision concerns during childhood (for example, grommets or glasses)?",
       "category": "dev_milestones",
       "options": [
         {
@@ -512,7 +512,7 @@
     },
     "dev_milestones_3": {
       "type": "mcq",
-      "question": "Which hand do you write with?",
+      "question": "Which hand does {student_name} usually write with?",
       "category": "dev_milestones",
       "options": [
         {
@@ -541,7 +541,7 @@
     },
     "dev_milestones_4": {
       "type": "mcq",
-      "question": "Were you ever assessed in childhood (EP, SaLT, OT, paediatrician)?",
+      "question": "Was {student_name} ever assessed during childhood (for example, by an Educational Psychologist, Speech and Language Therapist, Occupational Therapist or paediatrician)?",
       "category": "dev_milestones",
       "options": [
         {
@@ -578,7 +578,7 @@
     },
     "health_1": {
       "type": "mcq",
-      "question": "Currently taking any medication?",
+      "question": "Is {student_name} currently taking any medication?",
       "category": "health",
       "options": [
         {
@@ -615,7 +615,7 @@
     },
     "health_2": {
       "type": "mcq",
-      "question": "Sleep quality",
+      "question": "How would you describe the quality of {student_name}'s sleep?",
       "category": "health",
       "options": [
         {
@@ -652,7 +652,7 @@
     },
     "health_3": {
       "type": "mcq",
-      "question": "Substance use - alcohol, recreational drugs (sensitive question, optional)",
+      "question": "Does {student_name} use any substances, such as alcohol or recreational drugs? (This is a sensitive question and is optional.)",
       "category": "health",
       "options": [
         {
@@ -695,7 +695,7 @@
     },
     "education_1": {
       "type": "mcq",
-      "question": "GCSE results profile",
+      "question": "How would you describe {student_name}'s GCSE results profile?",
       "category": "education",
       "options": [
         {
@@ -737,7 +737,7 @@
     },
     "education_2": {
       "type": "mcq",
-      "question": "A-Level / equivalent profile",
+      "question": "How would you describe {student_name}'s A-Level or equivalent results profile?",
       "category": "education",
       "options": [
         {
@@ -784,7 +784,7 @@
     },
     "education_3": {
       "type": "mcq",
-      "question": "Have you ever held formal Access Arrangements at school / college / university?",
+      "question": "Has {student_name} ever held formal Access Arrangements at school, college or university?",
       "category": "education",
       "options": [
         {
@@ -836,7 +836,7 @@
     },
     "education_4": {
       "type": "mcq",
-      "question": "Did you have multiple school changes?",
+      "question": "Did {student_name} experience multiple changes of school?",
       "category": "education",
       "options": [
         {
@@ -863,7 +863,7 @@
     },
     "education_5": {
       "type": "text",
-      "question": "If yes, please explain the reasons for the move(s).",
+      "question": "If so, please describe the reasons for the move or moves.",
       "category": "education",
       "next": "education_6",
       "text_prompt": "Please type your answer:",
@@ -875,7 +875,7 @@
     },
     "education_6": {
       "type": "mcq",
-      "question": "Have you had any periods of absence from education or difficulties attending school/university?",
+      "question": "Has {student_name} had any periods of absence from education, or any difficulties attending school or university?",
       "category": "education",
       "options": [
         {
@@ -902,7 +902,7 @@
     },
     "education_7": {
       "type": "text",
-      "question": "If yes, please explain in more detail.",
+      "question": "If so, please provide further detail.",
       "category": "education",
       "next": "education_8",
       "text_prompt": "Please type your answer:",
@@ -914,7 +914,7 @@
     },
     "education_8": {
       "type": "mcq",
-      "question": "Were there any concerns raised at school/university?",
+      "question": "Were any concerns raised about {student_name} at school or university?",
       "category": "education",
       "options": [
         {
@@ -941,7 +941,7 @@
     },
     "education_9": {
       "type": "text",
-      "question": "If yes, please explain in more detail.",
+      "question": "If so, please provide further detail.",
       "category": "education",
       "next": "education_10",
       "text_prompt": "Please type your answer:",
@@ -953,7 +953,7 @@
     },
     "education_10": {
       "type": "text",
-      "question": "Current university course + year (or most recent if graduated)",
+      "question": "What is {student_name}'s current university course and year of study (or the most recent, if they have graduated)?",
       "category": "education",
       "next": "education_11",
       "text_prompt": "Please type your answer:",
@@ -965,7 +965,7 @@
     },
     "education_11": {
       "type": "mcq",
-      "question": "Independence at university - accommodation, cooking, laundry, social, finance",
+      "question": "How is {student_name} managing with independent living at university (for example, accommodation, cooking, laundry, social life and finances)?",
       "category": "education",
       "options": [
         {
@@ -1005,7 +1005,7 @@
     },
     "education_12": {
       "type": "mcq",
-      "question": "Lecture engagement - can you sustain attention through a 50-60 min lecture?",
+      "question": "To what extent can {student_name} sustain attention throughout a 50 to 60 minute lecture?",
       "category": "education",
       "options": [
         {
@@ -1045,7 +1045,7 @@
     },
     "education_13": {
       "type": "mcq",
-      "question": "How do you cope with the volume of university reading lists?",
+      "question": "How does {student_name} manage the volume of university reading lists?",
       "category": "education",
       "options": [
         {
@@ -1087,7 +1087,7 @@
     },
     "education_14": {
       "type": "mcq",
-      "question": "Group work / seminars - any communication or participation difficulties?",
+      "question": "To what extent does {student_name} experience communication or participation difficulties during group work or seminars?",
       "category": "education",
       "options": [
         {
@@ -1138,7 +1138,7 @@
     },
     "education_15": {
       "type": "mcq",
-      "question": "Considered taking a year out / changing course / mitigating circumstances?",
+      "question": "Has {student_name} considered taking a year out, changing course, or applying for mitigating circumstances?",
       "category": "education",
       "options": [
         {
@@ -1178,7 +1178,7 @@
     },
     "education_16": {
       "type": "mcq",
-      "question": "In paid employment alongside study?",
+      "question": "Is {student_name} in paid employment alongside their studies?",
       "category": "education",
       "options": [
         {
@@ -1215,7 +1215,7 @@
     },
     "education_17": {
       "type": "mcq",
-      "question": "Registered with University Disability Service / Study Needs Assessment held?",
+      "question": "Is {student_name} registered with the University Disability Service, and has a Study Needs Assessment been carried out?",
       "category": "education",
       "options": [
         {
@@ -1249,7 +1249,7 @@
     },
     "education_18": {
       "type": "mcq",
-      "question": "In receipt of DSA (Disabled Students' Allowance)?",
+      "question": "Is {student_name} in receipt of the Disabled Students' Allowance (DSA)?",
       "category": "education",
       "options": [
         {
@@ -1283,7 +1283,7 @@
     },
     "education_19": {
       "type": "mcq",
-      "question": "How are university exams currently invigilated?",
+      "question": "How are {student_name}'s university examinations currently sat or invigilated?",
       "category": "education",
       "options": [
         {
@@ -1322,7 +1322,7 @@
     },
     "education_20": {
       "type": "mcq",
-      "question": "Currently in employment?",
+      "question": "Is {student_name} currently in employment?",
       "category": "education",
       "options": [
         {
@@ -1359,7 +1359,7 @@
     },
     "education_21": {
       "type": "mcq",
-      "question": "Which workplace tasks do you find most challenging?",
+      "question": "Which workplace tasks does {student_name} tend to find most challenging?",
       "category": "education",
       "options": [
         {
@@ -1418,7 +1418,7 @@
     },
     "education_22": {
       "type": "mcq",
-      "question": "Aware of the Equality Act 2010 and right to reasonable adjustments?",
+      "question": "Is {student_name} aware of the Equality Act 2010 and their entitlement to reasonable adjustments?",
       "category": "education",
       "options": [
         {
@@ -1452,7 +1452,7 @@
     },
     "education_23": {
       "type": "mcq",
-      "question": "Have any workplace adjustments been agreed?",
+      "question": "Have any workplace adjustments been agreed for {student_name}?",
       "category": "education",
       "options": [
         {
@@ -1504,7 +1504,7 @@
     },
     "education_24": {
       "type": "mcq",
-      "question": "Have you experienced workplace burnout, sickness absence or performance reviews tied to your difficulties?",
+      "question": "Has {student_name} experienced workplace burnout, sickness absence, or performance reviews linked to their difficulties?",
       "category": "education",
       "options": [
         {
@@ -1550,7 +1550,7 @@
     },
     "education_25": {
       "type": "mcq",
-      "question": "Access to Work scheme - applied?",
+      "question": "Has {student_name} applied to the Access to Work scheme?",
       "category": "education",
       "options": [
         {
@@ -1584,7 +1584,7 @@
     },
     "attention_1": {
       "type": "mcq",
-      "question": "Reading speed compared with peers",
+      "question": "How would you describe {student_name}'s reading speed in comparison with their peers?",
       "category": "attention",
       "options": [
         {
@@ -1624,7 +1624,7 @@
     },
     "attention_2": {
       "type": "mcq",
-      "question": "Do you re-read material before it goes in?",
+      "question": "Does {student_name} typically need to re-read material before it is understood or retained?",
       "category": "attention",
       "options": [
         {
@@ -1675,7 +1675,7 @@
     },
     "attention_3": {
       "type": "mcq",
-      "question": "Spelling difficulties?",
+      "question": "Does {student_name} experience difficulties with spelling?",
       "category": "attention",
       "options": [
         {
@@ -1726,7 +1726,7 @@
     },
     "attention_4": {
       "type": "mcq",
-      "question": "Working memory - lose track of instructions?",
+      "question": "Does {student_name} tend to lose track of instructions, or forget where they had reached in a task?",
       "category": "attention",
       "options": [
         {
@@ -1777,7 +1777,7 @@
     },
     "attention_5": {
       "type": "mcq",
-      "question": "Processing speed - feel slower than peers?",
+      "question": "Does {student_name} appear to work more slowly than their peers, even when they understand the material?",
       "category": "attention",
       "options": [
         {
@@ -1828,7 +1828,7 @@
     },
     "attention_6": {
       "type": "mcq",
-      "question": "Attention difficulties - distractibility / zoning out?",
+      "question": "Does {student_name} experience attention difficulties, such as distractibility or appearing to lose focus?",
       "category": "attention",
       "options": [
         {
@@ -1879,7 +1879,7 @@
     },
     "attention_7": {
       "type": "mcq",
-      "question": "Note-taking method",
+      "question": "Which of the following methods does {student_name} usually use to take notes?",
       "category": "attention",
       "options": [
         {
@@ -1918,7 +1918,7 @@
     },
     "attention_8": {
       "type": "mcq",
-      "question": "Use of assistive technology",
+      "question": "Does {student_name} use any assistive technology?",
       "category": "attention",
       "options": [
         {
@@ -1970,7 +1970,7 @@
     },
     "emotional_1": {
       "type": "mcq",
-      "question": "Mental-health support history",
+      "question": "Has {student_name} accessed any mental health support, either currently or in the past?",
       "category": "emotional",
       "options": [
         {
@@ -2017,7 +2017,7 @@
     },
     "emotional_2": {
       "type": "mcq",
-      "question": "Burnout - extended late-night working, sustained sleep deprivation?",
+      "question": "Has {student_name} experienced signs of burnout, such as extended late-night working or sustained sleep deprivation?",
       "category": "emotional",
       "options": [
         {
@@ -2068,7 +2068,7 @@
     },
     "emotional_3": {
       "type": "mcq",
-      "question": "Social isolation since starting HE / work?",
+      "question": "Has {student_name} experienced social isolation since beginning higher education or employment?",
       "category": "emotional",
       "options": [
         {
@@ -2119,7 +2119,7 @@
     },
     "emotional_4": {
       "type": "mcq",
-      "question": "Test anxiety - racing thoughts, blanking, intrusive worries during exams?",
+      "question": "Does {student_name} experience exam-related anxiety, such as racing thoughts, mental blanking or intrusive worries during examinations?",
       "category": "emotional",
       "options": [
         {
@@ -2170,7 +2170,7 @@
     },
     "emotional_5": {
       "type": "mcq",
-      "question": "Any safeguarding concerns - self-harm or suicidal thoughts (sensitive)?",
+      "question": "Are there any safeguarding concerns relating to {student_name}, such as self-harm or suicidal thoughts? (This is a sensitive question.)",
       "category": "emotional",
       "options": [
         {
@@ -2210,7 +2210,7 @@
     },
     "independent_learning_1": {
       "type": "mcq",
-      "question": "Independence with daily living (cooking, cleaning, laundry, food shopping)",
+      "question": "How would you describe {student_name}'s independence with daily living tasks (for example, cooking, cleaning, laundry and food shopping)?",
       "category": "independent_learning",
       "options": [
         {
@@ -2253,7 +2253,7 @@
     },
     "independent_learning_2": {
       "type": "mcq",
-      "question": "Financial management (budgeting, bills, banking)",
+      "question": "How does {student_name} manage financially (for example, budgeting, bills and banking)?",
       "category": "independent_learning",
       "options": [
         {
@@ -2290,7 +2290,7 @@
     },
     "independent_learning_3": {
       "type": "mcq",
-      "question": "How do you manage personal admin (emails, appointments, paperwork)?",
+      "question": "How does {student_name} manage personal administration (for example, emails, appointments and paperwork)?",
       "category": "independent_learning",
       "options": [
         {
@@ -2330,7 +2330,7 @@
     },
     "independent_learning_4": {
       "type": "mcq",
-      "question": "Do you have a partner / spouse / housemate who supports you with study or work?",
+      "question": "Does {student_name} have a partner, spouse or housemate who supports them with their study or work?",
       "category": "independent_learning",
       "options": [
         {
@@ -2370,7 +2370,7 @@
     },
     "independent_learning_5": {
       "type": "mcq",
-      "question": "Have you considered taking medication or therapy for attention / mood difficulties?",
+      "question": "Has {student_name} considered medication or therapy for attention or mood difficulties?",
       "category": "independent_learning",
       "options": [
         {
@@ -2404,7 +2404,7 @@
     },
     "independent_learning_6": {
       "type": "mcq",
-      "question": "Substance use - alcohol or recreational drugs (sensitive, optional)",
+      "question": "Does {student_name} use alcohol or recreational drugs? (This is a sensitive question and is optional.)",
       "category": "independent_learning",
       "options": [
         {
@@ -2447,7 +2447,7 @@
     },
     "independent_learning_7": {
       "type": "mcq",
-      "question": "Driving licence - any difficulties learning to drive or with current driving?",
+      "question": "Has {student_name} experienced any difficulties learning to drive, or with their current driving?",
       "category": "independent_learning",
       "options": [
         {
@@ -2487,7 +2487,7 @@
     },
     "independent_learning_8": {
       "type": "mcq",
-      "question": "Exercise / physical activity routine",
+      "question": "How would you describe {student_name}'s exercise or physical activity routine?",
       "category": "independent_learning",
       "options": [
         {
@@ -2527,7 +2527,7 @@
     },
     "strengths_1": {
       "type": "text",
-      "question": "Career goals - what direction are you heading?",
+      "question": "What are {student_name}'s career goals, and in which direction do they hope to progress?",
       "category": "strengths",
       "next": "strengths_2",
       "text_prompt": "Please type your answer:",
@@ -2539,7 +2539,7 @@
     },
     "strengths_2": {
       "type": "text",
-      "question": "What are your strengths, as you see them?",
+      "question": "What are {student_name}'s strengths, as you see them?",
       "category": "strengths",
       "next": "strengths_3",
       "text_prompt": "Please type your answer:",
@@ -2551,7 +2551,7 @@
     },
     "strengths_3": {
       "type": "text",
-      "question": "Anything else you'd like the assessor to know?",
+      "question": "Is there anything else you would like the assessor to know about {student_name}?",
       "category": "strengths",
       "next": "strengths_4",
       "text_prompt": "Please type your answer:",
@@ -2563,7 +2563,7 @@
     },
     "strengths_4": {
       "type": "mcq",
-      "question": "Are you currently studying for any qualifications outside main course (CPD, professional)?",
+      "question": "Is {student_name} currently studying for any qualifications outside their main course (for example, CPD or professional qualifications)?",
       "category": "strengths",
       "options": [
         {
@@ -2603,7 +2603,7 @@
     },
     "strengths_5": {
       "type": "mcq",
-      "question": "Have any close colleagues, lecturers or supervisors flagged concerns about your work?",
+      "question": "Have any colleagues, lecturers or supervisors raised concerns about {student_name}'s work?",
       "category": "strengths",
       "options": [
         {
@@ -2640,7 +2640,7 @@
     },
     "strengths_6": {
       "type": "mcq",
-      "question": "How are you funded for your studies / supported financially?",
+      "question": "How are {student_name}'s studies funded, or how are they supported financially?",
       "category": "strengths",
       "options": [
         {
