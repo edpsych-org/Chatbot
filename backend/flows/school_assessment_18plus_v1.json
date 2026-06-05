@@ -7,7 +7,7 @@
   "nodes": {
     "welcome": {
       "type": "message",
-      "content": "👋 Schools, please complete this questionnaire to provide a holistic overview of {student_name}, including their learning profile as well as their social, emotional, mental health, speech and language and sensory needs.",
+      "content": "👋 Thank you for taking the time to complete this questionnaire. Your responses will help to provide a holistic overview of {student_name}, including their learning profile alongside their social, emotional, mental health, speech and language and sensory needs.",
       "next": "context_1",
       "metadata": {
         "category": "intro",
@@ -16,7 +16,7 @@
     },
     "context_1": {
       "type": "mcq",
-      "question": "Your role",
+      "question": "In what professional capacity are you completing this questionnaire?",
       "category": "context",
       "options": [
         {
@@ -65,7 +65,7 @@
     },
     "context_2": {
       "type": "mcq",
-      "question": "Type of institution / context",
+      "question": "Which of the following best describes the institution or setting within which you support the individual?",
       "category": "context",
       "options": [
         {
@@ -109,7 +109,7 @@
     },
     "context_3": {
       "type": "mcq",
-      "question": "How long has the student / employee been engaged with you?",
+      "question": "How long has the student or employee been known to you in your professional capacity?",
       "category": "context",
       "options": [
         {
@@ -143,7 +143,7 @@
     },
     "course_1": {
       "type": "text",
-      "question": "Current course / job role",
+      "question": "Please describe the individual's current course of study or job role.",
       "category": "course",
       "next": "course_2",
       "text_prompt": "Please type your answer:",
@@ -155,7 +155,7 @@
     },
     "course_2": {
       "type": "text",
-      "question": "Year of study (if Higher Education) or length of service (if employment)",
+      "question": "Please indicate the individual's year of study (if in Higher Education) or length of service (if in employment).",
       "category": "course",
       "next": "course_3",
       "text_prompt": "Please type your answer:",
@@ -167,7 +167,7 @@
     },
     "course_3": {
       "type": "mcq",
-      "question": "Course / job demands - tick all that apply",
+      "question": "Which of the following demands does the individual's course or role typically involve? Please select all that apply.",
       "category": "course",
       "options": [
         {
@@ -232,7 +232,7 @@
     },
     "reason_1": {
       "type": "mcq",
-      "question": "Main reason for the assessment",
+      "question": "What is the principal reason for this assessment being undertaken?",
       "category": "reason",
       "options": [
         {
@@ -281,7 +281,7 @@
     },
     "reason_2": {
       "type": "mcq",
-      "question": "Existing diagnoses on file (tick all that apply)",
+      "question": "Which existing diagnoses, if any, are recorded on file for the individual? Please select all that apply.",
       "category": "reason",
       "options": [
         {
@@ -344,7 +344,7 @@
     },
     "reason_3": {
       "type": "mcq",
-      "question": "Has the student / employee been previously assessed by an Educational Psychologist?",
+      "question": "Has the individual previously been assessed by an Educational Psychologist?",
       "category": "reason",
       "options": [
         {
@@ -381,7 +381,7 @@
     },
     "reason_4": {
       "type": "mcq",
-      "question": "Other professional involvement (tick all that apply)",
+      "question": "Which other professionals, if any, are currently involved in supporting the individual? Please select all that apply.",
       "category": "reason",
       "options": [
         {
@@ -431,7 +431,7 @@
     },
     "obs_he_1": {
       "type": "mcq",
-      "question": "Engagement with lectures / classes",
+      "question": "How would you describe the individual's engagement with lectures or classes?",
       "category": "observed_he",
       "options": [
         {
@@ -468,7 +468,7 @@
     },
     "obs_he_2": {
       "type": "mcq",
-      "question": "Engagement with reading lists / required materials",
+      "question": "How would you describe the individual's engagement with reading lists or required materials?",
       "category": "observed_he",
       "options": [
         {
@@ -505,7 +505,7 @@
     },
     "obs_he_3": {
       "type": "mcq",
-      "question": "Assignment submission - meets deadlines?",
+      "question": "To what extent does the individual meet deadlines for the submission of assignments?",
       "category": "observed_he",
       "options": [
         {
@@ -547,7 +547,7 @@
     },
     "obs_he_4": {
       "type": "mcq",
-      "question": "Quality of written assignments compared with peers",
+      "question": "How would you rate the quality of the individual's written assignments in comparison with their peers?",
       "category": "observed_he",
       "options": [
         {
@@ -581,7 +581,7 @@
     },
     "obs_he_5": {
       "type": "mcq",
-      "question": "Performance in timed exams compared with coursework",
+      "question": "How does the individual's performance in timed examinations compare with their performance in coursework?",
       "category": "observed_he",
       "options": [
         {
@@ -615,7 +615,7 @@
     },
     "obs_he_6": {
       "type": "mcq",
-      "question": "Engagement with seminar discussions / group work",
+      "question": "How would you describe the individual's engagement with seminar discussions or group work?",
       "category": "observed_he",
       "options": [
         {
@@ -649,7 +649,7 @@
     },
     "obs_he_7": {
       "type": "mcq",
-      "question": "Has the individual approached for mitigating circumstances or extensions?",
+      "question": "Has the individual approached you regarding mitigating circumstances or deadline extensions?",
       "category": "observed_he",
       "options": [
         {
@@ -686,7 +686,7 @@
     },
     "obs_workplace_1": {
       "type": "mcq",
-      "question": "Quality of written reports / emails compared with peers",
+      "question": "How would you rate the quality of the individual's written reports or emails in comparison with their peers?",
       "category": "observed_workplace",
       "options": [
         {
@@ -720,7 +720,7 @@
     },
     "obs_workplace_2": {
       "type": "mcq",
-      "question": "Time-management in workplace tasks",
+      "question": "How would you describe the individual's time-management in relation to workplace tasks?",
       "category": "observed_workplace",
       "options": [
         {
@@ -754,7 +754,7 @@
     },
     "obs_workplace_3": {
       "type": "mcq",
-      "question": "Performance in meetings (listening, contributing, follow-up)",
+      "question": "How would you describe the individual's performance in meetings, including listening, contributing and following up?",
       "category": "observed_workplace",
       "options": [
         {
@@ -788,7 +788,7 @@
     },
     "obs_workplace_4": {
       "type": "mcq",
-      "question": "Multi-tasking ability",
+      "question": "How would you describe the individual's ability to manage several tasks at once?",
       "category": "observed_workplace",
       "options": [
         {
@@ -822,7 +822,7 @@
     },
     "obs_workplace_5": {
       "type": "mcq",
-      "question": "Customer-facing / interpersonal interactions",
+      "question": "How would you describe the individual's customer-facing or interpersonal interactions?",
       "category": "observed_workplace",
       "options": [
         {
@@ -856,7 +856,7 @@
     },
     "obs_workplace_6": {
       "type": "mcq",
-      "question": "Sickness absence or extended leave related to wellbeing",
+      "question": "To what extent has the individual taken sickness absence or extended leave related to their wellbeing?",
       "category": "observed_workplace",
       "options": [
         {
@@ -896,7 +896,7 @@
     },
     "obs_workplace_7": {
       "type": "mcq",
-      "question": "Performance reviews indicate difficulties?",
+      "question": "To what extent have performance reviews identified areas of difficulty or concern?",
       "category": "observed_workplace",
       "options": [
         {
@@ -936,7 +936,7 @@
     },
     "cognition_1": {
       "type": "mcq",
-      "question": "Attention / focus during sessions (lectures / meetings)",
+      "question": "How would you describe the individual's attention and focus during sessions such as lectures or meetings?",
       "category": "cognition",
       "options": [
         {
@@ -978,7 +978,7 @@
     },
     "cognition_2": {
       "type": "mcq",
-      "question": "Memory - need information repeated, lose track of instructions?",
+      "question": "To what extent does the individual require information to be repeated, or appear to lose track of instructions?",
       "category": "cognition",
       "options": [
         {
@@ -1020,7 +1020,7 @@
     },
     "cognition_3": {
       "type": "mcq",
-      "question": "Processing speed - takes longer than peers for routine work?",
+      "question": "To what extent does the individual take longer than their peers to complete routine work?",
       "category": "cognition",
       "options": [
         {
@@ -1062,7 +1062,7 @@
     },
     "cognition_4": {
       "type": "mcq",
-      "question": "Reading speed compared with peers",
+      "question": "How would you describe the individual's reading speed in comparison with their peers?",
       "category": "cognition",
       "options": [
         {
@@ -1096,7 +1096,7 @@
     },
     "cognition_5": {
       "type": "mcq",
-      "question": "Organisation skills (planner / digital tools / no system)",
+      "question": "How would you describe the individual's organisational skills, for example their use of a planner or digital tools?",
       "category": "cognition",
       "options": [
         {
@@ -1133,7 +1133,7 @@
     },
     "cognition_6": {
       "type": "mcq",
-      "question": "Asks for help / clarification readily?",
+      "question": "To what extent does the individual seek help or clarification when needed?",
       "category": "cognition",
       "options": [
         {
@@ -1175,7 +1175,7 @@
     },
     "behaviour_1": {
       "type": "mcq",
-      "question": "Signs of anxiety in the educational / workplace setting",
+      "question": "To what extent have you observed signs of anxiety in the educational or workplace setting?",
       "category": "behaviour",
       "options": [
         {
@@ -1212,7 +1212,7 @@
     },
     "behaviour_2": {
       "type": "mcq",
-      "question": "Signs of burnout / sustained fatigue?",
+      "question": "To what extent have you observed signs of burnout or sustained fatigue?",
       "category": "behaviour",
       "options": [
         {
@@ -1254,7 +1254,7 @@
     },
     "behaviour_3": {
       "type": "mcq",
-      "question": "Signs of social isolation in the setting?",
+      "question": "To what extent have you observed signs of social isolation within the setting?",
       "category": "behaviour",
       "options": [
         {
@@ -1296,7 +1296,7 @@
     },
     "behaviour_4": {
       "type": "mcq",
-      "question": "Engagement with mental-health support (counselling, OH, EAP)?",
+      "question": "How would you describe the individual's engagement with mental-health support, such as counselling, Occupational Health or an Employee Assistance Programme?",
       "category": "behaviour",
       "options": [
         {
@@ -1333,7 +1333,7 @@
     },
     "adjustments_1": {
       "type": "mcq",
-      "question": "Adjustments / arrangements currently in place (tick all that apply)",
+      "question": "Which adjustments or arrangements are currently in place for the individual? Please select all that apply.",
       "category": "adjustments",
       "options": [
         {
@@ -1411,7 +1411,7 @@
     },
     "adjustments_2": {
       "type": "mcq",
-      "question": "DSA-funded equipment / support in place?",
+      "question": "Is any DSA-funded equipment or support currently in place for the individual?",
       "category": "adjustments",
       "options": [
         {
@@ -1455,7 +1455,7 @@
     },
     "adjustments_3": {
       "type": "mcq",
-      "question": "Workplace adjustments under Equality Act 2010 in place?",
+      "question": "Are any workplace adjustments under the Equality Act 2010 currently in place for the individual?",
       "category": "adjustments",
       "options": [
         {
@@ -1494,7 +1494,7 @@
     },
     "adjustments_4": {
       "type": "mcq",
-      "question": "Access to Work scheme - applied?",
+      "question": "Has an application been made to the Access to Work scheme?",
       "category": "adjustments",
       "options": [
         {
@@ -1533,7 +1533,7 @@
     },
     "impact_1": {
       "type": "mcq",
-      "question": "Does the student / employee manage workload independently?",
+      "question": "To what extent is the student or employee able to manage their workload independently?",
       "category": "impact",
       "options": [
         {
@@ -1570,7 +1570,7 @@
     },
     "impact_2": {
       "type": "mcq",
-      "question": "Are recent assessments / performance reviews concerning?",
+      "question": "To what extent do recent assessments or performance reviews give cause for concern?",
       "category": "impact",
       "options": [
         {
@@ -1607,7 +1607,7 @@
     },
     "impact_3": {
       "type": "mcq",
-      "question": "Are deadlines / coursework / project milestones consistently met?",
+      "question": "To what extent are deadlines, coursework or project milestones consistently met?",
       "category": "impact",
       "options": [
         {
@@ -1649,7 +1649,7 @@
     },
     "impact_4": {
       "type": "mcq",
-      "question": "Considering / has applied for course change, year out, mitigating circumstances, role change?",
+      "question": "Is the individual considering, or have they already applied for, a course change, year out, mitigating circumstances or change of role?",
       "category": "impact",
       "options": [
         {
@@ -1686,7 +1686,7 @@
     },
     "mentoring_1": {
       "type": "mcq",
-      "question": "Has the student / employee engaged with a Specialist Mentor or Study Skills tutor?",
+      "question": "Has the student or employee engaged with a Specialist Mentor or Study Skills tutor?",
       "category": "mentoring",
       "options": [
         {
@@ -1728,7 +1728,7 @@
     },
     "mentoring_2": {
       "type": "mcq",
-      "question": "Mitigating circumstances history (HE) / sickness absence history (Workplace)",
+      "question": "What is the individual's history of mitigating circumstances (in Higher Education) or sickness absence (in the workplace)?",
       "category": "mentoring",
       "options": [
         {
@@ -1765,7 +1765,7 @@
     },
     "mentoring_3": {
       "type": "mcq",
-      "question": "Quality of group / collaborative work with peers",
+      "question": "How would you describe the quality of the individual's group or collaborative work with peers?",
       "category": "mentoring",
       "options": [
         {
@@ -1799,7 +1799,7 @@
     },
     "mentoring_4": {
       "type": "mcq",
-      "question": "Independence with project / dissertation / major task work",
+      "question": "How would you describe the individual's independence when undertaking project, dissertation or major task work?",
       "category": "mentoring",
       "options": [
         {
@@ -1836,7 +1836,7 @@
     },
     "mentoring_5": {
       "type": "mcq",
-      "question": "Has the student / employee required deadline extensions this academic year / quarter?",
+      "question": "Has the student or employee required deadline extensions during this academic year or quarter?",
       "category": "mentoring",
       "options": [
         {
@@ -1873,7 +1873,7 @@
     },
     "mentoring_6": {
       "type": "mcq",
-      "question": "Engagement with Disability Service / Occupational Health communications",
+      "question": "How responsive is the individual to communications from the Disability Service or Occupational Health?",
       "category": "mentoring",
       "options": [
         {
@@ -1910,7 +1910,7 @@
     },
     "mentoring_7": {
       "type": "mcq",
-      "question": "Has the employer / institution documented adjustments formally?",
+      "question": "Has the employer or institution documented the individual's adjustments formally?",
       "category": "mentoring",
       "options": [
         {
@@ -1944,7 +1944,7 @@
     },
     "mentoring_8": {
       "type": "mcq",
-      "question": "Frequency of one-to-one tutorial / supervision meetings",
+      "question": "How frequently do one-to-one tutorial or supervision meetings take place with the individual?",
       "category": "mentoring",
       "options": [
         {
@@ -1983,7 +1983,7 @@
     },
     "mentoring_9": {
       "type": "text",
-      "question": "Specific module / project that has been a particular point of difficulty",
+      "question": "Please identify any specific module or project that has presented a particular point of difficulty for the individual.",
       "category": "mentoring",
       "next": "mentoring_10",
       "text_prompt": "Please type your answer:",
@@ -1995,7 +1995,7 @@
     },
     "mentoring_10": {
       "type": "text",
-      "question": "Specific area where the student / employee has shown notable strength",
+      "question": "Please identify any specific area in which the student or employee has demonstrated a notable strength.",
       "category": "mentoring",
       "next": "mentoring_11",
       "text_prompt": "Please type your answer:",
@@ -2007,7 +2007,7 @@
     },
     "mentoring_11": {
       "type": "mcq",
-      "question": "Has the student / employee raised wellbeing concerns this year?",
+      "question": "Has the student or employee raised any wellbeing concerns during this year?",
       "category": "mentoring",
       "options": [
         {
@@ -2041,7 +2041,7 @@
     },
     "mentoring_12": {
       "type": "mcq",
-      "question": "Has the student / employee declined offered support?",
+      "question": "Has the student or employee declined any support that has been offered to them?",
       "category": "mentoring",
       "options": [
         {
@@ -2078,7 +2078,7 @@
     },
     "mentoring_13": {
       "type": "mcq",
-      "question": "Has the student / employee changed course / role this academic year / quarter?",
+      "question": "Has the student or employee changed course or role during this academic year or quarter?",
       "category": "mentoring",
       "options": [
         {
@@ -2110,7 +2110,7 @@
     },
     "summary_1": {
       "type": "text",
-      "question": "Most recent academic / performance feedback (quote where possible)",
+      "question": "Please provide the most recent academic or performance feedback for the individual, quoting directly where possible.",
       "category": "summary",
       "next": "summary_2",
       "text_prompt": "Please type your answer:",
@@ -2122,7 +2122,7 @@
     },
     "summary_2": {
       "type": "text",
-      "question": "Anything else relevant to the assessment?",
+      "question": "Is there anything further you consider relevant to the assessment?",
       "category": "summary",
       "next": "summary_3",
       "text_prompt": "Please type your answer:",
@@ -2134,7 +2134,7 @@
     },
     "summary_3": {
       "type": "text",
-      "question": "Person + role completing this form",
+      "question": "Please provide the name and professional role of the person completing this form.",
       "category": "summary",
       "next": "summary_4",
       "text_prompt": "Please type your answer:",
@@ -2146,7 +2146,7 @@
     },
     "summary_4": {
       "type": "mcq",
-      "question": "How long have you been observing this student / employee in your role?",
+      "question": "For how long have you been observing this student or employee in your professional role?",
       "category": "summary",
       "options": [
         {
@@ -2185,7 +2185,7 @@
     },
     "summary_5": {
       "type": "mcq",
-      "question": "Does the student / employee have other staff who could provide a corroborating view?",
+      "question": "Are there other members of staff who could provide a corroborating view of the individual?",
       "category": "summary",
       "options": [
         {
@@ -2217,7 +2217,7 @@
     },
     "summary_6": {
       "type": "mcq",
-      "question": "Are there any cultural / linguistic considerations the assessor should know?",
+      "question": "Are there any cultural or linguistic considerations the assessor should be aware of?",
       "category": "summary",
       "options": [
         {

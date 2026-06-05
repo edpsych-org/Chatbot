@@ -16,7 +16,7 @@
     },
     "role_1": {
       "type": "text",
-      "question": "Name + role of person completing this form",
+      "question": "Please provide the name and role of the person completing this form.",
       "category": "context",
       "next": "role_2",
       "text_prompt": "Please type your answer:",
@@ -28,7 +28,7 @@
     },
     "role_2": {
       "type": "mcq",
-      "question": "Relationship with the student",
+      "question": "What is your professional relationship with the student?",
       "category": "context",
       "options": [
         {
@@ -72,7 +72,7 @@
     },
     "context_1": {
       "type": "mcq",
-      "question": "Type of school",
+      "question": "Which of the following best describes the type of school?",
       "category": "context",
       "options": [
         {
@@ -116,7 +116,7 @@
     },
     "context_2": {
       "type": "mcq",
-      "question": "Attendance over the last 12 months",
+      "question": "How would you describe the student's attendance over the last 12 months?",
       "category": "context",
       "options": [
         {
@@ -159,7 +159,7 @@
     },
     "curriculum_1": {
       "type": "mcq",
-      "question": "GCSE subject mix - tick all subjects being taken",
+      "question": "Which GCSE subjects is the student currently taking? Please select all that apply.",
       "category": "curriculum",
       "options": [
         {
@@ -224,7 +224,7 @@
     },
     "curriculum_2": {
       "type": "mcq",
-      "question": "Predicted grades - overall pattern",
+      "question": "Which of the following best describes the overall pattern of the student's predicted grades?",
       "category": "curriculum",
       "options": [
         {
@@ -266,7 +266,7 @@
     },
     "curriculum_3": {
       "type": "mcq",
-      "question": "Most recent mock grades pattern",
+      "question": "Which of the following best describes the pattern of the student's most recent mock grades?",
       "category": "curriculum",
       "options": [
         {
@@ -308,7 +308,7 @@
     },
     "curriculum_4": {
       "type": "mcq",
-      "question": "Did mock grades match predicted grades?",
+      "question": "To what extent did the student's mock grades align with their predicted grades?",
       "category": "curriculum",
       "options": [
         {
@@ -348,7 +348,7 @@
     },
     "curriculum_5": {
       "type": "mcq",
-      "question": "Set placement in English",
+      "question": "What is the student's current set placement in English?",
       "category": "curriculum",
       "options": [
         {
@@ -385,7 +385,7 @@
     },
     "curriculum_6": {
       "type": "mcq",
-      "question": "Set placement in Maths",
+      "question": "What is the student's current set placement in Maths?",
       "category": "curriculum",
       "options": [
         {
@@ -422,7 +422,7 @@
     },
     "skills_1": {
       "type": "mcq",
-      "question": "Reading comprehension",
+      "question": "Based on your observations, how would you describe the student's reading comprehension?",
       "category": "skills",
       "options": [
         {
@@ -462,7 +462,7 @@
     },
     "skills_2": {
       "type": "mcq",
-      "question": "Reading fluency / speed",
+      "question": "Based on your observations, how would you describe the student's reading fluency and speed?",
       "category": "skills",
       "options": [
         {
@@ -502,7 +502,7 @@
     },
     "skills_3": {
       "type": "mcq",
-      "question": "Spelling",
+      "question": "Based on your observations, how would you describe the student's spelling?",
       "category": "skills",
       "options": [
         {
@@ -542,7 +542,7 @@
     },
     "skills_4": {
       "type": "mcq",
-      "question": "Extended writing / essay structure",
+      "question": "Based on your observations, how would you describe the student's extended writing and essay structure?",
       "category": "skills",
       "options": [
         {
@@ -582,7 +582,7 @@
     },
     "skills_5": {
       "type": "mcq",
-      "question": "Handwriting legibility / speed",
+      "question": "Based on your observations, how would you describe the student's handwriting legibility and speed?",
       "category": "skills",
       "options": [
         {
@@ -622,7 +622,7 @@
     },
     "skills_6": {
       "type": "mcq",
-      "question": "Maths fluency",
+      "question": "Based on your observations, how would you describe the student's maths fluency?",
       "category": "skills",
       "options": [
         {
@@ -662,7 +662,7 @@
     },
     "skills_7": {
       "type": "mcq",
-      "question": "Oral expression",
+      "question": "Based on your observations, how would you describe the student's oral expression?",
       "category": "skills",
       "options": [
         {
@@ -702,7 +702,7 @@
     },
     "history_1": {
       "type": "text",
-      "question": "Main reason for assessment from school's perspective",
+      "question": "From the school's perspective, what is the main reason for this assessment?",
       "category": "history",
       "next": "history_2",
       "text_prompt": "Please type your answer:",
@@ -714,7 +714,7 @@
     },
     "history_2": {
       "type": "mcq",
-      "question": "Has the student been previously assessed by an Educational Psychologist?",
+      "question": "To the school's knowledge, has the student previously been assessed by an Educational Psychologist?",
       "category": "history",
       "options": [
         {
@@ -751,7 +751,7 @@
     },
     "history_3": {
       "type": "mcq",
-      "question": "Other professional involvement (tick all that apply)",
+      "question": "Which other professionals are currently or have previously been involved with the student? Please select all that apply.",
       "category": "history",
       "options": [
         {
@@ -804,7 +804,7 @@
     },
     "history_4": {
       "type": "mcq",
-      "question": "Existing diagnoses on file (tick all that apply)",
+      "question": "Which existing diagnoses are recorded on file for the student? Please select all that apply.",
       "category": "history",
       "options": [
         {
@@ -867,7 +867,7 @@
     },
     "history_5": {
       "type": "mcq",
-      "question": "Does the student have an EHCP?",
+      "question": "What is the student's current status with regard to an Education, Health and Care Plan (EHCP)?",
       "category": "history",
       "options": [
         {
@@ -904,7 +904,7 @@
     },
     "history_6": {
       "type": "mcq",
-      "question": "Has the school done internal access-arrangement testing (by SpLD assessor)?",
+      "question": "Has the school carried out internal access arrangement testing (by a specialist SpLD assessor)?",
       "category": "history",
       "options": [
         {
@@ -936,7 +936,7 @@
     },
     "cognition_1": {
       "type": "mcq",
-      "question": "Does the student have attention and concentration difficulties in lessons?",
+      "question": "To what extent does the student experience difficulties with attention and concentration during lessons?",
       "category": "cognition",
       "options": [
         {
@@ -987,7 +987,7 @@
     },
     "cognition_2": {
       "type": "mcq",
-      "question": "Does the student struggle to copy from the board or keep up with note-taking?",
+      "question": "To what extent does the student experience difficulty copying information from the board or keeping pace with note-taking during lessons?",
       "category": "cognition",
       "options": [
         {
@@ -1038,7 +1038,7 @@
     },
     "cognition_3": {
       "type": "mcq",
-      "question": "Does the student follow multi-step verbal instructions?",
+      "question": "How consistently does the student follow multi-step verbal instructions?",
       "category": "cognition",
       "options": [
         {
@@ -1089,7 +1089,7 @@
     },
     "cognition_4": {
       "type": "mcq",
-      "question": "Does the student run out of time in standard-conditions tests / mocks?",
+      "question": "How frequently does the student appear to run out of time in tests or mock examinations sat under standard conditions?",
       "category": "cognition",
       "options": [
         {
@@ -1140,7 +1140,7 @@
     },
     "cognition_5": {
       "type": "mcq",
-      "question": "Does the student reliably hand homework / coursework in on time?",
+      "question": "How consistently does the student submit homework and coursework on time?",
       "category": "cognition",
       "options": [
         {
@@ -1191,7 +1191,7 @@
     },
     "cognition_6": {
       "type": "mcq",
-      "question": "Would you say the student is forgetful?",
+      "question": "How frequently does the student appear to experience difficulties with memory or remembering information?",
       "category": "cognition",
       "options": [
         {
@@ -1242,7 +1242,7 @@
     },
     "presentation_1": {
       "type": "mcq",
-      "question": "How does the student present at school on a day-to-day basis?",
+      "question": "Based on your observations, how would you describe the student's general presentation at school on a day-to-day basis?",
       "category": "behavior",
       "options": [
         {
@@ -1286,7 +1286,7 @@
     },
     "behavior_1": {
       "type": "mcq",
-      "question": "Behaviour in general",
+      "question": "Based on your observations, how would you describe the student's behaviour in general?",
       "category": "behavior",
       "options": [
         {
@@ -1326,7 +1326,7 @@
     },
     "behavior_2": {
       "type": "mcq",
-      "question": "Are there any concerns about understanding or spoken language?",
+      "question": "To what extent are there concerns about the student's understanding or spoken language?",
       "category": "behavior",
       "options": [
         {
@@ -1377,7 +1377,7 @@
     },
     "behavior_3": {
       "type": "mcq",
-      "question": "Are there any concerns about social interaction with peers?",
+      "question": "To what extent are there concerns about the student's social interaction with peers?",
       "category": "behavior",
       "options": [
         {
@@ -1428,7 +1428,7 @@
     },
     "behavior_4": {
       "type": "mcq",
-      "question": "Does the student show emotional regulation difficulties at school?",
+      "question": "To what extent does the student experience difficulties with emotional regulation at school?",
       "category": "behavior",
       "options": [
         {
@@ -1479,7 +1479,7 @@
     },
     "free_time_1": {
       "type": "mcq",
-      "question": "What does the student usually do during free time/break time at school?",
+      "question": "Which of the following best describes how the student typically spends free time or break time at school?",
       "category": "behavior",
       "options": [
         {
@@ -1517,7 +1517,7 @@
     },
     "behavior_5": {
       "type": "mcq",
-      "question": "Signs of exam anxiety (pre-mock dread, panic, blanking)?",
+      "question": "To what extent does the student show signs of examination anxiety (for example, apprehension before mocks, panic, or blanking)?",
       "category": "behavior",
       "options": [
         {
@@ -1563,7 +1563,7 @@
     },
     "behavior_6": {
       "type": "mcq",
-      "question": "Signs of school avoidance / refusal?",
+      "question": "How frequently does the student show signs of school avoidance or reluctance to attend?",
       "category": "behavior",
       "options": [
         {
@@ -1614,7 +1614,7 @@
     },
     "behavior_7": {
       "type": "mcq",
-      "question": "Does the student ask for help when stuck, or shut down / mask?",
+      "question": "Which of the following best describes how the student responds when they encounter difficulty (for example, seeking help, withdrawing, or masking difficulties)?",
       "category": "behavior",
       "options": [
         {
@@ -1657,7 +1657,7 @@
     },
     "support_1": {
       "type": "mcq",
-      "question": "Type of support currently provided",
+      "question": "What type of support is currently provided to the student?",
       "category": "support",
       "options": [
         {
@@ -1714,7 +1714,7 @@
     },
     "support_2": {
       "type": "mcq",
-      "question": "Frequency of support per week",
+      "question": "How frequently does the student receive this support each week?",
       "category": "support",
       "options": [
         {
@@ -1753,7 +1753,7 @@
     },
     "support_3": {
       "type": "mcq",
-      "question": "Length of support sessions",
+      "question": "What is the typical length of the student's support sessions?",
       "category": "support",
       "options": [
         {
@@ -1792,7 +1792,7 @@
     },
     "support_4": {
       "type": "mcq",
-      "question": "Is the student on the SEND register?",
+      "question": "What is the student's current status on the school's SEND register?",
       "category": "support",
       "options": [
         {
@@ -1829,7 +1829,7 @@
     },
     "support_5": {
       "type": "mcq",
-      "question": "Does the student receive subject-specific tutoring at school?",
+      "question": "To the school's knowledge, does the student receive subject-specific tutoring at school?",
       "category": "support",
       "options": [
         {
@@ -1858,7 +1858,7 @@
     },
     "exam_1": {
       "type": "mcq",
-      "question": "Does the student currently hold any access arrangements? (tick all that apply)",
+      "question": "Which access arrangements does the student currently have in place? Please select all that apply.",
       "category": "exam",
       "options": [
         {
@@ -1921,7 +1921,7 @@
     },
     "exam_2": {
       "type": "mcq",
-      "question": "How long have current arrangements been the student's normal way of working?",
+      "question": "For how long have the current arrangements been the student's normal way of working?",
       "category": "exam",
       "options": [
         {
@@ -1994,7 +1994,7 @@
     },
     "exam_4": {
       "type": "mcq",
-      "question": "Which exam centre will hold accountability for the access arrangement application?",
+      "question": "Which examination centre will hold responsibility for the access arrangement application?",
       "category": "exam",
       "options": [
         {
@@ -2028,7 +2028,7 @@
     },
     "exam_5": {
       "type": "mcq",
-      "question": "Is the student using a laptop as their normal way of working in class?",
+      "question": "To what extent does the student use a laptop as their normal way of working in class?",
       "category": "exam",
       "options": [
         {
@@ -2057,7 +2057,7 @@
     },
     "gcse_1": {
       "type": "mcq",
-      "question": "Does the student manage GCSE workload independently?",
+      "question": "To what extent does the student manage their GCSE workload independently?",
       "category": "gcse",
       "options": [
         {
@@ -2100,7 +2100,7 @@
     },
     "gcse_2": {
       "type": "mcq",
-      "question": "Mocks performance - how did the student cope on the day?",
+      "question": "Based on your observations, how did the student cope during their mock examinations on the day?",
       "category": "gcse",
       "options": [
         {
@@ -2143,7 +2143,7 @@
     },
     "gcse_3": {
       "type": "mcq",
-      "question": "Has the family met with the SENCo this academic year?",
+      "question": "To the school's knowledge, has the family met with the SENCo this academic year?",
       "category": "gcse",
       "options": [
         {
@@ -2180,7 +2180,7 @@
     },
     "scores_1": {
       "type": "mcq",
-      "question": "Available standardised scores (CAT4, MidYIS, NGRT, Lucid / GL Assessment, SpLD screen)",
+      "question": "Which standardised scores are available for the student (for example, CAT4, MidYIS, NGRT, Lucid / GL Assessment, or SpLD screen)?",
       "category": "scores",
       "options": [
         {
@@ -2222,7 +2222,7 @@
     },
     "scores_2": {
       "type": "text",
-      "question": "Reading age (most recent score) — if available",
+      "question": "If available, please provide the student's most recent reading age score.",
       "category": "scores",
       "next": "scores_3",
       "text_prompt": "Please type your answer:",
@@ -2234,7 +2234,7 @@
     },
     "scores_3": {
       "type": "text",
-      "question": "Spelling age (most recent score) — if available",
+      "question": "If available, please provide the student's most recent spelling age score.",
       "category": "scores",
       "next": "obs_1",
       "text_prompt": "Please type your answer:",
@@ -2246,7 +2246,7 @@
     },
     "obs_1": {
       "type": "mcq",
-      "question": "Where does the student sit in class (front / middle / back / variable)?",
+      "question": "Which of the following best describes where the student is usually seated in class?",
       "category": "observations",
       "options": [
         {
@@ -2285,7 +2285,7 @@
     },
     "obs_2": {
       "type": "mcq",
-      "question": "Does the student use a fidget tool / movement break in class?",
+      "question": "To the school's knowledge, does the student use a fidget tool or take movement breaks in class?",
       "category": "observations",
       "options": [
         {
@@ -2314,7 +2314,7 @@
     },
     "obs_3": {
       "type": "mcq",
-      "question": "Has the student missed mock exam(s) due to illness, anxiety or other?",
+      "question": "Has the student missed any mock examinations, and if so, what was the reason (for example, illness or anxiety)?",
       "category": "observations",
       "options": [
         {
@@ -2357,7 +2357,7 @@
     },
     "obs_4": {
       "type": "mcq",
-      "question": "Has the student approached a member of staff for emotional or pastoral support this year?",
+      "question": "How frequently has the student approached a member of staff for emotional or pastoral support this year?",
       "category": "observations",
       "options": [
         {
@@ -2394,7 +2394,7 @@
     },
     "obs_5": {
       "type": "mcq",
-      "question": "Quality of relationship with peers at school",
+      "question": "Based on your observations, how would you describe the quality of the student's relationships with peers at school?",
       "category": "observations",
       "options": [
         {
@@ -2442,7 +2442,7 @@
     },
     "obs_6": {
       "type": "mcq",
-      "question": "Has the school received any communication from the family about concerns this year?",
+      "question": "To what extent has the school received communication from the family regarding concerns this year?",
       "category": "observations",
       "options": [
         {
@@ -2476,7 +2476,7 @@
     },
     "obs_7": {
       "type": "mcq",
-      "question": "Does the student have any specific physical seating / environmental needs at exams?",
+      "question": "Does the student have any specific physical seating or environmental needs during examinations?",
       "category": "observations",
       "options": [
         {
@@ -2513,7 +2513,7 @@
     },
     "obs_8": {
       "type": "text",
-      "question": "Specific subject teacher feedback - English",
+      "question": "Please provide any specific feedback from the student's English subject teacher.",
       "category": "observations",
       "next": "obs_9",
       "text_prompt": "Please type your answer:",
@@ -2525,7 +2525,7 @@
     },
     "obs_9": {
       "type": "text",
-      "question": "Specific subject teacher feedback - Maths",
+      "question": "Please provide any specific feedback from the student's Maths subject teacher.",
       "category": "observations",
       "next": "obs_10",
       "text_prompt": "Please type your answer:",
@@ -2537,7 +2537,7 @@
     },
     "obs_10": {
       "type": "text",
-      "question": "Specific subject teacher feedback - other key subject",
+      "question": "Please provide any specific feedback from a teacher of another key subject.",
       "category": "observations",
       "next": "summary_1",
       "text_prompt": "Please type your answer:",
@@ -2549,7 +2549,7 @@
     },
     "summary_1": {
       "type": "text",
-      "question": "Most recent teacher feedback (quote where possible)",
+      "question": "Please provide the most recent teacher feedback, quoting directly where possible.",
       "category": "summary",
       "next": "summary_2",
       "text_prompt": "Please type your answer:",
@@ -2561,7 +2561,7 @@
     },
     "summary_2": {
       "type": "text",
-      "question": "Anything else relevant to the assessment?",
+      "question": "Is there anything else you consider relevant to this assessment?",
       "category": "summary",
       "next": "closing_message",
       "text_prompt": "Please type your answer:",

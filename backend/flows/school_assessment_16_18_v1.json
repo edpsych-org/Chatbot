@@ -16,7 +16,7 @@
     },
     "context_1": {
       "type": "text",
-      "question": "Name + role of person completing this form",
+      "question": "Please provide the name and role of the person completing this form.",
       "category": "context",
       "next": "context_2",
       "text_prompt": "Please type your answer:",
@@ -28,7 +28,7 @@
     },
     "context_2": {
       "type": "mcq",
-      "question": "Relationship with the student",
+      "question": "What is your professional relationship with the student?",
       "category": "context",
       "options": [
         {
@@ -72,7 +72,7 @@
     },
     "context_3": {
       "type": "mcq",
-      "question": "Type of educational setting",
+      "question": "Which of the following best describes the type of educational setting?",
       "category": "context",
       "options": [
         {
@@ -116,7 +116,7 @@
     },
     "context_4": {
       "type": "mcq",
-      "question": "Attendance over the last 12 months",
+      "question": "How would you describe the student's attendance over the last 12 months?",
       "category": "context",
       "options": [
         {
@@ -159,7 +159,7 @@
     },
     "course_1": {
       "type": "mcq",
-      "question": "Course type",
+      "question": "Which of the following best describes the student's course type?",
       "category": "course",
       "options": [
         {
@@ -193,7 +193,7 @@
     },
     "course_2": {
       "type": "mcq",
-      "question": "Subjects studied (tick all that apply)",
+      "question": "Which subjects is the student studying? (Please select all that apply.)",
       "category": "course",
       "options": [
         {
@@ -263,7 +263,7 @@
     },
     "course_3": {
       "type": "mcq",
-      "question": "Predicted grades pattern",
+      "question": "Which of the following best describes the student's pattern of predicted grades?",
       "category": "course",
       "options": [
         {
@@ -308,7 +308,7 @@
     },
     "course_4": {
       "type": "mcq",
-      "question": "Mock exam performance vs predicted",
+      "question": "How would you describe the student's mock examination performance in relation to predicted grades?",
       "category": "course",
       "options": [
         {
@@ -354,7 +354,7 @@
     },
     "skills_1": {
       "type": "mcq",
-      "question": "Are there any concerns about English comprehension under A-Level volume?",
+      "question": "Based on your observations, how would you describe the student's English comprehension when managing the volume of reading required at A-Level?",
       "category": "skills",
       "options": [
         {
@@ -391,7 +391,7 @@
     },
     "skills_2": {
       "type": "mcq",
-      "question": "Reading fluency / speed",
+      "question": "Based on your observations, how would you describe the student's reading fluency and speed?",
       "category": "skills",
       "options": [
         {
@@ -428,7 +428,7 @@
     },
     "skills_3": {
       "type": "mcq",
-      "question": "Spelling in extended writing",
+      "question": "Based on your observations, how would you describe the student's spelling in extended writing?",
       "category": "skills",
       "options": [
         {
@@ -465,7 +465,7 @@
     },
     "skills_4": {
       "type": "mcq",
-      "question": "Essay structure / argumentation",
+      "question": "Based on your observations, how would you describe the student's essay structure and argumentation?",
       "category": "skills",
       "options": [
         {
@@ -502,7 +502,7 @@
     },
     "skills_5": {
       "type": "mcq",
-      "question": "Handwriting legibility / speed under timed conditions",
+      "question": "Based on your observations, how would you describe the student's handwriting legibility and speed under timed conditions?",
       "category": "skills",
       "options": [
         {
@@ -539,7 +539,7 @@
     },
     "skills_6": {
       "type": "mcq",
-      "question": "Maths fluency (if studying maths / sciences)",
+      "question": "Based on your observations, how would you describe the student's mathematical fluency (if studying Maths or Sciences)?",
       "category": "skills",
       "options": [
         {
@@ -576,7 +576,7 @@
     },
     "skills_7": {
       "type": "mcq",
-      "question": "Oral expression in seminars / discussions",
+      "question": "Based on your observations, how would you describe the student's oral expression in seminars and class discussions?",
       "category": "skills",
       "options": [
         {
@@ -613,7 +613,7 @@
     },
     "history_1": {
       "type": "text",
-      "question": "Main reason for assessment from college's perspective",
+      "question": "From the college's perspective, what is the main reason for this assessment?",
       "category": "history",
       "next": "history_2",
       "text_prompt": "Please type your answer:",
@@ -625,7 +625,7 @@
     },
     "history_2": {
       "type": "mcq",
-      "question": "Has the student been previously assessed by an Educational Psychologist?",
+      "question": "To your knowledge, has the student previously been assessed by an Educational Psychologist?",
       "category": "history",
       "options": [
         {
@@ -662,7 +662,7 @@
     },
     "history_3": {
       "type": "mcq",
-      "question": "Other professional involvement (tick all that apply)",
+      "question": "Which other professionals have been involved with the student, to your knowledge? (Please select all that apply.)",
       "category": "history",
       "options": [
         {
@@ -715,7 +715,7 @@
     },
     "history_4": {
       "type": "mcq",
-      "question": "Existing diagnoses on file (tick all that apply)",
+      "question": "Which existing diagnoses are recorded on file for the student? (Please select all that apply.)",
       "category": "history",
       "options": [
         {
@@ -778,7 +778,7 @@
     },
     "history_5": {
       "type": "mcq",
-      "question": "Does the student have an EHCP?",
+      "question": "To your knowledge, does the student have an Education, Health and Care Plan (EHCP)?",
       "category": "history",
       "options": [
         {
@@ -815,7 +815,7 @@
     },
     "history_6": {
       "type": "mcq",
-      "question": "Has the college done internal access-arrangement testing?",
+      "question": "Has the college carried out any internal access-arrangement testing for the student?",
       "category": "history",
       "options": [
         {
@@ -847,7 +847,7 @@
     },
     "cognition_1": {
       "type": "mcq",
-      "question": "Attention and concentration difficulties in lessons?",
+      "question": "To what extent does the student experience difficulties with attention and concentration during lessons?",
       "category": "cognition",
       "options": [
         {
@@ -898,7 +898,7 @@
     },
     "cognition_2": {
       "type": "mcq",
-      "question": "Difficulty copying from board / keeping up with note-taking?",
+      "question": "To what extent does the student experience difficulty copying information from the board or keeping pace with note-taking during lessons?",
       "category": "cognition",
       "options": [
         {
@@ -949,7 +949,7 @@
     },
     "cognition_3": {
       "type": "mcq",
-      "question": "Does the student follow multi-step verbal instructions?",
+      "question": "How consistently does the student follow multi-step verbal instructions?",
       "category": "cognition",
       "options": [
         {
@@ -1000,7 +1000,7 @@
     },
     "cognition_4": {
       "type": "mcq",
-      "question": "Does the student run out of time in standard-conditions tests / mocks?",
+      "question": "How frequently does the student appear to run out of time in tests or mock examinations sat under standard conditions?",
       "category": "cognition",
       "options": [
         {
@@ -1051,7 +1051,7 @@
     },
     "cognition_5": {
       "type": "mcq",
-      "question": "Does the student reliably hand coursework in on time?",
+      "question": "How consistently does the student submit coursework on time?",
       "category": "cognition",
       "options": [
         {
@@ -1102,7 +1102,7 @@
     },
     "cognition_6": {
       "type": "mcq",
-      "question": "Would you say the student is forgetful?",
+      "question": "How frequently does the student appear to experience difficulties with memory or remembering information?",
       "category": "cognition",
       "options": [
         {
@@ -1153,7 +1153,7 @@
     },
     "cognition_7": {
       "type": "mcq",
-      "question": "Does the student manage independent study?",
+      "question": "How well does the student manage independent study?",
       "category": "cognition",
       "options": [
         {
@@ -1196,7 +1196,7 @@
     },
     "presentation_day_to_day": {
       "type": "mcq",
-      "question": "How does the student present on a day-to-day basis?",
+      "question": "Based on your observations, how would you describe the student's general presentation on a day-to-day basis?",
       "category": "behaviour",
       "options": [
         {
@@ -1235,7 +1235,7 @@
     },
     "behaviour_1": {
       "type": "mcq",
-      "question": "Behaviour in general",
+      "question": "Based on your observations, how would you describe the student's behaviour in general?",
       "category": "behaviour",
       "options": [
         {
@@ -1272,7 +1272,7 @@
     },
     "behaviour_2": {
       "type": "mcq",
-      "question": "Are there any concerns about understanding spoken language?",
+      "question": "To what extent does the student appear to experience difficulties understanding spoken language?",
       "category": "behaviour",
       "options": [
         {
@@ -1323,7 +1323,7 @@
     },
     "behaviour_3": {
       "type": "mcq",
-      "question": "Are there any concerns about social interaction with peers?",
+      "question": "To what extent does the student appear to experience difficulties with social interaction with peers?",
       "category": "behaviour",
       "options": [
         {
@@ -1374,7 +1374,7 @@
     },
     "free_time_break": {
       "type": "mcq",
-      "question": "What does the student usually do during free time/break time at school?",
+      "question": "Based on your observations, what does the student typically do during free time or break time at college?",
       "category": "behaviour",
       "options": [
         {
@@ -1402,7 +1402,7 @@
     },
     "behaviour_4": {
       "type": "mcq",
-      "question": "Signs of emotional regulation difficulties at college?",
+      "question": "How frequently does the student appear to experience difficulties with emotional regulation at college?",
       "category": "behaviour",
       "options": [
         {
@@ -1453,7 +1453,7 @@
     },
     "behaviour_5": {
       "type": "mcq",
-      "question": "Signs of exam anxiety / underperformance in timed conditions?",
+      "question": "To what extent does the student show signs of examination anxiety or underperformance under timed conditions?",
       "category": "behaviour",
       "options": [
         {
@@ -1499,7 +1499,7 @@
     },
     "behaviour_6": {
       "type": "mcq",
-      "question": "Signs of burnout / sustained fatigue?",
+      "question": "How frequently does the student appear to show signs of burnout or sustained fatigue?",
       "category": "behaviour",
       "options": [
         {
@@ -1550,7 +1550,7 @@
     },
     "behaviour_7": {
       "type": "mcq",
-      "question": "Signs of college / class avoidance?",
+      "question": "How frequently does the student appear to show signs of college or lesson avoidance?",
       "category": "behaviour",
       "options": [
         {
@@ -1601,7 +1601,7 @@
     },
     "support_1": {
       "type": "mcq",
-      "question": "Current support provision",
+      "question": "Which of the following best describes the support currently provided to the student?",
       "category": "support",
       "options": [
         {
@@ -1648,7 +1648,7 @@
     },
     "support_2": {
       "type": "mcq",
-      "question": "Frequency of support per week",
+      "question": "How frequently does the student receive this support each week?",
       "category": "support",
       "options": [
         {
@@ -1687,7 +1687,7 @@
     },
     "support_3": {
       "type": "mcq",
-      "question": "Is the student on the SEND register?",
+      "question": "To your knowledge, is the student recorded on the SEND register?",
       "category": "support",
       "options": [
         {
@@ -1724,7 +1724,7 @@
     },
     "access_1": {
       "type": "mcq",
-      "question": "Does the student currently hold any access arrangements? (tick all that apply)",
+      "question": "Which access arrangements does the student currently hold? (Please select all that apply.)",
       "category": "access",
       "options": [
         {
@@ -1792,7 +1792,7 @@
     },
     "access_2": {
       "type": "mcq",
-      "question": "How long have current arrangements been the student's normal way of working?",
+      "question": "For how long have the current arrangements been the student's normal way of working?",
       "category": "access",
       "options": [
         {
@@ -1831,7 +1831,7 @@
     },
     "access_3": {
       "type": "mcq",
-      "question": "JCQ Form 8 status for A-Level access arrangements",
+      "question": "What is the current status of the JCQ Form 8 for the student's A-Level access arrangements?",
       "category": "access",
       "options": [
         {
@@ -1865,7 +1865,7 @@
     },
     "access_4": {
       "type": "mcq",
-      "question": "Is the student using a laptop as their normal way of working in class?",
+      "question": "Does the student use a laptop as their normal way of working in class?",
       "category": "access",
       "options": [
         {
@@ -1897,7 +1897,7 @@
     },
     "access_5": {
       "type": "mcq",
-      "question": "Which exam centre will hold accountability for the application?",
+      "question": "Which examination centre will be responsible for the access-arrangements application?",
       "category": "access",
       "options": [
         {
@@ -1931,7 +1931,7 @@
     },
     "access_6": {
       "type": "mcq",
-      "question": "Future university - has Disability Service registration been advised?",
+      "question": "With regard to future university study, has the student been advised to register with the Disability Service?",
       "category": "access",
       "options": [
         {
@@ -1960,7 +1960,7 @@
     },
     "impact_1": {
       "type": "mcq",
-      "question": "Does the student manage A-Level / IB workload independently?",
+      "question": "How well does the student manage the A-Level or IB workload independently?",
       "category": "impact",
       "options": [
         {
@@ -2003,7 +2003,7 @@
     },
     "impact_2": {
       "type": "mcq",
-      "question": "Mocks performance - how did the student cope?",
+      "question": "Based on your observations, how did the student cope during the mock examinations?",
       "category": "impact",
       "options": [
         {
@@ -2049,7 +2049,7 @@
     },
     "impact_3": {
       "type": "mcq",
-      "question": "Does the student ask for help when stuck, or shut down / mask?",
+      "question": "Based on your observations, how does the student typically respond when finding work difficult (for example, asking for help, withdrawing, or masking difficulties)?",
       "category": "impact",
       "options": [
         {
@@ -2092,7 +2092,7 @@
     },
     "impact_4": {
       "type": "mcq",
-      "question": "Is there ongoing communication with parents about progress?",
+      "question": "How would you describe the ongoing communication with parents regarding the student's progress?",
       "category": "impact",
       "options": [
         {
@@ -2132,7 +2132,7 @@
     },
     "pastoral_1": {
       "type": "mcq",
-      "question": "UCAS support - has the student engaged with the application process?",
+      "question": "With regard to UCAS support, how would you describe the student's engagement with the application process?",
       "category": "pastoral",
       "options": [
         {
@@ -2177,7 +2177,7 @@
     },
     "pastoral_2": {
       "type": "mcq",
-      "question": "Has the student requested mock interview / personal statement support?",
+      "question": "Has the student requested support with mock interviews or their personal statement?",
       "category": "pastoral",
       "options": [
         {
@@ -2214,7 +2214,7 @@
     },
     "pastoral_3": {
       "type": "mcq",
-      "question": "Does the student have a dedicated pastoral mentor / tutor at college?",
+      "question": "Does the student have a dedicated pastoral mentor or tutor at the college?",
       "category": "pastoral",
       "options": [
         {
@@ -2246,7 +2246,7 @@
     },
     "pastoral_4": {
       "type": "mcq",
-      "question": "How frequently does the student attend mentoring / tutorial sessions?",
+      "question": "How frequently does the student attend mentoring or tutorial sessions?",
       "category": "pastoral",
       "options": [
         {
@@ -2283,7 +2283,7 @@
     },
     "pastoral_5": {
       "type": "mcq",
-      "question": "Has the student approached the SENCo / Disability Adviser this year?",
+      "question": "Has the student approached the SENCo or Disability Adviser during this academic year?",
       "category": "pastoral",
       "options": [
         {
@@ -2320,7 +2320,7 @@
     },
     "pastoral_6": {
       "type": "mcq",
-      "question": "Has the student had any episodes of late submission / missed deadline that required intervention?",
+      "question": "Has the student had any episodes of late submission or missed deadlines that required intervention?",
       "category": "pastoral",
       "options": [
         {
@@ -2363,7 +2363,7 @@
     },
     "pastoral_7": {
       "type": "mcq",
-      "question": "Quality of relationships with peers at college",
+      "question": "Based on your observations, how would you describe the quality of the student's relationships with peers at college?",
       "category": "pastoral",
       "options": [
         {
@@ -2411,7 +2411,7 @@
     },
     "pastoral_8": {
       "type": "mcq",
-      "question": "Has the student been advised to register with future university Disability Service?",
+      "question": "Has the student been advised to register with the Disability Service at their future university?",
       "category": "pastoral",
       "options": [
         {
@@ -2440,7 +2440,7 @@
     },
     "pastoral_9": {
       "type": "text",
-      "question": "Specific subject feedback for student's strongest subject",
+      "question": "Please provide any specific subject feedback regarding the student's strongest subject.",
       "category": "pastoral",
       "next": "pastoral_10",
       "text_prompt": "Please type your answer:",
@@ -2452,7 +2452,7 @@
     },
     "pastoral_10": {
       "type": "text",
-      "question": "Specific subject feedback for student's weakest subject",
+      "question": "Please provide any specific subject feedback regarding the subject the student finds most challenging.",
       "category": "pastoral",
       "next": "summary_1",
       "text_prompt": "Please type your answer:",
@@ -2464,7 +2464,7 @@
     },
     "summary_1": {
       "type": "text",
-      "question": "Most recent teacher feedback (quote where possible)",
+      "question": "Please provide the most recent teacher feedback regarding the student, quoting directly where possible.",
       "category": "summary",
       "next": "summary_2",
       "text_prompt": "Please type your answer:",
@@ -2476,7 +2476,7 @@
     },
     "summary_2": {
       "type": "text",
-      "question": "Standardised internal scores available (UCAS predicted grades, internal SpLD screen)",
+      "question": "Please provide any standardised internal scores available for the student (for example, UCAS predicted grades or an internal SpLD screen).",
       "category": "summary",
       "next": "summary_3",
       "text_prompt": "Please type your answer:",
@@ -2488,7 +2488,7 @@
     },
     "summary_3": {
       "type": "text",
-      "question": "Anything else relevant to the assessment?",
+      "question": "Is there anything further you consider relevant to this assessment?",
       "category": "summary",
       "next": "closing_message",
       "text_prompt": "Please type your answer:",

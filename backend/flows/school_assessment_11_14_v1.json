@@ -16,7 +16,7 @@
     },
     "context_1": {
       "type": "text",
-      "question": "Name + role of person completing this form",
+      "question": "Please provide the name and role of the person completing this form.",
       "category": "context",
       "next": "context_2",
       "text_prompt": "Please type your answer:",
@@ -28,7 +28,7 @@
     },
     "context_2": {
       "type": "mcq",
-      "question": "Relationship with the student",
+      "question": "Which of the following best describes your professional relationship with the student?",
       "category": "context",
       "options": [
         {
@@ -77,7 +77,7 @@
     },
     "context_3": {
       "type": "mcq",
-      "question": "Type of school",
+      "question": "Which of the following best describes the type of school?",
       "category": "context",
       "options": [
         {
@@ -121,7 +121,7 @@
     },
     "context_4": {
       "type": "mcq",
-      "question": "When did the student join this school?",
+      "question": "At what point did the student join this school?",
       "category": "context",
       "options": [
         {
@@ -155,7 +155,7 @@
     },
     "attendance_1": {
       "type": "mcq",
-      "question": "Attendance over the last 12 months",
+      "question": "How would you describe the student's attendance over the last 12 months?",
       "category": "attendance",
       "options": [
         {
@@ -201,7 +201,7 @@
     },
     "attendance_2": {
       "type": "text",
-      "question": "Reason for any irregular attendance",
+      "question": "Where attendance has been irregular, please describe any known reasons.",
       "category": "attendance",
       "next": "attendance_3",
       "text_prompt": "Please type your answer:",
@@ -213,7 +213,7 @@
     },
     "attendance_3": {
       "type": "mcq",
-      "question": "Has the student ever been placed on a reduced timetable?",
+      "question": "To your knowledge, has the student ever been placed on a reduced timetable?",
       "category": "attendance",
       "options": [
         {
@@ -239,7 +239,7 @@
     },
     "attendance_3_detail": {
       "type": "text",
-      "question": "If yes, please explain in more detail.",
+      "question": "If so, please provide further detail.",
       "category": "attendance",
       "next": "attendance_4",
       "text_prompt": "Please type your answer:",
@@ -251,7 +251,7 @@
     },
     "attendance_4": {
       "type": "mcq",
-      "question": "Predominant Language spoken",
+      "question": "Which of the following best describes the predominant language spoken by the student?",
       "category": "attendance",
       "options": [
         {
@@ -285,7 +285,7 @@
     },
     "curriculum_1": {
       "type": "mcq",
-      "question": "English overall attainment",
+      "question": "How would you describe the student's overall attainment in English?",
       "category": "curriculum",
       "options": [
         {
@@ -322,7 +322,7 @@
     },
     "curriculum_2": {
       "type": "mcq",
-      "question": "Reading attainment",
+      "question": "How would you describe the student's attainment in reading?",
       "category": "curriculum",
       "options": [
         {
@@ -359,7 +359,7 @@
     },
     "curriculum_3": {
       "type": "mcq",
-      "question": "Writing attainment",
+      "question": "How would you describe the student's attainment in writing?",
       "category": "curriculum",
       "options": [
         {
@@ -396,7 +396,7 @@
     },
     "curriculum_4": {
       "type": "mcq",
-      "question": "Handwriting attainment",
+      "question": "How would you describe the student's attainment in handwriting?",
       "category": "curriculum",
       "options": [
         {
@@ -433,7 +433,7 @@
     },
     "curriculum_5": {
       "type": "mcq",
-      "question": "Maths overall attainment",
+      "question": "How would you describe the student's overall attainment in Maths?",
       "category": "curriculum",
       "options": [
         {
@@ -470,7 +470,7 @@
     },
     "curriculum_6": {
       "type": "mcq",
-      "question": "Science overall attainment",
+      "question": "How would you describe the student's overall attainment in Science?",
       "category": "curriculum",
       "options": [
         {
@@ -507,7 +507,7 @@
     },
     "curriculum_7": {
       "type": "mcq",
-      "question": "Set placement in English (if streamed)",
+      "question": "Where setting or streaming applies, what is the student's set placement in English?",
       "category": "curriculum",
       "options": [
         {
@@ -541,7 +541,7 @@
     },
     "curriculum_8": {
       "type": "mcq",
-      "question": "Set placement in Maths (if streamed)",
+      "question": "Where setting or streaming applies, what is the student's set placement in Maths?",
       "category": "curriculum",
       "options": [
         {
@@ -575,7 +575,7 @@
     },
     "curriculum_9": {
       "type": "mcq",
-      "question": "Set placement in Science (if streamed)",
+      "question": "Where setting or streaming applies, what is the student's set placement in Science?",
       "category": "curriculum",
       "options": [
         {
@@ -609,7 +609,7 @@
     },
     "skills_1": {
       "type": "mcq",
-      "question": "Reading aloud",
+      "question": "Based on your observations, how would you describe the student's skill in reading aloud?",
       "category": "skills",
       "options": [
         {
@@ -646,7 +646,7 @@
     },
     "skills_2": {
       "type": "mcq",
-      "question": "Reading comprehension",
+      "question": "Based on your observations, how would you describe the student's reading comprehension?",
       "category": "skills",
       "options": [
         {
@@ -683,7 +683,7 @@
     },
     "skills_3": {
       "type": "mcq",
-      "question": "Spelling",
+      "question": "Based on your observations, how would you describe the student's spelling?",
       "category": "skills",
       "options": [
         {
@@ -720,7 +720,7 @@
     },
     "skills_4": {
       "type": "mcq",
-      "question": "Free writing / extended writing",
+      "question": "Based on your observations, how would you describe the student's free or extended writing?",
       "category": "skills",
       "options": [
         {
@@ -757,7 +757,7 @@
     },
     "skills_5": {
       "type": "mcq",
-      "question": "Maths fluency",
+      "question": "Based on your observations, how would you describe the student's fluency in Maths?",
       "category": "skills",
       "options": [
         {
@@ -794,7 +794,7 @@
     },
     "skills_6": {
       "type": "mcq",
-      "question": "Oral expression",
+      "question": "Based on your observations, how would you describe the student's oral expression?",
       "category": "skills",
       "options": [
         {
@@ -831,7 +831,7 @@
     },
     "skills_7": {
       "type": "mcq",
-      "question": "Coordination / dexterity",
+      "question": "Based on your observations, how would you describe the student's coordination and dexterity?",
       "category": "skills",
       "options": [
         {
@@ -868,7 +868,7 @@
     },
     "prior_1": {
       "type": "text",
-      "question": "What is the main reason for assessment from the school's perspective?",
+      "question": "From the school's perspective, what is the main reason for this assessment?",
       "category": "prior",
       "next": "prior_2",
       "text_prompt": "Please type your answer:",
@@ -880,7 +880,7 @@
     },
     "prior_2": {
       "type": "mcq",
-      "question": "Has the student been previously assessed by an Educational Psychologist?",
+      "question": "To your knowledge, has the student previously been assessed by an Educational Psychologist?",
       "category": "prior",
       "options": [
         {
@@ -917,7 +917,7 @@
     },
     "prior_3": {
       "type": "mcq",
-      "question": "Other professional involvement (tick all that apply)",
+      "question": "Please indicate any other professionals currently involved with the student (please select all that apply).",
       "category": "prior",
       "options": [
         {
@@ -970,7 +970,7 @@
     },
     "prior_4": {
       "type": "mcq",
-      "question": "Existing diagnoses on file (tick all that apply)",
+      "question": "Please indicate any existing diagnoses recorded on file (please select all that apply).",
       "category": "prior",
       "options": [
         {
@@ -1033,7 +1033,7 @@
     },
     "prior_5": {
       "type": "mcq",
-      "question": "Does the student have an EHCP?",
+      "question": "Does the student have an Education, Health and Care Plan (EHCP) in place?",
       "category": "prior",
       "options": [
         {
@@ -1070,7 +1070,7 @@
     },
     "prior_6": {
       "type": "mcq",
-      "question": "Does the student have an IEP / Provision Plan?",
+      "question": "Does the student have an Individual Education Plan (IEP) or Provision Plan in place?",
       "category": "prior",
       "options": [
         {
@@ -1102,7 +1102,7 @@
     },
     "behaviour_1": {
       "type": "mcq",
-      "question": "How does the student present at school on a day-to-day basis?",
+      "question": "Which of the following best describes how the student generally presents at school on a day-to-day basis?",
       "category": "behaviour",
       "options": [
         {
@@ -1140,7 +1140,7 @@
     },
     "behaviour_2": {
       "type": "mcq",
-      "question": "Behaviour in general",
+      "question": "Based on your observations, how would you describe the student's behaviour in general?",
       "category": "behaviour",
       "options": [
         {
@@ -1177,7 +1177,7 @@
     },
     "behaviour_3": {
       "type": "mcq",
-      "question": "Behaviour during individual work",
+      "question": "Based on your observations, how would you describe the student's behaviour during individual work?",
       "category": "behaviour",
       "options": [
         {
@@ -1214,7 +1214,7 @@
     },
     "behaviour_4": {
       "type": "mcq",
-      "question": "Behaviour during small-group work",
+      "question": "Based on your observations, how would you describe the student's behaviour during small-group work?",
       "category": "behaviour",
       "options": [
         {
@@ -1251,7 +1251,7 @@
     },
     "behaviour_5": {
       "type": "mcq",
-      "question": "How does the student participate in group work?",
+      "question": "Based on your observations, how would you describe the student's participation in group work?",
       "category": "behaviour",
       "options": [
         {
@@ -1294,7 +1294,7 @@
     },
     "behaviour_6": {
       "type": "mcq",
-      "question": "Behaviour during lesson changeover / transitions",
+      "question": "Based on your observations, how would you describe the student's behaviour during lesson changeover and transitions?",
       "category": "behaviour",
       "options": [
         {
@@ -1331,7 +1331,7 @@
     },
     "behaviour_7": {
       "type": "mcq",
-      "question": "Are there any concerns about understanding or spoken language?",
+      "question": "To what extent do you have concerns about the student's understanding or spoken language?",
       "category": "behaviour",
       "options": [
         {
@@ -1385,7 +1385,7 @@
     },
     "behaviour_8": {
       "type": "mcq",
-      "question": "Are there any concerns about social interaction with peers?",
+      "question": "To what extent do you have concerns about the student's social interaction with peers?",
       "category": "behaviour",
       "options": [
         {
@@ -1439,7 +1439,7 @@
     },
     "behaviour_9": {
       "type": "mcq",
-      "question": "What does the student usually do during free time/break time at school?",
+      "question": "Based on your observations, how does the student typically spend free time or break time at school?",
       "category": "behaviour",
       "options": [
         {
@@ -1471,7 +1471,7 @@
     },
     "behaviour_10": {
       "type": "mcq",
-      "question": "Does the pupil manage to remain in the classroom and participate appropriately throughout the entire school day?",
+      "question": "To what extent is the student able to remain in the classroom and participate appropriately throughout the school day?",
       "category": "behaviour",
       "options": [
         {
@@ -1517,7 +1517,7 @@
     },
     "behaviour_11": {
       "type": "mcq",
-      "question": "Does the student need to make use of a quiet break-out space during the school day?",
+      "question": "How frequently does the student need to make use of a quiet break-out space during the school day?",
       "category": "behaviour",
       "options": [
         {
@@ -1563,7 +1563,7 @@
     },
     "behaviour_12": {
       "type": "mcq",
-      "question": "Does the student show emotional regulation difficulties at school?",
+      "question": "To what extent does the student experience difficulties with emotional regulation at school?",
       "category": "behaviour",
       "options": [
         {
@@ -1617,7 +1617,7 @@
     },
     "cognitive_1": {
       "type": "mcq",
-      "question": "Does the student have attention and concentration difficulties?",
+      "question": "To what extent does the student experience difficulties with attention and concentration during lessons?",
       "category": "cognitive",
       "options": [
         {
@@ -1671,7 +1671,7 @@
     },
     "cognitive_2": {
       "type": "mcq",
-      "question": "Would you say the student is forgetful?",
+      "question": "How frequently does the student appear to experience difficulties with memory or remembering information?",
       "category": "cognitive",
       "options": [
         {
@@ -1725,7 +1725,7 @@
     },
     "cognitive_3": {
       "type": "mcq",
-      "question": "Does the student struggle to copy from the board or keep up with note-taking?",
+      "question": "To what extent does the student experience difficulty copying information from the board or keeping pace with note-taking during lessons?",
       "category": "cognitive",
       "options": [
         {
@@ -1779,7 +1779,7 @@
     },
     "cognitive_4": {
       "type": "mcq",
-      "question": "Does the student follow multi-step verbal instructions?",
+      "question": "How consistently is the student able to follow multi-step verbal instructions?",
       "category": "cognitive",
       "options": [
         {
@@ -1827,7 +1827,7 @@
     },
     "cognitive_5": {
       "type": "mcq",
-      "question": "Does the student run out of time in tests or exams?",
+      "question": "How frequently does the student appear to run out of time during tests or examinations?",
       "category": "cognitive",
       "options": [
         {
@@ -1881,7 +1881,7 @@
     },
     "cognitive_6": {
       "type": "mcq",
-      "question": "Does the student reliably hand homework in on time?",
+      "question": "How consistently does the student hand homework in on time?",
       "category": "cognitive",
       "options": [
         {
@@ -1929,7 +1929,7 @@
     },
     "cognitive_7": {
       "type": "mcq",
-      "question": "Does the student have difficulty with lesson changeover, lockers, timetable, equipment?",
+      "question": "To what extent does the student experience difficulty managing lesson changeover, lockers, timetable or equipment?",
       "category": "cognitive",
       "options": [
         {
@@ -1983,7 +1983,7 @@
     },
     "subjects_1": {
       "type": "text",
-      "question": "What subjects / lessons does the student find difficult?",
+      "question": "Which subjects or lessons does the student appear to find difficult?",
       "category": "subjects",
       "next": "subjects_2",
       "text_prompt": "Please type your answer:",
@@ -1995,7 +1995,7 @@
     },
     "subjects_2": {
       "type": "text",
-      "question": "What subjects / lessons does the student find easy or manageable?",
+      "question": "Which subjects or lessons does the student appear to find easier or more manageable?",
       "category": "subjects",
       "next": "subjects_3",
       "text_prompt": "Please type your answer:",
@@ -2007,7 +2007,7 @@
     },
     "subjects_3": {
       "type": "text",
-      "question": "Does the student have any special abilities or interests?",
+      "question": "Please describe any particular strengths, abilities or interests you have observed in the student.",
       "category": "subjects",
       "next": "support_1",
       "text_prompt": "Please type your answer:",
@@ -2019,7 +2019,7 @@
     },
     "support_1": {
       "type": "mcq",
-      "question": "Type of support currently provided",
+      "question": "Which of the following best describes the type of support currently provided to the student?",
       "category": "support",
       "options": [
         {
@@ -2076,7 +2076,7 @@
     },
     "support_2": {
       "type": "mcq",
-      "question": "Frequency of support per week",
+      "question": "How frequently is this support provided each week?",
       "category": "support",
       "options": [
         {
@@ -2115,7 +2115,7 @@
     },
     "support_3": {
       "type": "mcq",
-      "question": "Length of support sessions",
+      "question": "What is the typical length of each support session?",
       "category": "support",
       "options": [
         {
@@ -2154,7 +2154,7 @@
     },
     "support_4": {
       "type": "mcq",
-      "question": "Group size for support",
+      "question": "What is the typical group size in which support is provided?",
       "category": "support",
       "options": [
         {
@@ -2193,7 +2193,7 @@
     },
     "support_5": {
       "type": "mcq",
-      "question": "Has the student been formally recognised as having difficulties with learning?",
+      "question": "To your knowledge, has the student been formally recognised as having difficulties with learning?",
       "category": "support",
       "options": [
         {
@@ -2225,7 +2225,7 @@
     },
     "support_6": {
       "type": "mcq",
-      "question": "Is the student on the SEND register?",
+      "question": "Is the student currently recorded on the school's Special Educational Needs and Disabilities (SEND) register?",
       "category": "support",
       "options": [
         {
@@ -2262,7 +2262,7 @@
     },
     "access_1": {
       "type": "mcq",
-      "question": "Has the school identified the student as eligible for any examination accommodations?",
+      "question": "Has the school identified the student as eligible for any examination access arrangements?",
       "category": "access",
       "options": [
         {
@@ -2309,7 +2309,7 @@
     },
     "access_2": {
       "type": "mcq",
-      "question": "Is the student already using a laptop as their normal way of working in class?",
+      "question": "Does the student already use a laptop as their normal way of working in class?",
       "category": "access",
       "options": [
         {
@@ -2375,7 +2375,7 @@
     },
     "access_4": {
       "type": "mcq",
-      "question": "Does the student use a word processor or computer to submit coursework / homework?",
+      "question": "Does the student use a word processor or computer to submit coursework or homework?",
       "category": "access",
       "options": [
         {
@@ -2407,7 +2407,7 @@
     },
     "impact_1": {
       "type": "mcq",
-      "question": "Does the student need constant supervision or reminders to complete homework?",
+      "question": "To what extent does the student require ongoing supervision or reminders in order to complete homework?",
       "category": "impact",
       "options": [
         {
@@ -2461,7 +2461,7 @@
     },
     "impact_2": {
       "type": "mcq",
-      "question": "Does the student have organisational difficulties (equipment, kit, books)?",
+      "question": "To what extent does the student experience difficulties with organisation, such as managing equipment, kit or books?",
       "category": "impact",
       "options": [
         {
@@ -2515,7 +2515,7 @@
     },
     "impact_3": {
       "type": "mcq",
-      "question": "Does the student ask for help when stuck, or shut down / mask?",
+      "question": "Which of the following best describes how the student typically responds when they encounter difficulty?",
       "category": "impact",
       "options": [
         {
@@ -2561,7 +2561,7 @@
     },
     "impact_4": {
       "type": "mcq",
-      "question": "Does the student show signs of school avoidance / refusal?",
+      "question": "How frequently does the student show signs of school avoidance or reluctance to attend?",
       "category": "impact",
       "options": [
         {
@@ -2615,7 +2615,7 @@
     },
     "summary_1": {
       "type": "text",
-      "question": "Most recent teacher feedback (quote where possible)",
+      "question": "Please share the most recent teacher feedback regarding the student, quoting directly where possible.",
       "category": "summary",
       "next": "summary_2",
       "text_prompt": "Please type your answer:",
@@ -2627,7 +2627,7 @@
     },
     "summary_2": {
       "type": "mcq",
-      "question": "Standardised internal scores available (CAT4, MidYIS, NGRT, SpLD screen)?",
+      "question": "Are any standardised internal scores available for the student (for example CAT4, MidYIS, NGRT or an SpLD screen)?",
       "category": "summary",
       "options": [
         {
@@ -2659,7 +2659,7 @@
     },
     "summary_3": {
       "type": "text",
-      "question": "Anything else relevant to the assessment?",
+      "question": "Is there anything further you consider relevant to this assessment?",
       "category": "summary",
       "next": "closing_message",
       "text_prompt": "Please type your answer:",
