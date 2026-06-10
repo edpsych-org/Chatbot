@@ -8,12 +8,15 @@ on:
 
 jobs:
   deploy:
-    runs-on: self-hosted   # ✅ FIXED
+    runs-on: self-hosted
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # ---------------------------
+      # Create environment file
+      # ---------------------------
       - name: Create .env
         run: |
           cat <<EOF > .env
@@ -71,9 +74,15 @@ jobs:
           BREVO_API_KEY=${{ secrets.BREVO_API_KEY }}
           EOF
 
+      # ---------------------------
+      # Fix .dockerignore issue
+      # ---------------------------
       - name: Allow .env in Docker build
         run: sed -i '/.env/d' .dockerignore || true
 
+      # ---------------------------
+      # AWS Login
+      # ---------------------------
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -84,21 +93,46 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
+      # ---------------------------
+      # Build + Push Image
+      # ---------------------------
       - name: Build & Push Docker Image
         env:
           REGISTRY: ${{ secrets.ECR_REGISTRY }}
           REPOSITORY: stage-chatbot-api
         run: |
-          docker build --no-cache \
-            -f Dockerfile-be \
+          IMAGE_TAG=${GITHUB_SHA}
+
+          echo "Building Docker image..."
+          docker build --no-cache -f Dockerfile-be \
+            -t $REGISTRY/$REPOSITORY:$IMAGE_TAG \
             -t $REGISTRY/$REPOSITORY:latest .
+
+          echo "Pushing images..."
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           docker push $REGISTRY/$REPOSITORY:latest
 
-      - name: Deploy to Amazon ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
-        with:
-          task-definition: stage-chatbot-api.json
-          cluster: stage-cluster
-          service: stage-chatbot-api-service
-          force-new-deployment: true
-          wait-for-service-stability: false
+      # ---------------------------
+      # Deploy on EC2 (Self-hosted runner)
+      # ---------------------------
+      - name: Deploy on EC2 (self-hosted runner)
+        env:
+          REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          REPOSITORY: stage-chatbot-api
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          echo "Stopping old container..."
+          docker stop stage-chatbot-api || true
+          docker rm stage-chatbot-api || true
+
+          echo "Pulling latest image..."
+          docker pull $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+          echo "Running new container..."
+          docker run -d \
+            --name stage-chatbot-api \
+            --restart unless-stopped \
+            -p 8000:8000 \
+            $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+          echo "Deployment completed successfully"
