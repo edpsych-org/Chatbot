@@ -3,12 +3,12 @@ name: Staging Backend Deploy
 on:
   push:
     branches:
-      - staging
+      - edpsych-patch-2
   workflow_dispatch:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted   # ✅ FIXED
 
     steps:
       - name: Checkout repository
