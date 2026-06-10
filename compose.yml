@@ -1,0 +1,81 @@
+# EdPsych AI — container stack
+# ==============================
+# One-command boot:  docker compose up --build
+#
+# Traffic routing (all via nginx on :80):
+#   http://<EC2-IP>        → frontend (catch-all default)
+#   http://edpsych.com     → frontend
+#   http://api.edpsych.com → backend
+#
+# Object storage is AWS S3 — configure AWS_* in .env. No MinIO.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: edpsych_postgres
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - edpsych_pgdata:/var/lib/postgresql/data
+    networks:
+      - edpsych-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: 476114133766.dkr.ecr.eu-west-2.amazonaws.com/prod-chatbot-be:latest
+    build:
+      context: .
+      dockerfile: Dockerfile-be
+    container_name: edpsych_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./logs/backend:/app/logs
+    networks:
+      - edpsych-network
+
+  frontend:
+    image: 476114133766.dkr.ecr.eu-west-2.amazonaws.com/prod-chatbot-fe:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    container_name: edpsych_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - edpsych-network
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: edpsych_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - edpsych-network
+
+networks:
+  edpsych-network:
+    driver: bridge
+
+volumes:
+  edpsych_pgdata:
