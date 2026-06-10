@@ -1240,17 +1240,17 @@
       "options": [
         {
           "value": "good",
-          "label": "Good",
+          "label": "Consistently appropriate",
           "next": "behaviour_2"
         },
         {
           "value": "average",
-          "label": "Average",
+          "label": "Generally appropriate, with occasional concerns",
           "next": "behaviour_2"
         },
         {
           "value": "weak",
-          "label": "Weak",
+          "label": "Some behavioural concerns",
           "next": "behaviour_2",
           "metadata": {
             "severity": "high"
@@ -1453,40 +1453,40 @@
     },
     "behaviour_5": {
       "type": "mcq",
-      "question": "To what extent does the student show signs of examination anxiety or underperformance under timed conditions?",
+      "question": "To what extent does the student show signs of examination anxiety (for example, apprehension before assessments, panic, or blanking)?",
       "category": "behaviour",
       "options": [
         {
           "value": "none",
           "label": "None",
-          "next": "behaviour_6",
           "metadata": {
             "severity": "none"
-          }
+          },
+          "next": "behaviour_5b"
         },
         {
           "value": "mild",
           "label": "Mild",
-          "next": "behaviour_6",
           "metadata": {
             "severity": "medium"
-          }
+          },
+          "next": "behaviour_5b"
         },
         {
           "value": "moderate",
           "label": "Moderate",
-          "next": "behaviour_6",
           "metadata": {
             "severity": "medium"
-          }
+          },
+          "next": "behaviour_5b"
         },
         {
           "value": "significant",
           "label": "Significant",
-          "next": "behaviour_6",
           "metadata": {
             "severity": "high"
-          }
+          },
+          "next": "behaviour_5b"
         }
       ],
       "allow_text": true,
@@ -1653,22 +1653,22 @@
       "options": [
         {
           "value": "less_than_1",
-          "label": "Less than 1",
+          "label": "Less than once a week",
           "next": "support_3"
         },
         {
           "value": "1_2",
-          "label": "1-2",
+          "label": "Once or twice a week",
           "next": "support_3"
         },
         {
           "value": "3_4",
-          "label": "3-4",
+          "label": "3-4 times a week",
           "next": "support_3"
         },
         {
           "value": "5_plus",
-          "label": "5+",
+          "label": "5+ times a week",
           "next": "support_3"
         },
         {
@@ -2512,6 +2512,52 @@
       "action": "generate_report",
       "metadata": {
         "category": "completion"
+      }
+    },
+    "behaviour_5b": {
+      "type": "mcq",
+      "question": "To what extent does the student underperform under timed conditions relative to their everyday classwork?",
+      "category": "behaviour",
+      "options": [
+        {
+          "value": "none",
+          "label": "None",
+          "metadata": {
+            "severity": "none"
+          },
+          "next": "behaviour_6"
+        },
+        {
+          "value": "mild",
+          "label": "Mild",
+          "metadata": {
+            "severity": "medium"
+          },
+          "next": "behaviour_6"
+        },
+        {
+          "value": "moderate",
+          "label": "Moderate",
+          "metadata": {
+            "severity": "medium"
+          },
+          "next": "behaviour_6"
+        },
+        {
+          "value": "significant",
+          "label": "Significant",
+          "metadata": {
+            "severity": "high"
+          },
+          "next": "behaviour_6"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "behaviour",
+        "section": "Section F - Behaviour & Emotional Profile",
+        "tag": "M"
       }
     }
   }
