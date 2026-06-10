@@ -2370,71 +2370,28 @@
     },
     "independent_learning_5": {
       "type": "mcq",
-      "question": "Has {student_name} considered medication or therapy for attention or mood difficulties?",
+      "question": "Has {student_name} considered, or is {student_name} taking, any medication for attention or mood difficulties?",
       "category": "independent_learning",
       "options": [
         {
           "value": "already_taking",
           "label": "Already taking",
-          "next": "independent_learning_6"
+          "next": "independent_learning_5b"
         },
         {
           "value": "considering",
           "label": "Considering",
-          "next": "independent_learning_6"
+          "next": "independent_learning_5b"
         },
         {
           "value": "not_considered",
           "label": "Not considered",
-          "next": "independent_learning_6"
+          "next": "independent_learning_5b"
         },
         {
           "value": "tried_but_stopped",
           "label": "Tried but stopped",
-          "next": "independent_learning_6"
-        }
-      ],
-      "allow_text": true,
-      "text_prompt": "Or describe in your own words:",
-      "metadata": {
-        "category": "independent_learning",
-        "section": "Section J2 - Daily Living & Independence (additional)",
-        "tag": "O"
-      }
-    },
-    "independent_learning_6": {
-      "type": "mcq",
-      "question": "Does {student_name} use alcohol or recreational drugs? (This is a sensitive question and is optional.)",
-      "category": "independent_learning",
-      "options": [
-        {
-          "value": "none_occasional_only",
-          "label": "None / occasional only",
-          "next": "independent_learning_7",
-          "metadata": {
-            "severity": "none"
-          }
-        },
-        {
-          "value": "moderate_but_managed",
-          "label": "Moderate but managed",
-          "next": "independent_learning_7",
-          "metadata": {
-            "severity": "medium"
-          }
-        },
-        {
-          "value": "concerns_would_like_support",
-          "label": "Concerns - would like support",
-          "next": "independent_learning_7",
-          "metadata": {
-            "severity": "high"
-          }
-        },
-        {
-          "value": "prefer_not_to_say",
-          "label": "Prefer not to say",
-          "next": "independent_learning_7"
+          "next": "independent_learning_5b"
         }
       ],
       "allow_text": true,
@@ -2527,7 +2484,7 @@
     },
     "strengths_1": {
       "type": "text",
-      "question": "What are {student_name}'s career goals, and in which direction do they hope to progress?",
+      "question": "What are {student_name}'s career goals, and in which direction does {student_name} hope to go?",
       "category": "strengths",
       "next": "strengths_2",
       "text_prompt": "Please type your answer:",
@@ -2640,7 +2597,7 @@
     },
     "strengths_6": {
       "type": "mcq",
-      "question": "How are {student_name}'s studies funded, or how are they supported financially?",
+      "question": "How are {student_name}'s studies funded, or how is {student_name} supported financially?",
       "category": "strengths",
       "options": [
         {
@@ -2696,6 +2653,40 @@
       "action": "generate_report",
       "metadata": {
         "category": "completion"
+      }
+    },
+    "independent_learning_5b": {
+      "type": "mcq",
+      "question": "Has {student_name} considered, or accessed, any therapy or counselling for attention or mood difficulties?",
+      "category": "independent_learning",
+      "options": [
+        {
+          "value": "already_taking",
+          "label": "Already taking",
+          "next": "independent_learning_7"
+        },
+        {
+          "value": "considering",
+          "label": "Considering",
+          "next": "independent_learning_7"
+        },
+        {
+          "value": "not_considered",
+          "label": "Not considered",
+          "next": "independent_learning_7"
+        },
+        {
+          "value": "tried_but_stopped",
+          "label": "Tried but stopped",
+          "next": "independent_learning_7"
+        }
+      ],
+      "allow_text": true,
+      "text_prompt": "Or describe in your own words:",
+      "metadata": {
+        "category": "independent_learning",
+        "section": "Section J2 - Daily Living & Independence (additional)",
+        "tag": "O"
       }
     }
   }
