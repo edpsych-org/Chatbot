@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout repository
@@ -39,13 +39,15 @@ jobs:
           docker build --no-cache \
             -f Dockerfile-fe \
             -t $REGISTRY/$REPOSITORY:latest .
+
           docker push $REGISTRY/$REPOSITORY:latest
 
-      - name: Deploy to Amazon ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
-        with:
-          task-definition: stage-chatbot-web.json
-          cluster: stage-cluster
-          service: stage-chatbot-web-service
-          force-new-deployment: true
-          wait-for-service-stability: false
+      - name: Deploy with Docker Compose
+        run: |
+          cd /home/ubuntu/actions-runner
+
+          docker compose -p prod -f prod-compose.yaml pull
+
+          docker compose -p prod -f prod-compose.yaml up -d
+
+          docker image prune -f
