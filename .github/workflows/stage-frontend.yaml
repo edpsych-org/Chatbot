@@ -46,8 +46,8 @@ jobs:
         run: |
           cd /home/ubuntu/actions-runner
 
-          docker compose -p prod -f prod-compose.yaml pull
+          docker compose -p stage -f stage-compose.yaml pull
 
-          docker compose -p prod -f prod-compose.yaml up -d
+          docker compose -p stage -f stage-compose.yaml up -d
 
           docker image prune -f
