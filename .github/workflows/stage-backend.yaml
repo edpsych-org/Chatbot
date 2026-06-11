@@ -94,11 +94,3 @@ jobs:
             -t $REGISTRY/$REPOSITORY:latest .
           docker push $REGISTRY/$REPOSITORY:latest
 
-      - name: Deploy to Amazon ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
-        with:
-          task-definition: stage-chatbot-api.json
-          cluster: stage-cluster
-          service: stage-chatbot-api-service
-          force-new-deployment: true
-          wait-for-service-stability: false
