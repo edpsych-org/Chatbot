@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+
+  backend:
+    image: 476114133766.dkr.ecr.eu-west-2.amazonaws.com/prod-chatbot-be:latest
+    container_name: prod-chatbot-api
+    restart: always
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    networks:
+      - app-network
+
+  frontend:
+    image: 476114133766.dkr.ecr.eu-west-2.amazonaws.com/prod-chatbot-fe:latest
+    container_name: prod-chatbot-web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://18.169.158.210:8000/api/v1
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

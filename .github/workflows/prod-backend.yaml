@@ -94,11 +94,13 @@ jobs:
             -t $REGISTRY/$REPOSITORY:latest .
           docker push $REGISTRY/$REPOSITORY:latest
 
-      - name: Deploy to Amazon ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
-        with:
-          task-definition: chatbot-be-revision.json
-          cluster: Prod_Cluster
-          service: chatbot-be-svc
-          force-new-deployment: true
-          wait-for-service-stability: false
+      - name: Deploy with Docker Compose
+        run: |
+          cd /home/ubuntu/actions-runner
+
+          docker compose -p prod -f prod-compose.yaml pull
+
+          docker compose -p prod -f prod-compose.yaml up -d
+
+          docker image prune -f
+
