@@ -4,48 +4,89 @@ on:
   push:
     branches:
       - edpsych-patch-2
+  workflow_dispatch:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted   # ✅ THIS IS THE KEY FIX
 
     steps:
+      # ---------------------------
+      # Checkout
+      # ---------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # ---------------------------
+      # Create .env (KEEP SAME)
+      # ---------------------------
       - name: Create .env for Next.js build
         run: |
-          echo "NEXT_PUBLIC_API_URL=${{ vars.STAGE_NEXT_PUBLIC_API_URL }}" > .env
-          echo "NODE_ENV=staging" >> .env
+          cat <<EOF > .env
+          NEXT_PUBLIC_API_URL=${{ vars.STAGE_NEXT_PUBLIC_API_URL }}
+          NODE_ENV=staging
+          EOF
 
+      # ---------------------------
+      # Allow .env in Docker build
+      # ---------------------------
       - name: Allow .env in Docker build
         run: sed -i '/.env/d' .dockerignore || true
 
+      # ---------------------------
+      # AWS LOGIN (ECR)
+      # ---------------------------
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.GH_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.GH_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
+      # ---------------------------
+      # BUILD + PUSH IMAGE
+      # ---------------------------
       - name: Build & Push Docker Image
         env:
           REGISTRY: ${{ secrets.ECR_REGISTRY }}
           REPOSITORY: stage-chatbot-web
         run: |
-          docker build --no-cache \
-            -f Dockerfile-fe \
+          IMAGE_TAG=${GITHUB_SHA}
+
+          echo "Building frontend image..."
+          docker build --no-cache -f Dockerfile-fe \
+            -t $REGISTRY/$REPOSITORY:$IMAGE_TAG \
             -t $REGISTRY/$REPOSITORY:latest .
+
+          echo "Pushing images..."
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           docker push $REGISTRY/$REPOSITORY:latest
 
-      - name: Deploy to Amazon ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
-        with:
-          task-definition: stage-chatbot-web.json
-          cluster: stage-cluster
-          service: stage-chatbot-web-service
-          force-new-deployment: true
-          wait-for-service-stability: false
+      # ---------------------------
+      # DEPLOY ON EC2 (SELF-HOSTED RUNNER)
+      # ---------------------------
+      - name: Deploy Frontend on EC2
+        env:
+          REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          REPOSITORY: stage-chatbot-web
+        run: |
+          set -e
+
+          echo "Stopping old container..."
+          docker stop stage-chatbot-web || true
+          docker rm stage-chatbot-web || true
+
+          echo "Pulling latest image..."
+          docker pull $REGISTRY/$REPOSITORY:latest
+
+          echo "Starting new container..."
+          docker run -d \
+            --name stage-chatbot-web \
+            --restart unless-stopped \
+            -p 3000:3000 \
+            $REGISTRY/$REPOSITORY:latest
+
+          echo "Deployment completed successfully"
