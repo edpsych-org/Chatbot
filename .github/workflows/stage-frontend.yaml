@@ -3,7 +3,7 @@ name: Staging Frontend Deploy
 on:
   push:
     branches:
-      - staging
+      - edpsych-patch-2
 
 jobs:
   deploy:
