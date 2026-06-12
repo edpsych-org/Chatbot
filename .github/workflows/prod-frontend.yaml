@@ -41,12 +41,20 @@ jobs:
             -t $REGISTRY/$REPOSITORY:latest .
           docker push $REGISTRY/$REPOSITORY:latest
 
-      - name: Deploy with Docker Compose
-        run: |
-          cd /home/ubuntu/actions-runner
-
-          docker compose -p prod -f prod-compose.yaml pull
-
-          docker compose -p prod -f prod-compose.yaml up -d
-
-          docker image prune -f
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd /home/ubuntu/actions-runner
+            echo "Pulling latest images..."
+            docker compose -p stage -f stage-compose.yaml pull
+            echo "Restarting containers..."
+            docker compose -p stage -f stage-compose.yaml up -d
+            echo "Cleaning up old images..."
+            docker image prune -af
+            echo "Deployment complete!"
+            docker ps --filter "name=stage-chatbot"
