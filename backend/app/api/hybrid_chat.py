@@ -173,6 +173,13 @@ class EditMessageIn(BaseModel):
 # FLOW SELECTION
 # ============================================================================
 
+# For individuals aged 18 and over there is a SINGLE questionnaire — the
+# Adult Self-Report. There is no parent variant and no separate university /
+# workplace variant for this age band; both role-based selectors converge on
+# this flow once the person is 18+.
+ADULT_SELF_FLOW = "adult_self_assessment_v1"
+
+
 def _select_parent_flow(age_str: Optional[str]) -> str:
     """Pick the per-age-band parent flow id from the child's computed age.
 
@@ -181,7 +188,8 @@ def _select_parent_flow(age_str: Optional[str]) -> str:
       11-13   -> parent_assessment_11_14_v1   (inclusive of Y7-Y9)
       14-15   -> parent_assessment_14_16_v1   (GCSE)
       16-17   -> parent_assessment_16_18_v1   (A-Level / Sixth Form / IB)
-      >=18    -> parent_assessment_18plus_v1  (Adult / HE)
+      >=18    -> adult_self_assessment_v1      (Adult Self-Report — the ONLY
+                                                questionnaire for 18+)
 
     Falls back to the legacy unified parent flow when age is unknown or
     the per-age flow has not been loaded by the FlowEngine.
@@ -204,7 +212,8 @@ def _select_parent_flow(age_str: Optional[str]) -> str:
     elif age < 18:
         candidate = "parent_assessment_16_18_v1"
     else:
-        candidate = "parent_assessment_18plus_v1"
+        # 18+ uses the Adult Self-Report questionnaire, not a parent flow.
+        candidate = ADULT_SELF_FLOW
 
     # If the per-age flow hasn't been deployed yet (older backend release
     # or a flow file missing from the flows directory), fall back to the
@@ -222,7 +231,9 @@ def _select_school_flow(age_str: Optional[str]) -> str:
       11-13   -> school_assessment_11_14_v1
       14-15   -> school_assessment_14_16_v1
       16-17   -> school_assessment_16_18_v1
-      >=18    -> school_assessment_18plus_v1
+      >=18    -> adult_self_assessment_v1   (Adult Self-Report — the ONLY
+                                             questionnaire for 18+; there is
+                                             no separate university variant)
 
     Falls back to the legacy school_assessment_v1 when age is unknown or
     the per-age flow has not been loaded.
@@ -245,7 +256,8 @@ def _select_school_flow(age_str: Optional[str]) -> str:
     elif age < 18:
         candidate = "school_assessment_16_18_v1"
     else:
-        candidate = "school_assessment_18plus_v1"
+        # 18+ uses the Adult Self-Report questionnaire, not a school flow.
+        candidate = ADULT_SELF_FLOW
 
     if candidate not in flow_engine.flows:
         return fallback
