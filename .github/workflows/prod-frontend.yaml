@@ -49,12 +49,21 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
+
+            echo "Logging into ECR..."
+            aws ecr get-login-password --region eu-west-2 \
+            | docker login --username AWS --password-stdin 476114133766.dkr.ecr.eu-west-2.amazonaws.com
+
             cd /home/ubuntu/actions-runner
+
             echo "Pulling latest images..."
-            docker compose -p stage -f stage-compose.yaml pull
+            docker compose -p prod -f prod-compose.yaml pull
+
             echo "Restarting containers..."
-            docker compose -p stage -f stage-compose.yaml up -d
+            docker compose -p prod -f prod-compose.yaml up -d
+
             echo "Cleaning up old images..."
             docker image prune -af
+
             echo "Deployment complete!"
-            docker ps --filter "name=stage-chatbot"
+            docker ps --filter "name=prod-chatbot"
