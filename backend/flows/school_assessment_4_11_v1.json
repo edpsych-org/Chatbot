@@ -1231,7 +1231,7 @@
       "options": [
         {
           "value": "good",
-          "label": "Good",
+          "label": "Consistently appropriate",
           "next": "behaviour_presentation",
           "metadata": {
             "severity": "none"
@@ -1239,12 +1239,12 @@
         },
         {
           "value": "average",
-          "label": "Average",
+          "label": "Generally appropriate, with occasional concerns",
           "next": "behaviour_presentation"
         },
         {
           "value": "weak",
-          "label": "Weak",
+          "label": "Some behavioural concerns",
           "next": "behaviour_presentation",
           "metadata": {
             "severity": "high"
@@ -2242,22 +2242,22 @@
       "options": [
         {
           "value": "less_than_1",
-          "label": "Less than 1",
+          "label": "Less than once a week",
           "next": "support_provision_3"
         },
         {
           "value": "1_2",
-          "label": "1-2",
+          "label": "Once or twice a week",
           "next": "support_provision_3"
         },
         {
           "value": "3_4",
-          "label": "3-4",
+          "label": "3-4 times a week",
           "next": "support_provision_3"
         },
         {
           "value": "5_plus",
-          "label": "5+",
+          "label": "5+ times a week",
           "next": "support_provision_3"
         },
         {

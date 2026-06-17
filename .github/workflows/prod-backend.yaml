@@ -94,11 +94,20 @@ jobs:
             -t $REGISTRY/$REPOSITORY:latest .
           docker push $REGISTRY/$REPOSITORY:latest
 
-      - name: Deploy to Amazon ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          task-definition: chatbot-be-revision.json
-          cluster: Prod_Cluster
-          service: chatbot-be-svc
-          force-new-deployment: true
-          wait-for-service-stability: false
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd /home/ubuntu/actions-runner
+            echo "Pulling latest images..."
+            docker compose -p stage -f stage-compose.yaml pull
+            echo "Restarting containers..."
+            docker compose -p stage -f stage-compose.yaml up -d
+            echo "Cleaning up old images..."
+            docker image prune -af
+            echo "Deployment complete!"
+            docker ps --filter "name=stage-chatbot"
