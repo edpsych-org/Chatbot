@@ -52,6 +52,23 @@ def _validate_runtime_config() -> None:
     if getattr(settings, "USE_GROQ", False) and not settings.GROQ_API_KEY:
         logger.error("GROQ enabled but key missing")
 
+    # Email: invite / magic-link delivery silently no-ops when Brevo is not
+    # configured. In production that means assessment links never reach
+    # parents/schools — make it impossible to miss in the logs.
+    if not getattr(settings, "BREVO_API_KEY", ""):
+        if getattr(settings, "DEBUG_MODE", False):
+            logger.warning(
+                "📭 BREVO_API_KEY not set — running in EMAIL DEV MODE. Invite and "
+                "magic-link emails will be logged, NOT delivered."
+            )
+        else:
+            logger.error(
+                "📭 BREVO_API_KEY is NOT set in a non-debug environment. Invite "
+                "and assessment-link emails will NOT be delivered. Set "
+                "BREVO_API_KEY and verify the sender address (%s) in Brevo.",
+                getattr(settings, "EMAIL_FROM_ADDRESS", "<unset>"),
+            )
+
 
 async def _wait_for_db(max_attempts: int = 8, base_delay: float = 1.0) -> None:
     last_exc = None

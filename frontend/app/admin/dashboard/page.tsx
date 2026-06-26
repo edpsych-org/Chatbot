@@ -418,10 +418,26 @@ export default function AdminDashboard() {
       if (res.ok) {
         const data = await res.json();
         const link = data.magic_link || "";
-        // Copy to clipboard silently so the admin can paste if needed, but don't
-        // leak the raw URL into the success popup — Brevo has already emailed it.
+        // Always copy the link so the admin can share it manually if needed.
         try { await navigator.clipboard.writeText(link); } catch {}
-        showAlert("Magic Link Sent", `Emailed to ${data.sent_to} via Brevo. The link has also been copied to your clipboard.`, "success");
+        if (data.email_sent) {
+          showAlert(
+            "Magic Link Sent",
+            `Emailed to ${data.sent_to}. The link has also been copied to your clipboard.`,
+            "success",
+          );
+        } else {
+          // Email did NOT go out (Brevo not configured, or delivery failed).
+          // Surface it instead of pretending it sent.
+          const reason = data.email_status === "dev_mode"
+            ? "email is not configured on this environment"
+            : "the email could not be delivered";
+          showAlert(
+            "Email not sent — link copied",
+            `The invite to ${data.sent_to} was NOT emailed (${reason}). The magic link has been copied to your clipboard — please share it with them manually.`,
+            "danger",
+          );
+        }
       } else showAlert("Error", "Failed to resend invite", "danger");
     } catch { showAlert("Error", "Network error", "danger"); }
   };

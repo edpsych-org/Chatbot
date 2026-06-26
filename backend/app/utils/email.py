@@ -22,8 +22,26 @@ BREVO_API_KEY = settings.BREVO_API_KEY
 EMAIL_FROM_NAME = settings.EMAIL_FROM_NAME
 EMAIL_FROM_ADDRESS = settings.EMAIL_FROM_ADDRESS
 
+# True when a Brevo API key is configured. When False, send_email() runs in
+# DEV mode (logs the email, sends nothing). Callers MUST consult this so they
+# can surface "not actually delivered" to the user rather than reporting a
+# false success.
+EMAIL_ENABLED = bool(BREVO_API_KEY)
+
 # Default magic link expiry — uses settings if explicitly configured.
 DEFAULT_LINK_EXPIRY_HOURS = settings.MAGIC_LINK_EXPIRY_HOURS
+
+
+def email_send_status(delivered: bool) -> str:
+    """Map a send_email() return value to a status string for API responses.
+
+    - "sent"     : a real email was accepted by Brevo.
+    - "dev_mode" : no Brevo key configured; email was logged, not delivered.
+    - "failed"   : Brevo (or the transport) rejected the message.
+    """
+    if not EMAIL_ENABLED:
+        return "dev_mode"
+    return "sent" if delivered else "failed"
 
 
 def _format_expiry(hours: int) -> str:
