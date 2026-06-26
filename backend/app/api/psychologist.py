@@ -7,6 +7,8 @@ Comprehensive workflow for psychologists including:
 - Report review and approval
 """
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_
@@ -25,7 +27,9 @@ from app.models.upload import IQTestUpload, UploadStatus, CognitiveProfile
 from app.models.chat import ChatSession
 from app.models.report import GeneratedReport, ReportStatus, FinalReport, FinalReportStatus
 from app.utils.magic_link import create_invite_magic_link
-from app.utils.email import send_assessment_assignment_email
+from app.utils.email import send_assessment_assignment_email, email_send_status, EMAIL_ENABLED
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/psychologist", tags=["psychologist"])
 
@@ -270,21 +274,35 @@ async def assign_assessment_with_secure_link(
 
     # Send assessment assignment email with magic link
     student_name = f"{student.first_name} {student.last_name}"
-    send_assessment_assignment_email(
-        parent_email=parent.email,
-        parent_name=parent.full_name or parent.email,
-        student_name=student_name,
-        psychologist_name=current_user.full_name or "Your Psychologist",
-        assessment_link=magic_link_url,
-        expiry_hours=settings.MAGIC_LINK_EXPIRY_HOURS,
-    )
+    try:
+        delivered = send_assessment_assignment_email(
+            parent_email=parent.email,
+            parent_name=parent.full_name or parent.email,
+            student_name=student_name,
+            psychologist_name=current_user.full_name or "Your Psychologist",
+            assessment_link=magic_link_url,
+            expiry_hours=settings.MAGIC_LINK_EXPIRY_HOURS,
+        )
+        email_status = email_send_status(bool(delivered))
+    except Exception as exc:
+        logger.warning("Assignment %s: invite email raised for %s: %s",
+                       new_assignment.id, parent.email, exc)
+        email_status = "failed"
+    email_sent = email_status == "sent"
 
     return {
         "success": True,
         "assignment_id": str(new_assignment.id),
         "magic_link": magic_link_url,
         "status": "assigned",
-        "message": "Assessment assigned and notifications sent"
+        "email_sent": email_sent,
+        "email_status": email_status,
+        "email_enabled": EMAIL_ENABLED,
+        "message": (
+            "Assessment assigned and invite emailed." if email_sent
+            else "Assessment assigned, but the invite email was not delivered — "
+                 "share the magic link manually."
+        ),
     }
 
 
@@ -346,19 +364,32 @@ async def resend_magic_link(
 
     # Send email
     student_name = f"{student.first_name} {student.last_name}" if student else "your child"
-    send_assessment_assignment_email(
-        parent_email=parent.email,
-        parent_name=parent.full_name or parent.email,
-        student_name=student_name,
-        psychologist_name=current_user.full_name or "Your Psychologist",
-        assessment_link=magic_link_url,
-        expiry_hours=settings.MAGIC_LINK_EXPIRY_HOURS,
-    )
+    try:
+        delivered = send_assessment_assignment_email(
+            parent_email=parent.email,
+            parent_name=parent.full_name or parent.email,
+            student_name=student_name,
+            psychologist_name=current_user.full_name or "Your Psychologist",
+            assessment_link=magic_link_url,
+            expiry_hours=settings.MAGIC_LINK_EXPIRY_HOURS,
+        )
+        email_status = email_send_status(bool(delivered))
+    except Exception as exc:
+        logger.warning("Resend invite email raised for %s: %s", parent.email, exc)
+        email_status = "failed"
+    email_sent = email_status == "sent"
 
     return {
-        "message": "Magic link resent successfully",
+        "message": (
+            "Magic link emailed successfully." if email_sent
+            else "The invite email was not delivered — copy the link and share "
+                 "it manually."
+        ),
         "magic_link": magic_link_url,
-        "sent_to": parent.email
+        "sent_to": parent.email,
+        "email_sent": email_sent,
+        "email_status": email_status,
+        "email_enabled": EMAIL_ENABLED,
     }
 
 

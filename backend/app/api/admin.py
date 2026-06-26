@@ -13,6 +13,7 @@ from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field, model_validator
 from datetime import datetime, timezone
 from io import BytesIO
+import logging
 import re
 
 from app.core.database import get_db
@@ -30,7 +31,9 @@ from app.models.upload import IQTestUpload, CognitiveProfile
 from app.models.report import GeneratedReport
 from app.schemas.user import UserCreate, UserResponse
 from app.utils.magic_link import create_invite_magic_link
-from app.utils.email import send_assessment_assignment_email
+from app.utils.email import send_assessment_assignment_email, email_send_status, EMAIL_ENABLED
+
+logger = logging.getLogger(__name__)
 
 
 class AdminUserUpdate(BaseModel):
@@ -1361,7 +1364,7 @@ async def admin_assign_assessment(
     due_str = assignment.due_date.strftime("%d %b %Y") if assignment.due_date else None
     for row in created:
         try:
-            send_assessment_assignment_email(
+            delivered = send_assessment_assignment_email(
                 parent_email=row["guardian_email"],
                 parent_name=row["guardian_name"],
                 student_name=student_name,
@@ -1372,10 +1375,28 @@ async def admin_assign_assessment(
                 notes=assignment.notes,
                 expiry_hours=settings.MAGIC_LINK_EXPIRY_HOURS,
             )
-            row["email_sent"] = True
-        except Exception:
+            # Honour BOTH the boolean return and whether email is configured —
+            # a Brevo rejection (False) or dev-mode (no key) must NOT be
+            # reported as a successful send.
+            status = email_send_status(bool(delivered))
+            row["email_status"] = status
+            row["email_sent"] = status == "sent"
+            if status != "sent":
+                logger.warning(
+                    "Assignment %s: invite email not delivered to %s (status=%s). "
+                    "Magic link must be shared manually.",
+                    row["assignment_id"], row["guardian_email"], status,
+                )
+        except Exception as exc:
             # Email failure is non-fatal — the admin can use the magic_link URL directly
             row["email_sent"] = False
+            row["email_status"] = "failed"
+            logger.warning(
+                "Assignment %s: invite email raised for %s: %s",
+                row["assignment_id"], row["guardian_email"], exc,
+            )
+
+    any_failed = any(not r["email_sent"] for r in created)
 
     return {
         "success": True,
@@ -1385,9 +1406,14 @@ async def admin_assign_assessment(
         "assignment_id": created[0]["assignment_id"] if created else None,
         "magic_link": created[0]["magic_link"] if created else None,
         "status": "assigned" if created else "skipped",
+        "email_enabled": EMAIL_ENABLED,
+        "any_email_failed": any_failed,
         "message": (
             f"Created {len(created)} assignment(s), skipped {len(skipped)} "
             "with active assignments."
+            + ("" if not any_failed else
+               " NOTE: one or more invite emails were not delivered — share the "
+               "magic link(s) manually.")
         ),
     }
 
@@ -1458,22 +1484,47 @@ async def admin_resend_magic_link(
     student_name = (
         f"{student.first_name} {student.last_name}" if student else "the student"
     )
-    send_assessment_assignment_email(
-        parent_email=parent.email,
-        parent_name=parent.full_name or parent.email,
-        student_name=student_name,
-        psychologist_name=current_user.full_name or "The Ed Psych Practice",
-        assessment_link=magic_link_url,
-        relationship_type=rel_type,
-        due_date=(assignment.due_date.strftime("%d %b %Y") if assignment.due_date else None),
-        notes=assignment.notes,
-        expiry_hours=settings.MAGIC_LINK_EXPIRY_HOURS,
-    )
+    try:
+        delivered = send_assessment_assignment_email(
+            parent_email=parent.email,
+            parent_name=parent.full_name or parent.email,
+            student_name=student_name,
+            psychologist_name=current_user.full_name or "The Ed Psych Practice",
+            assessment_link=magic_link_url,
+            relationship_type=rel_type,
+            due_date=(assignment.due_date.strftime("%d %b %Y") if assignment.due_date else None),
+            notes=assignment.notes,
+            expiry_hours=settings.MAGIC_LINK_EXPIRY_HOURS,
+        )
+        status = email_send_status(bool(delivered))
+    except Exception as exc:
+        logger.warning("Resend invite email raised for %s: %s", parent.email, exc)
+        status = "failed"
+
+    email_sent = status == "sent"
+    if not email_sent:
+        logger.warning(
+            "Resend: invite email not delivered to %s (status=%s). "
+            "Magic link returned for manual sharing.",
+            parent.email, status,
+        )
+
+    if status == "sent":
+        message = "Magic link emailed successfully."
+    elif status == "dev_mode":
+        message = ("Email is not configured on this environment — the link was "
+                   "NOT emailed. Copy the link and share it manually.")
+    else:
+        message = ("The invite email could not be delivered — copy the link and "
+                   "share it manually.")
 
     return {
-        "message": "Magic link resent successfully",
+        "message": message,
         "magic_link": magic_link_url,
         "sent_to": parent.email,
+        "email_sent": email_sent,
+        "email_status": status,
+        "email_enabled": EMAIL_ENABLED,
     }
 
 
